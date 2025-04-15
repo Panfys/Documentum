@@ -1,0 +1,9 @@
+# Игнорируемые файлы
+.env
+logs/
+*.log
+*.exe
+*.test
+*.out
+*.local
+docker-compose.override.yml
