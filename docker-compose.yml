@@ -32,7 +32,6 @@ services:
     command: air -c .air.toml
     volumes:
       - .:/app
-      - ./logs:/app/logs
       - /go/pkg/mod 
 
 volumes:

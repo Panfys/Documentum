@@ -9,3 +9,4 @@ logs/
 docker-compose.override.yml
 config.json
 web/sourse/
+tmp/
