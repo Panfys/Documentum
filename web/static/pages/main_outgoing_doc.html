@@ -1,0 +1,149 @@
+{{define "outgoing_doc"}}
+<div class="tubs__container--title" id="outgoing-head-title">
+  <div class="tubs__title--mainblock">
+    <div class="tubs__title--block">
+      <p class="tubs__title">Журнал учета исходящих документов</p>
+      <span class="tubs__title--span" id="title-span">/</span>
+      <p class="tubs__folder" id="head-folder"></p>
+    </div>
+
+    <div class="tubs__title--block" id="docpanel-btn-block">
+
+      <!-- Надо убирать, при нажатии на другу кнопку-->
+      <button class="tubs__title--btn" id="btn-search">Поиск</button>
+      <!-- Панель нового документа-->
+      <div class="tubs__title--docpanel" id="title-newdocpanel">
+        <button class="tubs__title--btn" id="btn-newdoc-addfile">Файл</button>
+        <button class="tubs__title--btn" id="btn-newdoc-clearnewdoc">Очистить</button>
+        <button class="tubs__title--btn" id="btn-newdoc-addnewdoc">Записать</button>
+      </div>
+      <!-- Панель документа-->
+      <div class="tubs__title--docpanel" id="title-docpanel">
+        <!-- <button class="tubs__title--btn" id="btn-doc-like">Избранный</button>-->
+        <!--<button class="tubs__title--btn" id="btn-doc-change">Изменить</button>
+        <button class="tubs__title--btn" id="btn-doc-delete">Удалить</button>
+        <button class="tubs__title--btn" id="btn-doc-save">Сохранить</button>-->
+      </div>
+
+      <button class="tubs__title--btn" id="btn-newdoc">Новый документ</button>
+    </div>
+  </div>
+</div>
+
+<div class="tubs__container--head" id="outgoing-head-container">
+  <table class="tubs__table" id="outgoing-haed-table">
+    <tr>
+      <th class="table__column--number">Порядковый номер <br>и дата учета</th>
+      <th class="table__column--number">Номер и дата поступившего документа</th>
+      <th class="table__column--name">Наименование или краткое содержание документа</th>
+      <th class="table__column--sender">Куда (кому) отправлен документ</th>
+      <th class="table__column--ispolnitel">Кем исполнен документ</th>
+      <th class="table__column--result">Какой входящий номер исполнен</th>
+      <th class="table__column--familiar">C документом ознакомлены</th>
+      <th class="table__column--count">Количество экземпляров</td>
+      <th class="table__column--copy">Номер экземпляра</td>
+      <th class="table__column--width">Количество листов</td>
+      <th class="table__column--location">Отметка о подшивке</td>
+      <th class="table__column--button">
+        <button class="table__btn--setpanel"></button>
+      </th>
+    </tr>
+  </table>
+</div>
+
+<div class="tubs__container--hidden" id="outgoing-hidden-container">
+
+  <table class="tubs__table" id="outgoing-hidden-table">
+    <tr>
+      <th class="table__column--number">Порядковый номер <br>и дата учета</th>
+      <th class="table__column--number">Номер и дата поступившего документа</th>
+      <th class="table__column--name">Наименование или краткое содержание документа</th>
+      <th class="table__column--sender">Куда (кому) отправлен документ</th>
+      <th class="table__column--ispolnitel">Кем исполнен документ</th>
+      <th class="table__column--result">Какой входящий номер исполнен</th>
+      <th class="table__column--familiar">C документом ознакомлены</th>
+      <th class="table__column--count">Количество экземпляров</td>
+      <th class="table__column--copy">Номер экземпляра</td>
+      <th class="table__column--width">Количество листов</td>
+      <th class="table__column--location">Отметка о подшивке</td>
+      <th class="table__column--button">
+        <button class="table__btn--setpanel"></button>
+      </th>
+    </tr>
+  </table>
+</div>
+
+<form class="tubs__form--newdoc" id="form-newdoc" enctype="multipart/form-data" method="post" onsubmit="return false;">
+  <table class="tubs__table tubs__table--newdoc" id="table-newdoc" btn-id="outgoing">
+    <tr>
+      <td class="table__column--number">
+        <input class="table__text--input" id="input-newdoc-fnum" name="fnum" type="text" value="330/">
+        <br> от
+        <input class="table__data--input" id="input-newdoc-fdate" name="fdate" type="date" value="">
+      </td>
+
+      <td class="table__column--number">
+        <input class="table__text--input" id="input-newdoc-lnum" name="lnum" type="text">
+        <br> от
+        <input class="table__data--input" id="input-newdoc-ldate" name="ldate" type="date">
+      </td>
+
+      <td class="table__column--name">
+        <input class="table__text--input" id="input-newdoc-name" name="name" type="text">
+      </td>
+
+      <td class="table__column--sender" id="column-newdoc-sender">
+        <input class="table__text--input" id="input-newdoc-sender" name="sender" type="text">
+      </td>
+
+      <td class="table__column--ispolnitel">
+        <input class="table__text--input" id="input-newdoc-ispolnitel" name="ispolnitel" type="text">
+      </td>
+
+      <td class="table__column--result">
+        <input class="table__text--input" id="input-newdoc-result" name="result" type="text">
+      </td>
+
+      <td class="table__column--familiar">
+        <input class="table__text--input" id="input-newdoc-familiar" name="familiar" type="text"
+          value="{{.Name}}" readonly>
+      </td>
+
+      <td class="table__column--count">
+        <input class="table__text--input" id="input-newdoc-count" name="count" type="number">
+      </td>
+
+      <td class="table__column--copy" id="column-newdoc-copy">
+        <input class="table__text--input" id="input-newdoc-copy" name="copy" type="text">
+      </td>
+
+      <td class="table__column--width">
+        <input class="table__text--input" id="input-newdoc-width" name="width" type="number">
+      </td>
+
+      <td class="table__column--location">
+        <input class="table__text--input" id="input-newdoc-location" name="location" type="text">
+      </td>
+
+      <td class="table__column--button">
+        <button class="table__btn--opendoc" id="btn-newdoc-open"></button>
+      </td>
+    </tr>
+  </table>
+
+  <input class="table__file--input" id="input-newdoc-file" name="file" type="file">
+
+  <div class="table__file--panel" id="newdoc-file-panel">
+    <div class="table__file--img" id="newdoc-file-img"></div>
+    <div class="table__file--text">
+      <h1 class="table__file--name" id="newdoc-file-name"></h1>
+      <p class="table__file--size" id="newdoc-file-size"></p>
+    </div>
+  </div>
+  <div class="table__resolution-panel table__newresolution-panel" id="newdoc-resolution-panel"></div>
+</form>
+
+<div class="tubs__container--documents" id="outgoing-documents-container"></div>
+
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+{{end}}

@@ -1,0 +1,41 @@
+services:
+    # MySQL Database Service
+  db:
+    image: mysql:latest
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+  
+  #Adminer
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  
+  #GO server
+  app:
+    build: .
+    ports:
+      - 80:80
+    depends_on:
+      - db  
+    restart: unless-stopped
+    command: air -c .air.toml
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - /go/pkg/mod 
+
+volumes:
+  mysql_data:
+ 
+  

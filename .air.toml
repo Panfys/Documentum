@@ -1,0 +1,14 @@
+root = "."
+tmp_dir = "logs/tmp"
+
+[build]
+cmd = "go build -o ./tmp/documentum ./cmd/main.go"
+bin = "tmp/documentum"
+full_bin = "./tmp/documentum"
+include_ext = ["go", "toml", "yaml", "yml", "json", "sql"]
+exclude_dir = ["assets", "tmp", "vendor", "logs"]
+delay = 1000
+stop_on_error = true
+
+[log]
+time = false

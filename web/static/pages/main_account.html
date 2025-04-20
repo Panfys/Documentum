@@ -1,0 +1,71 @@
+{{define "account"}}
+<div class="main__account--content">
+
+  {{if .Icon}}
+    <label class="account__img">
+      <p>Изменить фотографию</p>
+      <input class="account__icon--intut" name="icon" type="file" accept=".jpeg, .png, .jpg, .ico">
+    </label>
+
+    <style>
+      .account__img {
+        background-image: url("{{.Icon}}");
+      }
+    </style> 
+
+    {{else}}
+    <label class="account__icon"><p>Загрузить фотографию</p>
+      <input class="account__icon--intut" name="icon" type="file" accept=".jpeg, .png, .jpg, .ico">
+    </label>
+    {{end}}
+
+  <h1 class="account__name" id="account-name" >{{.Name}}</h1>
+  <h2 class="account__function">{{.Func}}</h2>
+  <h3 class="account__sign">должность</h3>
+
+  {{if .Group}}
+    <h2 class="account__group" >{{.Group}}</h2>
+    <h3 class="account__sign">подразделение</h3>
+  {{end}}
+
+  <h2 class="account__unit">{{.Unit}}</h2>
+  <h3 class="account__sign">структурное подразделение</h3>
+  <h2 class="account__status">{{.Status}}</h2>
+  <h3 class="account__sign">статус</h3>
+
+  <button class="account__password--btn" id="account-btn-open">Изменить пароль</button>
+  <div class="account__password--panel">
+
+    <div class="account__password--input-box">
+      <label id="account-pass-lable">Старый пароль</label>
+      <input type="password" id="account-pass-input" name="pass" placeholder="password">
+    </div>
+
+    <p class="authorization__messages" id="account-pass-message"></p>
+
+    <div class="account__password--input-box">
+      <label id="account-newpass-lable">Новый пароль</label>
+      <input type="password" id="account-newpass-input" name="newpass" placeholder="newpassword">
+    </div>
+
+    <p class="authorization__messages" id="account-newpass-message"></p>
+
+    <div class="account__password--input-box">
+      <label id="account-repass-lable">Повторите пароль</label>
+      <input type="password" id="account-repass-input" name="repass" placeholder="newpassword">
+    </div>
+
+    <p class="authorization__messages" id="account-repass-message"></p>
+
+    <div class="account__password--buttons">
+      <button class="account__password--btn" id="account-btn-close">Отмена</button>
+      <button class="account__password--btn" id="account-btn-change">Изменить</button>
+    </div>
+  </div>
+  
+  <p class="account__messages" id="account-chengepass-message"></p>
+
+  <button class="account__password--btn" id="account-btn-exit">Выйти из аккаунта</button>
+
+</div>
+{{end}}
