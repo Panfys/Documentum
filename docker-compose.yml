@@ -1,0 +1,46 @@
+services:
+    # MySQL Database Service
+  db:
+    image: mysql:latest
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 2EBf5319!
+      MYSQL_DATABASE: documentum
+      MYSQL_USER: user
+      MYSQL_PASSWORD: qweR1234
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+  
+  #Adminer
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  
+  #GO server
+  app:
+    build: .
+    ports:
+      - 80:80
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=secret
+      - DB_NAME=documentum
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - db  
+    restart: unless-stopped
+    command: air -c .air.toml
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - /go/pkg/mod 
+
+volumes:
+  mysql_data:
+ 
+  
