@@ -5,7 +5,6 @@ import (
 	"log"
 	"documentum/pkg/config"
 	"documentum/pkg/server"
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -16,18 +15,21 @@ func main() {
 	// Подключение к MySQL
 	db, err := sql.Open("mysql", cfg.DBConnectionString)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalf("Ошибка подключения к БД: %v", err)
 	}
 	defer db.Close()
 
 	// Проверка соединения
 	if err := db.Ping(); err != nil {
-		log.Fatalf("Failed to ping database: %v", err)
+		log.Fatalf("Ошибка проверки соединения с БД: %v", err)
 	}
 
+
+	secretKey := cfg.JWTSecretKey
+
 	// Инициализация и запуск сервера
-	srv := server.NewServer(db)
+	srv := server.NewServer(db, secretKey)
 	if err := srv.Run(); err != nil {
-		log.Fatalf("Server failed: %v", err) 
+		log.Fatalf("Ошибка запуска сервера: %v", err)  
 	}
 }

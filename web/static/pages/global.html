@@ -13,7 +13,11 @@
 
   <body>
     <div class="container">
-      {{template "entrance" .}}
+      {{if .UserIsValid}}
+        {{template "main" .}}
+      {{else}}
+        {{template "entrance" .}}
+      {{end}}
     </div>
 
     <div class="server__messages">

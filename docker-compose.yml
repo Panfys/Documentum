@@ -4,11 +4,12 @@ services:
     image: mysql:latest
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
     environment:
-      MYSQL_ROOT_PASSWORD: 2EBf5319!
-      MYSQL_DATABASE: documentum
-      MYSQL_USER: user
-      MYSQL_PASSWORD: qweR1234
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     restart: unless-stopped
@@ -25,12 +26,6 @@ services:
     build: .
     ports:
       - 80:80
-    environment:
-      - DB_HOST=db
-      - DB_USER=root
-      - DB_PASSWORD=secret
-      - DB_NAME=documentum
-      - JWT_SECRET=your_jwt_secret
     depends_on:
       - db  
     restart: unless-stopped

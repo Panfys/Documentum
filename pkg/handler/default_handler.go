@@ -33,7 +33,7 @@ func StaticHandler(staticDir string) http.Handler {
 	absPath, err := filepath.Abs(staticDir)
 	if err != nil {
 		log.Println(err.Error())
-		panic("Failed to resolve static directory: " + err.Error())
+		panic("Ошибка получения абсолютного пути: " + err.Error())
 	}
 
 	fs := http.FileServer(http.Dir(absPath))

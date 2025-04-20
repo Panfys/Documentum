@@ -14,8 +14,8 @@ type Server struct {
 	httpServer *http.Server
 }
 
-func NewServer(db *sql.DB) *Server {
-	router := routes.SetupRoutes(db)
+func NewServer(db *sql.DB, secretKey string) *Server {
+	router := routes.SetupRoutes(db, secretKey)
 	
 	// Создаем цепочку middleware
 	handler := handlers.CompressHandler(router) // Gzip сжатие
@@ -30,7 +30,7 @@ func NewServer(db *sql.DB) *Server {
 	return &Server{
 		httpServer: &http.Server{ 
 			Addr:    ":80",
-			Handler: handler, // Используем router напрямую
+			Handler: handler,
 		},
 	}
 }

@@ -8,9 +8,7 @@ import (
 type UserStorage interface {
 	GetUser(id int) (*models.User, error)
 }
-
-// PostgresUserRepository - реализация для PostgreSQL
-type SQLUserStorage struct {
+type SQLUserStorage struct { 
 	db *sql.DB
 }
 
@@ -34,5 +32,5 @@ func (r *SQLUserStorage) GetUser(id int) (*models.User, error) {
 	}
 	return &user, nil
 	*/
-	return nil, nil
+	return nil, nil 
 }

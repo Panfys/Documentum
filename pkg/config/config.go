@@ -8,7 +8,9 @@ import (
 )
 
 type Config struct {
-	DBConnectionString string
+	DBConnectionString     string
+	DBRootConnectionString string
+	JWTSecretKey           string
 }
 
 func LoadConfig() *Config {
@@ -19,6 +21,8 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		DBConnectionString: os.Getenv("DB_CONNECTION_STRING"),  
+		DBConnectionString:     os.Getenv("DB_CONNECTION_STRING"),
+		DBRootConnectionString: os.Getenv("DB_ROOT_CONNECTION_STRING"),
+		JWTSecretKey:           os.Getenv("JWT_SECRET_KEY"),
 	}
 }
