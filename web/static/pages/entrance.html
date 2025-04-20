@@ -1,0 +1,148 @@
+{{define "entrance"}}
+
+      <div class="entrance__container">
+        <!--Шапка----------->
+
+        <div class="entrance__logo">
+          <div class="entrance--logo"><p class="logo__text">Documentum</p></div>
+        </div>
+        <!--Форма регистрации----------->
+        <div id="registration" class="authorization">
+          <h1>Регистрация в системе</h1>
+          <div class="authorization__input-box">
+            <label id="regist-login-lable">Логин</label>
+            <input
+              type="text"
+              id="regist-login-input"
+              name="login"
+              placeholder="login"
+            />
+          </div>
+          <p class="authorization__messages" id="regist-login-message"></p>
+
+          <div class="authorization__input-box">
+            <label id="regist-name-lable">Фамилия и инициалы</label>
+            <input
+              type="text"
+              id="regist-name-input"
+              name="name"
+              placeholder="Иванов И.И."
+            />
+          </div>
+          <p class="authorization__messages" id="regist-name-message"></p>
+
+          <div class="authorization__input-box">
+            <label id="regist-func-lable">Должность</label>
+            <select id="regist-func-input" name="func">
+              <option value="0"></option> 
+            
+            </select>
+          </div>
+          <p class="authorization__messages" id="regist-func-message"></p>
+
+          <div class="authorization__input-box">
+            <label id="regist-unit-lable">Структурное подразделение</label>
+            <select id="regist-unit-input" tabindex="4" name="unit">
+              <option value="0"></option>
+            </select>
+          </div>
+
+          <p class="authorization__messages"></p>
+
+          <div class="authorization__input-box" id="regist-group-box">
+            <label id="regist-group-lable">Подразделение</label>
+            <select id="regist-group-input" tabindex="5" name="group">
+              <option value="1"></option>
+            </select>
+          </div>
+
+          <div class="authorization__input-box">
+            <label id="regist-pass-lable">Пароль</label>
+            <input
+              type="password"
+              id="regist-pass-input"
+              name="pass"
+              tabindex="6"
+              placeholder="password"
+            />
+          </div>
+
+          <p class="authorization__messages" id="regist-pass-message"></p>
+
+          <div class="authorization__input-box">
+            <label id="regist-repass-lable">Повторите пароль</label>
+            <input
+              type="password"
+              id="regist-repass-input"
+              name="repass"
+              tabindex="7"
+              placeholder="password"
+            />
+          </div>
+
+          <p class="authorization__messages" id="regist-repass-message"></p>
+
+          <button
+            class="authorization__button"
+            tabindex="8"
+            type="submit"
+            id="regist-button"
+          >
+            Создать аккаунт
+          </button>
+
+          <div class="link">
+            <p>Есть аккаунт?</p>
+            <a id="auth-link" tabindex="9" href="#authentication"
+              >Войти в систему</a
+            >
+          </div>
+        </div>
+        <!--Форма авторизации----------->
+        <div id="authentication" class="authorization default-target">
+          <h1>Вход в систему</h1>
+
+          <div class="authorization__input-box">
+            <label>Логин</label>
+            <input
+              type="text"
+              tabindex="1"
+              name="login"
+              id="auth-login-input"
+            />
+          </div>
+
+          <p class="authorization__messages"></p>
+
+          <div class="authorization__input-box">
+            <label>Пароль</label>
+            <input
+              type="password"
+              id="auth-password-input"
+              name="pass"
+              tabindex="2"
+            />
+            <label class="password__btn--show">
+              <input type="checkbox" class="password__checkbox" />
+              <p></p>
+            </label>
+          </div>
+
+          <p class="authorization__messages" id="auth-message"></p>
+
+          <label class="save-check">
+            <input type="checkbox" name="remember" id="remember" />
+            <p tabindex="3">Запомнить меня</p>
+          </label>
+
+          <button class="authorization__button" id="author-button" tabindex="4">
+            Войти
+          </button>
+          <div class="link">
+            <p>Нет аккаунта?</p>
+            <a tabindex="5" href="#registration">Зарегистрироваться</a>
+          </div>
+        </div>
+      </div>
+
+{{end}}
