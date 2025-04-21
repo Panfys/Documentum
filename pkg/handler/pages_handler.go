@@ -2,6 +2,7 @@ package handler
 
 import (
 	"documentum/pkg/service"
+	"documentum/pkg/models"
 	_ "github.com/go-sql-driver/mysql"
 	"html/template"
 	"log"
@@ -10,21 +11,24 @@ import (
 
 type PageHandler struct {
 	authService service.AuthService
+	pageService service.PageService
 }
 
-func NewPagesHandler(authService service.AuthService) *PageHandler {
+func NewPagesHandler(authService service.AuthService, pageService service.PageService) *PageHandler {
 	return &PageHandler{
 		authService: authService,
+		pageService: pageService,
 	}
 }
 
-// Метод для вывода страницы входа
+// Метод для вывода страницы входа/ главной страницы
 func (p PageHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 
 	var requestToken string
 	var responseData struct {
 		UserIsValid bool
 		Login       string
+		Funcs []models.Unit
 	}
 
 	cookie, err := r.Cookie("token")
@@ -38,6 +42,13 @@ func (p PageHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			responseData.UserIsValid = true
 		}
+	}
+
+	responseData.Funcs, err = p.pageService.GetFuncs()
+	
+	if err != nil {
+		responseData.Funcs = nil
+		http.Error(w, err.Error(), 500)
 	}
 
 	pages := []string{
@@ -56,7 +67,7 @@ func (p PageHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	err = ts.Execute(w, responseData)
 	if err != nil {
 		log.Println(err.Error())
-		http.Error(w, "Internal Server Error", 500)
+		http.Error(w, "Internal Server Error", 500) 
 		return
 	}
 }

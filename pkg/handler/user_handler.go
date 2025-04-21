@@ -1,12 +1,9 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
-	//"documentum/pkg/models"
 	"documentum/pkg/service"
-	"strconv"
-	"strings"
+	"fmt"
 )
 
 type UserHandler struct {
@@ -17,19 +14,29 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
-func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/users/")
-	id, err := strconv.Atoi(idStr)
+func (h *UserHandler) GetUnits(w http.ResponseWriter, r *http.Request) {
+	function := r.FormValue("func")
+	
+	units, err := h.userService.GetUnits(function)
 	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		http.Error(w, fmt.Sprintf("ошибка получения данных: %s", err), 500)
 		return
 	}
 
-	user, err := h.userService.GetUser(id)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(units))
+}
+
+func (h *UserHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
+	function := r.FormValue("func")
+	unit := r.FormValue("unit")
+
+	groups, err := h.userService.GetGroups(function, unit)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+		http.Error(w, fmt.Sprintf("ошибка получения данных: %s", err), 500)
 		return
 	}
 
-	json.NewEncoder(w).Encode(user)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(groups))
 }

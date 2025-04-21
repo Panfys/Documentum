@@ -7,7 +7,8 @@ import (
 )
 
 type AuthStorage interface {
-	GetAccountData(login string) (models.User, error)
+	AddUser(user models.User) error
+	GetUserPass(login string) (string, error)
 }
 
 type JVTAuthStorage struct {
@@ -31,4 +32,29 @@ func (s *JVTAuthStorage) GetAccountData(login string) (models.User, error) {
 	accountData.Login = login
 
 	return accountData, nil
+}
+
+func (s *JVTAuthStorage) AddUser(user models.User) error {
+	
+	newUser := "INSERT INTO `users` SET `login` = ?, `name` = ?, `func_id` = ?, `unit_id` = ?, `group_id` = ?, `pass` = ?, `status` = ?, `icon` = ?"
+
+	_, err := s.db.Exec(newUser, user.Login, user.Name, user.Func, user.Unit, user.Group, user.Pass, "Пользователь", "")
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *JVTAuthStorage) GetUserPass(login string) (string, error) {
+	var pass string
+
+	err := s.db.QueryRow("SELECT `pass` FROM `users` WHERE `login` = ?", login).Scan(&pass)
+
+	if err != nil {
+		return "", fmt.Errorf("ошибка обработки данных")
+	}
+
+	return pass, nil
 }

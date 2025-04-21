@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"regexp"
 )
 
 // Объект для работы с подразделениями
@@ -76,4 +77,31 @@ type DocSettings struct {
 	DocSet    string
 	DocDatain string
 	DocDatato string
+}
+
+// Метод для валидации ФИО пользователя
+func (u *User) ValidName(name string) bool {
+
+	pattern := `^[А-ЯЁ][а-яё]+ [А-ЯЁ]\.[А-ЯЁ]\.$`
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(name)
+
+}
+
+// Метод для валидации логина пользователя
+func (u *User) ValidLogin(login string) bool {
+
+	pattern := `^[a-zA-Z0-9](?:[a-zA-Z0-9._-]{1,10}[a-zA-Z0-9])?$`
+    re := regexp.MustCompile(pattern)
+    return re.MatchString(login) && len(login) >= 3 && len(login) <= 12
+}
+
+// Метод для валидации пароля пользователя
+func (u *User) ValidPass(pass string) bool {
+
+	pattern := `^[a-zA-Z-ЯЁа-яё0-9.]{6,30}$`
+	re := regexp.MustCompile(pattern)
+
+	return re.MatchString(pass)
 }

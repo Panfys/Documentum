@@ -18,15 +18,6 @@ regist_button = document.querySelector("#regist-button");
 author_button = document.querySelector("#author-button");
 error_registration = false;
 
-// Проверка работоспособности сервисов
-$.ajax({
-  method: "POST",
-  url: "/check",
-  success: (check) => {
-    if (check != "ok") ServerMessage("show", check);
-  },
-});
-
 //-------Показать пароль
 btn_show_password.addEventListener("click", ShowPassword);
 
