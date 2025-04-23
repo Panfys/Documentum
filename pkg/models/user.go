@@ -23,6 +23,16 @@ type User struct {
 	Pass   string `json:"pass"`
 	Status string `json:"status"`
 	Icon   string `json:"icon"`
+}
+
+type AccountData struct {
+	Login  string
+	Name   string 
+	Func   string 
+	Unit   string 
+	Group  string 
+	Status string
+	Icon   string
 	ToDay  string
 }
 

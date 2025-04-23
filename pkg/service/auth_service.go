@@ -10,12 +10,16 @@ import (
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"time"
+	"net/http"
 )
 
 type AuthService interface {
 	UserRegistration(user models.User) error
-	UserAuthorization(login, pass, remember string) (string, error)
+	UserAuthorization(login, pass string) (bool, error)
 	CheckUserTokenToValid(token string) (string, error)
+	GenerateToken(w http.ResponseWriter, login, remember string) error
+	GetAccountData(login string) (models.AccountData, error)
+	GetFuncs() ([]models.Unit, error)
 }
 
 type authService struct {
@@ -30,20 +34,49 @@ func NewAuthService(storage storage.AuthStorage, secretKey string) AuthService {
 	}
 }
 
-func (s *authService) generateToken(login string, remember bool) (string, error) {
-	expirationTime := time.Now().Add(24 * time.Hour) 
-	if remember {
-		expirationTime = time.Now().Add(72 * time.Hour)
+func (s *authService) GetFuncs() ([]models.Unit, error) {
+	var funcs []models.Unit 
+	funcs, err := s.storage.GetFuncs()
+	if err != nil {
+		return nil, err
 	}
+	return funcs, err
+}
+
+func (s *authService) GenerateToken(w http.ResponseWriter, login, remember string)  error {
 
 	claims := jwt.RegisteredClaims{
 		Subject:   login,
-		ExpiresAt: jwt.NewNumericDate(expirationTime),
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(s.secretKey)
+	responceToken, err := token.SignedString(s.secretKey) 
+	if err != nil {
+		return errors.New("ошибка создания токена")
+	}
+
+	if remember == "true"{
+		http.SetCookie(w, &http.Cookie{
+			Name:     "token", // Имя куки
+			Value:    responceToken,   // Значение (наш JWT-токен)
+			Expires:  time.Now().Add(72 * time.Hour),
+			Path:     "/",     // Доступно для всех путей на сайте
+			HttpOnly: true,    // Защита от XSS (недоступно через JavaScript)
+			Secure:   false,    // Только через HTTPS (в production)
+			SameSite: http.SameSiteLaxMode, // Защита от CSRF
+		})
+	} else {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "token", // Имя куки
+			Value:    responceToken,   // Значение (наш JWT-токен)
+			Path:     "/",     // Доступно для всех путей на сайте
+			HttpOnly: true,    // Защита от XSS (недоступно через JavaScript)
+			Secure:   false,    // Только через HTTPS (в production)
+			SameSite: http.SameSiteLaxMode, // Защита от CSRF
+		})
+	}
+
+	return nil
 }
 
 func (s *authService) CheckUserTokenToValid(tokenString string) (string, error) {
@@ -66,8 +99,26 @@ func (s *authService) CheckUserTokenToValid(tokenString string) (string, error) 
 }
 
 func (s *authService) UserRegistration(user models.User) error {
-	if err := validateUser(user); err != nil {
-		return err
+
+	if exists, err := s.storage.UserExists(user.Login); err != nil {
+		return fmt.Errorf("ошибка при проверке существования пользователя")
+	} else if exists {
+		return fmt.Errorf("пользователь с логином '%s' уже существует", user.Login)
+	}
+	if !user.ValidLogin(user.Login) {
+		return errors.New("неверный формат логина: " + user.Login)
+	}
+
+	if !user.ValidName(user.Name) {
+		return errors.New("неверный формат ФИО")
+	}
+
+	if user.Func == "0" {
+		return errors.New("должность не указана")
+	}
+
+	if !user.ValidPass(user.Pass) {
+		return errors.New("неверный формат пароля")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Pass), bcrypt.DefaultCost)
@@ -84,139 +135,38 @@ func (s *authService) UserRegistration(user models.User) error {
 	return nil
 }
 
-func (s *authService) UserAuthorization(login, pass, remember string) (string, error) {
-	userPass, err := s.storage.GetUserPass(login)
+func (s *authService) UserAuthorization(login, pass string) (bool, error) {
+	userPass, err := s.storage.GetUserPassByLogin(login)
 	if err != nil {
-		return "", fmt.Errorf("ошибка авторизации: %w", err)
+		return true, fmt.Errorf("ошибка авторизации: %w", err)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userPass), []byte(pass)); err != nil {
-		return "errPass", errors.New("неверный пароль")
+		return false, errors.New("неверный логин или пароль")
 	}
 
-	rememberMe := remember == "true"
-	token, err := s.generateToken(login, rememberMe)
+	return true, nil
+}
+
+func (s *authService) GetAccountData(login string) (models.AccountData, error) {
+	var accountData models.AccountData
+	accountData, err := s.storage.GetAccountData(login)
+
 	if err != nil {
-		return "", fmt.Errorf("token generation failed: %w", err)
+		return accountData, err
 	}
 
-	return token, nil
-}
+	now := time.Now()
 
-// Вспомогательная функция для валидации пользователя
-func validateUser(user models.User) error {
-	if !user.ValidLogin(user.Login) {
-		return errors.New("неверный формат логина " + user.Login)
-	}
-
-	if !user.ValidName(user.Name) {
-		return errors.New("неверный формат ФИО")
-	}
-
-	if user.Func == "0" {
-		return errors.New("должность не указана")
-	}
-
-	if !user.ValidPass(user.Pass) {
-		return errors.New("неверный формат пароля")
-	}
-
-	return nil
-}
+	accountData.Login = login
+	accountData.ToDay = now.Format("2006-01-02")
+	
+	return accountData, nil
+}	
 
 /*
 
 Метод для проверки токена пользователей
-func (s *AuthService) CheckTokenHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Извлечение токена из заголовка Authorization
-		cookie, err := r.Cookie("token")
-		if err != nil {
-			server.EntranceHandler(w, r)
-			return
-		}
-
-		userToken := cookie.Value
-
-		// Проверяем токен
-		token, err := jwt.Parse(userToken, func(token *jwt.Token) (interface{}, error) {
-			// Проверяем метод подписи
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("неизвестный метод шифрования: %v", token.Header["alg"])
-			}
-			return secretKey, nil
-		})
-
-		if err != nil || !token.Valid {
-			s.EntranceHandler(w, r)
-			return
-		}
-
-		// Извлечение полезных данных из токена
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			// Например, извлекаем поле "user_id"
-			login := claims["login"].(string)
-
-			// Создаем новый контекст с данными пользователя
-			ctx := context.WithValue(r.Context(), userContextKey, login)
-
-			// Обновляем запрос с новым контекстом
-			r = r.WithContext(ctx)
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-// Метод для авторизации пользователей
-func (s *AuthService) AuthorizationHandler(w http.ResponseWriter, r *http.Request) {
-	login := r.FormValue("login")
-	pass := r.FormValue("pass")
-	remember := r.FormValue("remember")
-	var exp time.Time
-
-	if remember == "true" {
-		exp = time.Now().Add(72 * time.Hour)
-	}
-
-	// Проверяем, есть ли пользователь с таким именем и паролем
-	userPass, err := s.DB.GetUserPass(login)
-
-	if err != nil {
-		http.Error(w, "ошибка обработки данных", http.StatusUnauthorized)
-		return
-	}
-
-	// Проверка валидности пароля
-	if err := bcrypt.CompareHashAndPassword([]byte(userPass), []byte(pass)); err != nil {
-		http.Error(w, "Неверный логин или пароль!", http.StatusUnauthorized)
-		return
-	}
-
-	token, err := generateToken(login)
-
-	if err != nil {
-		http.Error(w, "ошибка создания токена", 500)
-		return
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
-		Value:    token,
-		Path:     "/",
-		HttpOnly: true,  // Защита от доступа через JavaScript
-		Secure:   false, // Используйте только по HTTPS
-		Expires:  exp,
-	})
-
-	// Создаем новый контекст с данными пользователя
-	ctx := context.WithValue(r.Context(), userContextKey, login)
-
-	// Обновляем запрос с новым контекстом
-	r = r.WithContext(ctx)
-
-	s.MainHandler(w, r)
-}
 
 // Метод для авторизации пользователей
 func (s *AuthService) ExitHandler(w http.ResponseWriter, r *http.Request) {
