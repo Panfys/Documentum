@@ -8,5 +8,5 @@ logs/
 *.local
 docker-compose.override.yml
 config.json
-web/sourse/
+web/source/
 tmp/
