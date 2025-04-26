@@ -133,14 +133,14 @@ function Walid() {
     unit: unit_input.value.trim(),
     group: group_input.value.trim(),
     pass: pass_input.value.trim(),
-    repass: repass_input.value.trim(), 
+    repass: repass_input.value.trim(),
   };
   error_registration = false;
-  //WriteLogin();
-  //WriteName();
-  //if (user["func"] === "0") AlertMessages("regist-func", "Укажите должность!");
-  //WritePass();
-  //WriteRePass();
+  WriteLogin();
+  WriteName();
+  if (user["func"] === "0") AlertMessages("regist-func", "Укажите должность!");
+  WritePass();
+  WriteRePass();
   if (error_registration == true) return;
 
   $.ajax({
@@ -157,7 +157,7 @@ function Walid() {
       } else ServerMessage("show", check);
     },
     error: function (jqXHR, exception) {
-      ServerMessage("show", jqXHR.responseText); 
+      ServerMessage("show", jqXHR.responseText);
     },
   });
 }
@@ -183,9 +183,18 @@ function Authorization() {
     },
     success: function (check) {
       if ((document.querySelector(".container").innerHTML = check)) {
-        script = document.createElement("script");
-        script.src = "/static/scripts/script_main.js";
-        document.head.appendChild(script);
+        const scripts = [
+          "/static/scripts/main.js",
+          "/static/scripts/main_account.js",
+          "/static/scripts/main_settings.js"
+        ];
+        
+        scripts.forEach(src => {
+          const script = document.createElement("script");
+          script.src = src;
+          script.async = true;
+          document.head.appendChild(script);
+        });
       }
     },
     error: function (jqXHR) {

@@ -18,89 +18,6 @@ function OpenMainSide(panel_id) {
   }
 }
 
-//-------Переключение темы
-table_theme = document.querySelectorAll(".settings__theme--table");
-
-table_theme.forEach((table) => {
-  // вешаем на каждую кнопку обработчик события клик
-  table.addEventListener("click", () => ChengeTheme(table));
-
-  function ChengeTheme(table) {
-    theme = table.getAttribute("theme");
-    color = table.getAttribute("color");
-    localStorage.setItem("theme", theme);
-    localStorage.setItem("color", color);
-
-    if (theme == "light") {
-      document.body.classList.add("light-theme");
-      document.body.classList.remove("dark-theme");
-    } else if (theme == "dark") {
-      document.body.classList.remove("light-theme");
-      document.body.classList.add("dark-theme");
-    }
-
-    switch (color) {
-      case "blue":
-        {
-          document.body.style.setProperty("--main-rgb", "45, 104, 248");
-        }
-        break;
-      case "orange":
-        {
-          document.body.style.setProperty("--main-rgb", "255, 104, 0");
-        }
-        break;
-      case "purple":
-        {
-          document.body.style.setProperty("--main-rgb", "116, 66, 200");
-        }
-        break;
-      case "green":
-        {
-          document.body.style.setProperty("--main-rgb", "3, 108, 86");
-        }
-        break;
-    }
-  }
-});
-
-//- переключение и открытие настроек в боковых панелях
-
-btn_settings = document.querySelectorAll(".main__settings--btn");
-// Проходимся по всем кнопкам
-btn_settings.forEach((btn) => {
-  // вешаем на каждую кнопку обработчик события клик
-  btn.addEventListener("click", () => ChengeActivePanel(btn));
-
-  function ChengeActivePanel(btn) {
-    // Получаем предыдущую активную вкладку
-    pre_active_btn = document.querySelector(".main__settings-active-btn");
-    // Получаем предыдущую активную вкладку
-    pre_active_panel = document.querySelector(".main__settings--active-panel");
-
-    // Проверяем есть или нет предыдущая активная кнопка
-    if (pre_active_btn) {
-      //Удаляем класс _active у предыдущей кнопки если она есть
-      pre_active_btn.classList.remove("main__settings-active-btn");
-    }
-    // Проверяем есть или нет предыдущая активная вкладка
-    if (pre_active_panel) {
-      // Удаляем класс _active у предыдущей вкладки если она есть
-      pre_active_panel.classList.remove("main__settings--active-panel");
-    }
-    // получаем id новой активной вкладки, который мы перем из атрибута data-tab у кнопки
-    const active_panel_id = "#" + btn.getAttribute("panel-id");
-    const active_panel = document.querySelector(active_panel_id);
-
-    if (active_panel !== pre_active_panel) {
-      // добавляем класс _active кнопке на которую нажали
-      btn.classList.add("main__settings-active-btn");
-      // добавляем класс _active новой выбранной вкладке
-      active_panel.classList.add("main__settings--active-panel");
-    }
-  }
-});
-
 //-------Переключение табов документов
 
 // получаем все кнопки навигации
@@ -109,237 +26,70 @@ btn_menu = document.querySelectorAll(".header__menu--btn");
 btn_menu.forEach((btn) => {
   // вешаем на каждую кнопку обработчик события клик
   btn.addEventListener("click", () => ChengeActiveTab(btn));
+}
+);
+if (sessionStorage.getItem("active_btn_id")) {
+  button = document.getElementById(sessionStorage.getItem("active_btn_id"));
+} else button = document.getElementById("menu-btn-ingoing");
+ChengeActiveTab(button);
 
-  if (sessionStorage.getItem("active_btn_id")) {
-    button = document.getElementById(sessionStorage.getItem("active_btn_id"));
-    ChengeActiveTab(button);
-  } else {
-    button = document.getElementById("menu-btn-ingoing");
-    ChengeActiveTab(button);
+function ChengeActiveTab(btn) {
+
+  // Получаем предыдущую активную кнопку
+  pre_active_tub = document.querySelector(".main__tabs.main__tabs--active");
+  // Получаем предыдущую активную вкладку
+  pre_active_btn = document.querySelector(
+    ".header__menu--btn.menu__btn--active"
+  );
+
+  // Проверяем есть или нет предыдущая активная кнопка
+  if (pre_active_btn) {
+    //Удаляем класс _active у предыдущей кнопки если она есть
+    pre_active_btn.classList.remove("menu__btn--active");
   }
-  function ChengeActiveTab(btn) {
-    // Получаем предыдущую активную кнопку
-    pre_active_tub = document.querySelector(".main__tabs.main__tabs--active");
-    // Получаем предыдущую активную вкладку
-    pre_active_btn = document.querySelector(
-      ".header__menu--btn.menu__btn--active"
-    );
-
-    // Проверяем есть или нет предыдущая активная кнопка
-    if (pre_active_btn) {
-      //Удаляем класс _active у предыдущей кнопки если она есть
-      pre_active_btn.classList.remove("menu__btn--active");
-    }
-    // Проверяем есть или нет предыдущая активная вкладка
-    if (pre_active_tub) {
-      // Удаляем класс _active у предыдущей вкладки если она есть
-      pre_active_tub.classList.remove("main__tabs--active");
-    }
-    // получаем id новой активной вкладки, который мы перем из атрибута data-tab у кнопки
-    const active_tub_id = "#" + btn.getAttribute("data-tab");
-    sessionStorage.setItem("active_btn_id", btn.getAttribute("id"));
-    // получаем новую активную вкладку по id
-    const active_tub = document.querySelector(active_tub_id);
-
-    // добавляем класс _active кнопке на которую нажали
-    btn.classList.add("menu__btn--active");
-    // добавляем класс _active новой выбранной вкладке
-    active_tub.classList.add("main__tabs--active");
-
-    // обновляем вкладку с документами
-    switch (active_tub_id) {
-      case "#main-tab-ingoing":
-        {
-          ViewDocuments("ASC", "Входящий", "id", "2000-01-01", "3000-01-01");
-        }
-        break;
-
-      case "#main-tab-outgoing":
-        {
-          ViewDocuments("ASC", "Исходящий", "id", "2000-01-01", "3000-01-01");
-        }
-        break;
-
-      case "#main-tab-directive":
-        {
-          ViewDocuments("ASC", "Приказ", "id", "2000-01-01", "3000-01-01");
-        }
-        break;
-
-      case "#main-tab-inventory":
-        {
-          ViewDocuments("ASC", "Издание", "id", "2000-01-01", "3000-01-01");
-        }
-        break;
-    }
+  // Проверяем есть или нет предыдущая активная вкладка
+  if (pre_active_tub) {
+    // Удаляем класс _active у предыдущей вкладки если она есть
+    pre_active_tub.classList.remove("main__tabs--active");
   }
-});
+  // получаем id новой активной вкладки, который мы перем из атрибута data-tab у кнопки
+  const active_tub_id = "#" + btn.getAttribute("data-tab");
+  sessionStorage.setItem("active_btn_id", btn.getAttribute("id"));
+  // получаем новую активную вкладку по id
+  const active_tub = document.querySelector(active_tub_id);
 
-//------Функция добавления фотографии-------------
-icon = document.querySelector(".account__icon--intut");
+  // добавляем класс _active кнопке на которую нажали
+  btn.classList.add("menu__btn--active");
+  // добавляем класс _active новой выбранной вкладке
+  active_tub.classList.add("main__tabs--active");
 
-icon.onchange = function () {
-  user_icon = new FormData();
-  user_icon.append("icon", icon.files[0]);
-
-  $.ajax({
-    method: "POST",
-    url: "/protect/users/updateicon",
-    data: user_icon,
-    cache: false,
-    contentType: false,
-    processData: false,
-    success: function (check) {
-      if (document.querySelector(".account__icon")) {
-        document.querySelector(".account__icon").className = "account__img";
+  // обновляем вкладку с документами
+  switch (active_tub_id) {
+    case "#main-tab-ingoing":
+      {
+        ViewIngoingDocuments("ASC", "id", "2000-01-01", "3000-01-01");
       }
-      img = document.querySelector(".account__img");
+      break;
 
-      img.style.backgroundImage = "url('')";
-      img.style.backgroundImage = "url('" + check + "')";
-    },
-    error: function (jqXHR) {
-      ServerMessage("show", jqXHR.responseText);
-    },
-  });
-};
+    case "#main-tab-outgoing":
+      {
+        ViewDocuments("ASC", "Исходящий", "id", "2000-01-01", "3000-01-01");
+      }
+      break;
 
-//-------------Открытие панели изменения пароля-----------
-document.querySelector("#account-btn-open").onclick = () =>
-  OpenAccountPassPanel("open");
-document.querySelector("#account-btn-close").onclick = () =>
-  OpenAccountPassPanel("close");
+    case "#main-tab-directive":
+      {
+        ViewDocuments("ASC", "Приказ", "id", "2000-01-01", "3000-01-01");
+      }
+      break;
 
-function OpenAccountPassPanel(act) {
-  if (act == "open") {
-    document.querySelector(".account__password--panel").style = "display: flex";
-    document.getElementById("account-btn-open").style = "display: none";
-  } else {
-    document.querySelector(".account__password--panel").style = "display: none";
-    document.getElementById("account-btn-open").style = "display: flex";
+    case "#main-tab-inventory":
+      {
+        ViewDocuments("ASC", "Издание", "id", "2000-01-01", "3000-01-01");
+      }
+      break;
   }
 }
-
-pass_input = document.getElementById("account-pass-input");
-newpass_input = document.getElementById("account-newpass-input");
-repass_input = document.getElementById("account-repass-input");
-
-//Проверка ввода нового пароля
-pass_input.addEventListener("blur", WritePass);
-
-function WritePass() {
-  pass = pass_input.value.trim();
-  if (pass.length <= 5) AlertMessages("account-pass", "Введите пароль!");
-  else ReAlertMessages("account-pass");
-}
-
-//Проверка ввода нового пароля
-newpass_input.addEventListener("blur", WriteNewPass);
-
-function WriteNewPass() {
-  newpass = newpass_input.value.trim();
-  if (!IsValidPass(newpass))
-    AlertMessages("account-newpass", "Пароль недостаточно надежный!");
-  else ReAlertMessages("account-newpass");
-}
-
-//Проверка подтверждения пароля
-repass_input.addEventListener("input", WriteRePass);
-
-function WriteRePass() {
-  repass = repass_input.value.trim();
-  if (repass !== newpass)
-    AlertMessages("account-repass", "Пароли не совпадают!");
-  else ReAlertMessages("account-repass");
-}
-
-// Проверка пароля регулярным выражением
-function IsValidPass(pass) {
-  const pattern = /^.*(?=.{6,})(?=.*[a-zA-ZА-ЯЁа-яё]).*$/;
-  return pattern.test(pass);
-}
-
-//Сообщение при ошибке
-function AlertMessages(input, mess) {
-  document.getElementById(input.concat("-input")).style.borderColor =
-    "--error-color";
-  document.getElementById(input.concat("-lable")).style.color = "--error-color";
-  document.getElementById(input.concat("-message")).innerHTML = mess;
-  document.getElementById(input.concat("-message")).classList.add("error");
-  document.getElementById("account-btn-change").disabled = true;
-}
-
-//очистка сообщения
-function ReAlertMessages(input) {
-  document.getElementById(input.concat("-input")).style.borderColor =
-    "--low-color";
-  document.getElementById(input.concat("-lable")).style.color = "--low-color";
-  document.getElementById(input.concat("-message")).innerHTML = "";
-  document.getElementById(input.concat("-message")).classList.remove("error");
-  document.getElementById("account-btn-change").disabled = false;
-}
-
-document.querySelector("#account-btn-change").onclick = function () {
-  pass = pass_input.value.trim();
-  newpass = newpass_input.value.trim();
-  repass = repass_input.value.trim();
-
-  WritePass();
-  WriteNewPass();
-
-  if (document.querySelector("#account-btn-change").disabled) return;
-
-  $.ajax({
-    method: "POST",
-    url: "/protect/users/updatepass",
-    data: {
-      pass: pass,
-      newpass: newpass,
-      repass: repass,
-    },
-    success: function () {
-      OpenAccountPassPanel("close");
-      document.getElementById("account-chengepass-message").innerHTML =
-        "Пароль успешно изменён!";
-      document
-        .getElementById("account-chengepass-message")
-        .classList.add("message");
-    },
-    error: function (jqXHR) {
-      if (jqXHR.status == 400) {
-        AlertMessages("account-repass", jqXHR.responseText);
-      } else ServerMessage("show", jqXHR.responseText);
-    },
-  });
-};
-
-function ReAlertAccountMessages() {
-  document.getElementById("account-chengepass-message").innerHTML = "";
-  document
-    .getElementById("account-chengepass-message")
-    .classList.remove("message");
-}
-
-// Выход пользователя из учетной записи
-document.querySelector("#account-btn-exit").onclick = function () {
-  if (confirm("Вы действительно хотите выйти?")) {
-    $.ajax({
-      method: "POST",
-      url: "/protect/users/exit",
-      success: function (check) {
-        if ((document.querySelector(".container").innerHTML = check)) {
-          script = document.createElement("script");
-          script.src = "/static/scripts/script_entrance.js";
-          document.head.appendChild(script);
-        }
-      },
-      error: function (jqXHR) {
-        ServerMessage("show", jqXHR.responseText);
-      },
-    });
-  }
-};
-
 //------Функция прокрутки и закрепления шапки таблицы-------
 window.addEventListener("scroll", function () {
   active_tub = document.querySelector(".main__tabs--active");
@@ -958,7 +708,7 @@ function WalidResolutionReError(resolution_id, input) {
 function ViewDocuments(set, type, col, datain, datato) {
   $.ajax({
     method: "POST",
-    url: "/documents/getdoc",
+    url: "/protect/documents/getdoc",
     data: {
       type: type,
       col: col,
@@ -992,14 +742,34 @@ function ViewDocuments(set, type, col, datain, datato) {
   });
 }
 
-//------Функция сортировки-------------
+function ViewIngoingDocuments(set, col, datain, datato) {
+  $.ajax({
+    method: "POST",
+    url: "/protect/documents/ingoing",
+    data: {
+      col: col,
+      set: set,
+      datain: datain,
+      datato: datato,
+    },
+    success: function (documents) {
+      document.getElementById("ingoing-documents-container").innerHTML =
+        documents;
+      CheckDocumentTable();
+    },
+    error: () =>
+      ServerMessage("show", "Возникла ошибка на сервере, попробуйте позже!"),
+  });
+}
+
+/*------Функция сортировки-------------
 function SortDocuments() {
   val = document.getElementById("SetSort-input").value;
   datain = document.getElementById("DataInSet-input").value;
   datato = document.getElementById("DataToSet-input").value;
   if (datain == "") datain = "2000-01-01";
   if (datato == "") datato = "3000-01-01";
-
+ 
   switch (val) {
     case "0":
       ViewDocuments("ASC", "Входящий", "id", datain, datato);
@@ -1014,7 +784,7 @@ function SortDocuments() {
       ViewDocuments("ASC", "Входящий", "sender", datain, datato);
       break;
   }
-}
+} */
 
 //-------Открытие панели документа
 function CheckDocumentTable() {
@@ -1122,7 +892,7 @@ function OpenDocument(ask, id) {
   } else {
     document.body.style.overflow = "hidden";
     panel_opendoc.style = "display: flex";
-    iframe_opendoc.setAttribute("src", "/documents/wievdoc?file=" + ask);
+    iframe_opendoc.setAttribute("src", "/protect/documents/wievdoc?file=" + ask);
     familiars_opendoc = document
       .getElementById("document-table-" + id)
       .querySelector(".table__column--familiar");
@@ -1143,7 +913,7 @@ function OpenDocument(ask, id) {
     if (familiar_opendoc.match(account_name.trim()) == null) {
       $.ajax({
         method: "POST",
-        url: "/documents/look",
+        url: "/protect/documents/look",
         data: { id: id },
         error: function (jqXHR, exception) {
           ServerMessage("show", jqXHR.responseText);
@@ -1172,7 +942,7 @@ btn_opennewdoc.forEach((btn) => {
       file_url = URL.createObjectURL(file);
       iframe_opendoc.setAttribute(
         "src",
-        "/documents/wievnewdoc?file=" + DefineFile(file_url, file.type)
+        "/protect/documents/wievnewdoc?file=" + DefineFile(file_url, file.type)
       );
     }
 
@@ -1276,7 +1046,7 @@ function AddDocResolution(action) {
 
 /*/------Функция кнопки "Изменить"-------НЕ ДОДЕЛАЛ
 document.querySelector("#btn-doc-change").onclick = () => DocСhange();
-
+ 
 function DocСhange() {
   active_tub = document.querySelector(".main__tabs--active");
   active_doc = document.querySelector(".tubs__table--active-table");
@@ -1451,201 +1221,5 @@ count_dir_input.onchange = function () {
     copy_input.innerHTML = copy;
   }
 };
-
-//---Проверка введенных данных при создании или изменении документа
-function WalidDocumentData(data) {
-  active_tub = document.querySelector(".main__tabs--active");
-  error = false;
-  fnum = data.fnum.trim();
-  fdate = data.fdate.trim();
-  name = data.name.trim();
-  sender = data.sender.trim();
-  ispolnitel = data.ispolnitel.trim();
-  count = data.count.trim();
-  copy = data.copy.trim();
-  width = data.width.trim();
-  file = data.file;
-
-  //---Проверка добавления файла------
-  if (!(file.type.slice(0, 5) == "image" || file.type == "application/pdf")) {
-    active_tub.querySelector("#btn-newdoc-addfile").style.backgroundColor =
-      "var(--error-color)";
-    setTimeout(() => {
-      active_tub.querySelector("#btn-newdoc-addfile").style.backgroundColor =
-        "var(--low-color)";
-    }, 3000);
-    error = true;
-  } else {
-    active_tub.querySelector("#btn-newdoc-addfile").style.backgroundColor =
-      "var(--low-color)";
-  }
-
-  //---Проверка номера документа------
-  if (
-    fnum == "" ||
-    fnum == "Вх. №" ||
-    fnum == "№" ||
-    fnum == "Вх." ||
-    fnum == "Вх"
-  ) {
-    {
-      WalidDocumentError("fnum");
-      error = true;
-    }
-  } else WalidDocumentReError("fnum");
-
-  //---Проверка даты документа------
-  if (fdate == "") {
-    {
-      WalidDocumentError("fdate");
-      error = true;
-    }
-  } else WalidDocumentReError("fdate");
-
-  //---Проверка имени документа------
-  if (name == "") {
-    {
-      WalidDocumentError("name");
-      error = true;
-    }
-  } else WalidDocumentReError("name");
-
-  //---Проверка отправителя документа------
-  if (sender == "") {
-    {
-      WalidDocumentError("sender");
-      error = true;
-    }
-  } else WalidDocumentReError("sender");
-
-  //---Проверка исполнителя документа------
-  if (!data.resolutions) {
-    if (ispolnitel == "") {
-      WalidDocumentError("ispolnitel");
-      error = true;
-    } else WalidDocumentReError("ispolnitel");
-  } else {
-    if (WalidResolutionData(data.resolutions) == true) {
-      error = true;
-    }
-    WalidDocumentReError("ispolnitel");
-  }
-
-  //---Проверка количества экземпляров документа------
-  if (count == "") {
-    {
-      WalidDocumentError("count");
-      error = true;
-    }
-  } else WalidDocumentReError("count");
-
-  //---Проверка номеров экземпляров документа------
-  if (copy == "" || copy <= 0) {
-    {
-      WalidDocumentError("copy");
-      error = true;
-    }
-  } else WalidDocumentReError("copy");
-
-  //---Проверка количества листов документа------
-  if (width == "") {
-    {
-      WalidDocumentError("width");
-      error = true;
-    }
-  } else WalidDocumentReError("width");
-  return error;
-}
-
-//---Ошибка введенных данных документа----
-function WalidDocumentError(input) {
-  active_tub = document.querySelector(".main__tabs--active");
-  active_tub.querySelector("#input-newdoc-" + input).style.borderColor =
-    "var(--error-color)";
-  active_tub.querySelector("#input-newdoc-" + input).style.color =
-    "var(--error-color)";
-}
-
-//---Удаление ошибки введенных данных----
-function WalidDocumentReError(input) {
-  active_tub = document.querySelector(".main__tabs--active");
-  input = active_tub.querySelector("#input-newdoc-" + input);
-
-  if (input) {
-    input.style.borderColor = "var(--low-color)";
-    input.style.color = "var(--mid-color)";
-  }
-}
-
-//---Проверка введенных данных резолюции----
-function WalidResolutionData(resolutions) {
-  data = JSON.parse(resolutions);
-  data.forEach((resolution) => {
-    text = resolution.text.trim();
-    user = resolution.user.trim();
-    date = resolution.date.trim();
-
-    //---Проверка исполнителя в резолюции------
-    if ("ispolnitel" in resolution) {
-      ispolnitel = resolution.ispolnitel.trim();
-      if (ispolnitel == "") {
-        WalidResolutionError(resolution.id, "ispolnitel");
-        error = true;
-      } else {
-        WalidResolutionReError(resolution.id, "ispolnitel");
-      }
-    }
-
-    //---Проверка текста в резолюции------
-    if (text == "") {
-      WalidResolutionError(resolution.id, "text");
-      error = true;
-    } else {
-      WalidResolutionReError(resolution.id, "text");
-    }
-
-    if (user == "") {
-      WalidResolutionError(resolution.id, "user");
-      error = true;
-    } else {
-      WalidResolutionReError(resolution.id, "user");
-    }
-
-    if (date == "") {
-      WalidResolutionError(resolution.id, "date");
-      error = true;
-    } else {
-      WalidResolutionReError(resolution.id, "date");
-    }
-  });
-  return error;
-}
-
-//---Ошибка введенных данных резолюции----
-function WalidResolutionError(resolution_id, input) {
-  resolution = document.getElementById(resolution_id);
-  input = "#resolution-" + input;
-
-  resolution.querySelector(input).style.borderColor = "var(--error-color)";
-  resolution.querySelector(input).style.color = "var(--error-color)";
-}
-
-//---Удаление ошибки введенных данных резолюции----
-function WalidResolutionReError(resolution_id, input) {
-  resolution = document.getElementById(resolution_id);
-  input = "#resolution-" + input;
-
-  if (resolution.querySelector(input)) {
-    resolution.querySelector(input).style.borderColor = "var(--low-color)";
-    resolution.querySelector(input).style.color = "var(--mid-color)";
-  }
-}
-/*
-//------Функция запоминания документа-----
-function LikeDoc (id)
-{
-  alert ("Запомнить " + id);
-}
-
 
 */

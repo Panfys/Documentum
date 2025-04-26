@@ -13,12 +13,15 @@ import (
 func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
 	r := mux.NewRouter()
 
+	docStorage := storage.NewDocStorage(db)
 	userStoreg := storage.NewUserStorage(db)
-	userService := service.NewUserService(userStoreg)
-	userHandler := handler.NewUserHandler(userService)
 	authStoreg := storage.NewAuthStorage(db)
+	userService := service.NewUserService(userStoreg)
+	docService := service.NewDocService(docStorage)
 	authServise := service.NewAuthService(authStoreg, secretKey)
 	authHandler := handler.NewAuthHandler(authServise)
+	userHandler := handler.NewUserHandler(userService)
+	docHandler := handler.NewDocHandler(docService)
 
 	r.HandleFunc("/", authHandler.GetHandler)
 
@@ -35,6 +38,10 @@ func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
 	protect.HandleFunc("/users/exit", authHandler.ExitHandler).Methods("POST")
 	protect.HandleFunc("/users/updatepass", userHandler.UpdateUserPassword).Methods("POST")
 	protect.HandleFunc("/users/updateicon", userHandler.UpdateUserIcon).Methods("POST")
+	protect.HandleFunc("/documents/getdoc", docHandler.GetDocuments).Methods("POST")
+	protect.HandleFunc("/documents/ingoing", docHandler.GetIngoingDoc).Methods("POST")
+	protect.HandleFunc("/documents/wievdoc", docHandler.WievDocumentHandler)
+	protect.HandleFunc("/documents/look", docHandler.AddLookDocument).Methods("POST")
 
 	// ERROR 404
 	r.NotFoundHandler = http.HandlerFunc(handler.NotFoundHandler)

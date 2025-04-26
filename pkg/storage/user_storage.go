@@ -13,15 +13,15 @@ type UserStorage interface {
 	UpdateUserIcon(icon string, login string) error
 	GetUserIcon(login string) (string, error)
 }
-type SQLUserStorage struct {
+type userStorage struct {
 	db *sql.DB
 }
 
-func NewUserStorage(db *sql.DB) *SQLUserStorage {
-	return &SQLUserStorage{db: db}
+func NewUserStorage(db *sql.DB) *userStorage {
+	return &userStorage{db: db}
 }
 
-func (p *SQLUserStorage) GetUnits(function string) ([]models.Unit, error) {
+func (p *userStorage) GetUnits(function string) ([]models.Unit, error) {
 
 	rows, err := p.db.Query("SELECT units_id, units.name FROM `funcs_units` JOIN `units` ON units_id = units.id WHERE `funcs_id` = ?", function)
 	if err != nil {
@@ -46,7 +46,7 @@ func (p *SQLUserStorage) GetUnits(function string) ([]models.Unit, error) {
 	return units, nil
 }
 
-func (p *SQLUserStorage) GetGroups(function, unit string) ([]models.Unit, error) {
+func (p *userStorage) GetGroups(function, unit string) ([]models.Unit, error) {
 	rows, err := p.db.Query("SELECT groups.id, groups.name FROM `funcs_groups` JOIN `groups` ON groups_id = groups.id WHERE `funcs_id` = ? AND `units_id` = ?", function, unit)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (p *SQLUserStorage) GetGroups(function, unit string) ([]models.Unit, error)
 	return groups, nil
 }
 
-func (p *SQLUserStorage) UpdateUserPassword(login, pass string) error {
+func (p *userStorage) UpdateUserPassword(login, pass string) error {
 	_, err := p.db.Exec("UPDATE `users` SET `pass` = ? WHERE `login` = ?", pass, login)
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func (p *SQLUserStorage) UpdateUserPassword(login, pass string) error {
 	return nil
 }
 
-func (p *SQLUserStorage) GetUserPassword(login string) (string, error) {
+func (p *userStorage) GetUserPassword(login string) (string, error) {
 	var pass string
 
 	err := p.db.QueryRow("SELECT `pass` FROM `users` WHERE `login` = ?", login).Scan(&pass)
@@ -90,7 +90,7 @@ func (p *SQLUserStorage) GetUserPassword(login string) (string, error) {
 	return pass, nil
 }
 
-func (s *SQLUserStorage) UpdateUserIcon(icon string, login string) error {
+func (s *userStorage) UpdateUserIcon(icon string, login string) error {
 
 	_, err := s.db.Exec("UPDATE `users` SET `icon` = ? WHERE `login` = ?", icon, login)
 
@@ -101,7 +101,7 @@ func (s *SQLUserStorage) UpdateUserIcon(icon string, login string) error {
 	return nil
 }
 
-func (s *SQLUserStorage) GetUserIcon(login string) (string, error) {
+func (s *userStorage) GetUserIcon(login string) (string, error) {
 
 	var icon string
 	err := s.db.QueryRow("SELECT `icon` FROM `users` WHERE `login` = ?", login).Scan(&icon)
