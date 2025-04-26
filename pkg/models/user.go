@@ -6,6 +6,10 @@ import (
 	"regexp"
 )
 
+type contextKey string
+
+var LoginKey contextKey = "login"
+
 // Объект для работы с подразделениями
 type Unit struct {
 	ID   int
@@ -27,10 +31,10 @@ type User struct {
 
 type AccountData struct {
 	Login  string
-	Name   string 
-	Func   string 
-	Unit   string 
-	Group  string 
+	Name   string
+	Func   string
+	Unit   string
+	Group  string
 	Status string
 	Icon   string
 	ToDay  string
@@ -103,15 +107,16 @@ func (u *User) ValidName(name string) bool {
 func (u *User) ValidLogin(login string) bool {
 
 	pattern := `^[a-zA-Z0-9](?:[a-zA-Z0-9._-]{1,10}[a-zA-Z0-9])?$`
-    re := regexp.MustCompile(pattern)
-    return re.MatchString(login) && len(login) >= 3 && len(login) <= 12
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(login) && len(login) >= 3 && len(login) <= 12
 }
 
 // Метод для валидации пароля пользователя
 func (u *User) ValidPass(pass string) bool {
 
-	pattern := `^[a-zA-Z-ЯЁа-яё0-9.]{6,30}$`
-	re := regexp.MustCompile(pattern)
+	if len(pass) < 6 || len(pass) > 64{
+        return false
+    } 
 
-	return re.MatchString(pass)
+    return true
 }

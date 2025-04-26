@@ -15,7 +15,7 @@ import (
 
 type AuthService interface {
 	UserRegistration(user models.User) error
-	UserAuthorization(login, pass string) (bool, error)
+	UserAuthorization(login, pass string) (int, error)
 	CheckUserTokenToValid(token string) (string, error)
 	GenerateToken(w http.ResponseWriter, login, remember string) error
 	GetAccountData(login string) (models.AccountData, error)
@@ -135,17 +135,17 @@ func (s *authService) UserRegistration(user models.User) error {
 	return nil
 }
 
-func (s *authService) UserAuthorization(login, pass string) (bool, error) {
+func (s *authService) UserAuthorization(login, pass string) (int, error) {
 	userPass, err := s.storage.GetUserPassByLogin(login)
 	if err != nil {
-		return true, fmt.Errorf("ошибка авторизации: %w", err)
+		return 500, fmt.Errorf("ошибка авторизации: %w", err)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userPass), []byte(pass)); err != nil {
-		return false, errors.New("неверный логин или пароль")
+		return 401, errors.New("неверный логин или пароль")
 	}
 
-	return true, nil
+	return 0, nil
 }
 
 func (s *authService) GetAccountData(login string) (models.AccountData, error) {

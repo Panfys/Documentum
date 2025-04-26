@@ -291,7 +291,7 @@ document.querySelector("#account-btn-change").onclick = function () {
 
   $.ajax({
     method: "POST",
-    url: "/users/chengepass",
+    url: "/protect/users/updatepass",
     data: {
       pass: pass,
       newpass: newpass,
@@ -306,7 +306,9 @@ document.querySelector("#account-btn-change").onclick = function () {
         .classList.add("message");
     },
     error: function (jqXHR) {
-      ServerMessage("show", jqXHR.responseText);
+      if (jqXHR.status == 400) {
+        AlertMessages("account-repass", jqXHR.responseText);
+      } else ServerMessage("show", jqXHR.responseText);
     },
   });
 };
@@ -323,7 +325,7 @@ document.querySelector("#account-btn-exit").onclick = function () {
   if (confirm("Вы действительно хотите выйти?")) {
     $.ajax({
       method: "POST",
-      url: "/users/exit",
+      url: "/protect/users/exit",
       success: function (check) {
         if ((document.querySelector(".container").innerHTML = check)) {
           script = document.createElement("script");

@@ -8,6 +8,8 @@ import (
 type UserStorage interface {
 	GetGroups(function, unit string) ([]models.Unit, error)
 	GetUnits(function string) ([]models.Unit, error)
+	UpdateUserPassword(login, pass string) error
+	GetUserPassword(login string) (string, error)
 }
 type SQLUserStorage struct {
 	db *sql.DB
@@ -64,4 +66,24 @@ func (p *SQLUserStorage) GetGroups(function, unit string) ([]models.Unit, error)
 	}
 
 	return groups, nil
+}
+
+func (p *SQLUserStorage) UpdateUserPassword(login, pass string) error {
+	_, err := p.db.Exec("UPDATE `users` SET `pass` = ? WHERE `login` = ?", pass, login)
+	if err != nil {
+		return err
+	} 
+	return nil
+}
+
+func (p *SQLUserStorage) GetUserPassword(login string) (string, error) {
+	var pass string
+
+	err := p.db.QueryRow("SELECT `pass` FROM `users` WHERE `login` = ?", login).Scan(&pass)
+
+	if err != nil {
+		return "oшибка обработки данных пользователя в БД", err
+	}
+
+	return pass, nil
 }

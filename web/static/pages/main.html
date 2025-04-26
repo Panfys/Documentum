@@ -77,16 +77,16 @@
         <div class="main__tabs" id="main-tab-personal">Личные</div>
 
         <!--ВХОДЯЩИЕ--------------------->
-        <div class="main__tabs" id="main-tab-ingoing"></div>
+        <div class="main__tabs" id="main-tab-ingoing">{{template "ingoing_doc" .}}</div>
           
         <!--ИСХОДЯЩИЕ--------------------->
-        <div class="main__tabs" id="main-tab-outgoing"></div>
+        <div class="main__tabs" id="main-tab-outgoing">{{template "outgoing_doc" .}}</div>
 
         <!--ПРИКАЗЫ--------------------->
-        <div class="main__tabs" id="main-tab-directive"></div>
+        <div class="main__tabs" id="main-tab-directive">{{template "directive_doc" .}}</div>
 
         <!--ИНВЕНТАРЬ--------------------->
-        <div class="main__tabs" id="main-tab-inventory"></div>
+        <div class="main__tabs" id="main-tab-inventory">{{template "inventory_doc" .}}</div>
       </div>
 
       <!--Окно просмотра нового документа--------------------->

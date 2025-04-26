@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"net/http"
 	"documentum/pkg/service"
+	"documentum/pkg/models"
 	"fmt"
+	"net/http"
 )
 
 type UserHandler struct {
@@ -39,4 +40,19 @@ func (h *UserHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(groups))
+}
+
+func (h *UserHandler) UpdateUserPassword(w http.ResponseWriter, r *http.Request) {
+
+	login := r.Context().Value(models.LoginKey).(string);
+	pass := r.FormValue("pass")
+	newPass := r.FormValue("newpass")
+	status, err := h.userService.UpdateUserPassword(login, pass, newPass)
+	if err != nil {
+		http.Error(w, err.Error(), status)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
 }

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"documentum/pkg/models"
 	"documentum/pkg/service"
 	"encoding/json"
@@ -9,7 +10,20 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 )
+
+var pages = []string{
+	"web/static/pages/global.html",
+	"web/static/pages/entrance.html",
+	"web/static/pages/main.html",
+	"web/static/pages/main_account.html",
+	"web/static/pages/main_settings.html",
+	"web/static/pages/main_ingoing_doc.html",
+	"web/static/pages/main_outgoing_doc.html",
+	"web/static/pages/main_inventory_doc.html",
+	"web/static/pages/main_directive_doc.html",
+}
 
 type AuthHandler struct {
 	authService service.AuthService
@@ -47,12 +61,8 @@ func (p *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 	remember := r.FormValue("remember")
 
 	// Авторизация пользователя
-	userValid, err := p.authService.UserAuthorization(login, pass)
+	status, err := p.authService.UserAuthorization(login, pass)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if userValid {
-			status = http.StatusUnauthorized
-		}
 		http.Error(w, err.Error(), status)
 		return
 	}
@@ -63,7 +73,7 @@ func (p *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-    responseData := struct {
+	responseData := struct {
 		AccountData models.AccountData
 	}{}
 
@@ -76,7 +86,7 @@ func (p *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Рендеринг страницы
-	if err := p.renderMainPage(w, responseData); err != nil {
+	if err := p.renderTemplates(w, "main", responseData); err != nil {
 		log.Printf("Ошибка рендеринга для пользователя %s: %v", login, err)
 		http.Error(w, "Ошибка на сервере", http.StatusInternalServerError)
 	}
@@ -110,35 +120,81 @@ func (h *AuthHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	responseData.Funcs = funcs
 
 	// Рендеринг страницы
-	if err := h.renderEntrancePage(w, responseData); err != nil {
+	if err := h.renderTemplates(w, "", responseData); err != nil {
 		log.Printf("Ошибка рендеринга: %v", err)
 		http.Error(w, "Ошибка на сервере", http.StatusInternalServerError)
 	}
 }
 
-// Вспомогательные методы для рендеринга
-func (h *AuthHandler) renderMainPage(w http.ResponseWriter, data interface{}) error {
-	pages := []string{
-		"web/static/pages/main.html",
-		"web/static/pages/main_account.html",
-		"web/static/pages/main_settings.html",
-	}
-	return h.renderTemplates(w, "main", pages, data)
+func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// Получаем токен из cookie
+		cookie, err := r.Cookie("token")
+		if err != nil {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+
+		// Проверяем валидность токена
+		login, err := h.authService.CheckUserTokenToValid(cookie.Value)
+		if err != nil {
+			// Удаляем невалидный токен
+			http.SetCookie(w, &http.Cookie{
+				Name:     "token",
+				Value:    "",
+				Path:     "/",
+				Expires:  time.Now().Add(-1 * time.Hour),
+				HttpOnly: true,
+				Secure:   false, // В продакшене должно быть true
+			})
+			http.Redirect(w, r, "/", http.StatusSeeOther) 
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), models.LoginKey, login)
+		
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
-func (h *AuthHandler) renderEntrancePage(w http.ResponseWriter, data interface{}) error {
-	pages := []string{
-		"web/static/pages/global.html",
-		"web/static/pages/entrance.html",
-		"web/static/pages/main.html",
-		"web/static/pages/main_account.html",
-		"web/static/pages/main_settings.html",
+func (h *AuthHandler) ExitHandler(w http.ResponseWriter, r *http.Request) {
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    "",                             // очищаем значение
+		Path:     "/",                            // действует для всех путей
+		HttpOnly: true,                           // защита от XSS
+		Secure:   false,                          // только HTTPS (false для localhost)
+		Expires:  time.Now().Add(-1 * time.Hour), // срок истёк
+		MaxAge:   -1,                             // удалить cookie немедленно
+		SameSite: http.SameSiteStrictMode,        // защита от CSRF
+	})
+
+	responseData := struct {
+		UserIsValid bool
+		AccountData models.AccountData
+		Funcs       []models.Unit
+	}{
+		UserIsValid: false,
 	}
-	return h.renderTemplates(w, "", pages, data)
+
+	// Получение функций
+	funcs, err := h.authService.GetFuncs()
+	if err != nil {
+		log.Printf("Ошибка получения должности: %v", err)
+	}
+	responseData.Funcs = funcs
+
+	// Рендеринг страницы
+	if err := h.renderTemplates(w, "", responseData); err != nil {
+		log.Printf("Ошибка рендеринга: %v", err)
+		http.Error(w, "Ошибка на сервере", http.StatusInternalServerError)
+	}
 }
 
-func (h *AuthHandler) renderTemplates(w http.ResponseWriter, tmpl string, files []string, data interface{}) error {
-	ts, err := template.ParseFiles(files...)
+func (h *AuthHandler) renderTemplates(w http.ResponseWriter, tmpl string, data any) error {
+	ts, err := template.ParseFiles(pages...)
 	if err != nil {
 		return fmt.Errorf("ошибка парсинга шаблонов: %w", err)
 	}
