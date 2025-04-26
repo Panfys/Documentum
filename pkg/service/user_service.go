@@ -3,15 +3,20 @@ package service
 import (
 	"documentum/pkg/models"
 	"documentum/pkg/storage"
-	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"errors"
+	"fmt"
+	"mime/multipart"
+	"os"
+	"path/filepath"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
 	GetUnits(function string) (string, error)
 	GetGroups(function, unit string) (string, error)
 	UpdateUserPassword(login, pass, newPass string) (int, error)
+	UpdateUserIcon(login string, icon multipart.File, iconName string) (string, error)
 }
 
 type userService struct {
@@ -59,11 +64,11 @@ func (s *userService) GetGroups(function, unit string) (string, error) {
 }
 
 func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, error) {
-	
+
 	userPass, err := s.storage.GetUserPassword(login)
-	
+
 	if err != nil {
-		return 500, errors.New("какая-то ошибка")
+		return 500, err
 	}
 
 	// Проверяем валидность текущего пароля
@@ -71,9 +76,8 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 		return 400, errors.New("Текущий пароль неверный!")
 	}
 
-	var user models.User
 	// Валидация пароля
-	if !user.ValidPass(newPass) || pass == newPass{
+	if !models.ValidPass(newPass) || pass == newPass {
 		return 400, errors.New("Неверный формат нового пароля!")
 	}
 
@@ -82,7 +86,7 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 	if err != nil {
 		return 500, errors.New("ошибка хеширования нового пароля")
 	}
- 
+
 	err = s.storage.UpdateUserPassword(login, string(newHash))
 	if err != nil {
 		return 500, errors.New("ошибка обновления пароля в БД")
@@ -90,3 +94,42 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 
 	return 0, nil
 }
+
+// Метод для изменения иконки пользователя
+func (s *userService) UpdateUserIcon(login string, icon multipart.File, iconName string) (string, error) {
+	path := "/app/web/source/icons/"
+
+	oldIconName, err := s.storage.GetUserIcon(login)
+	if err != nil {
+		return "", err
+	}
+
+	if !models.ValidIcon(iconName) {
+		return "", errors.New("неподдерживаемый формат файла")
+	}
+
+	newFilename, err := models.GenerateUniqueFilename(path, iconName)
+	if err != nil {
+		return "", err
+	}
+
+	filePath := filepath.Join(path, newFilename)
+	if err := models.SaveFile(icon, filePath); err != nil {
+		return "", err
+	}
+
+	storagePath := filepath.Join("/source/icons/", newFilename)
+
+	if err := s.storage.UpdateUserIcon(storagePath, login); err != nil {
+		os.Remove(filePath) // Откатываем изменения если ошибка
+		return "", err
+	}
+
+	if oldIconName != "" {
+		oldIconPath := filepath.Join("/app/web", oldIconName)
+		models.DeleteFileIfExists(oldIconPath)
+	}
+
+	return storagePath, nil
+}
+

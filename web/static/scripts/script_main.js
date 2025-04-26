@@ -184,7 +184,7 @@ icon.onchange = function () {
 
   $.ajax({
     method: "POST",
-    url: "/users/addicon",
+    url: "/protect/users/updateicon",
     data: user_icon,
     cache: false,
     contentType: false,

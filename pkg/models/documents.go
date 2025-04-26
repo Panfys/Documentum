@@ -3,42 +3,7 @@ package models
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-	"regexp"
 )
-
-type contextKey string
-
-var LoginKey contextKey = "login"
-
-// Объект для работы с подразделениями
-type Unit struct {
-	ID   int
-	Name string
-}
-
-// Объект для работы с пользователями
-type User struct {
-	ID     int    `json:"id"`
-	Login  string `json:"login"`
-	Name   string `json:"name"`
-	Func   string `json:"func"`
-	Unit   string `json:"unit"`
-	Group  string `json:"group"`
-	Pass   string `json:"pass"`
-	Status string `json:"status"`
-	Icon   string `json:"icon"`
-}
-
-type AccountData struct {
-	Login  string
-	Name   string
-	Func   string
-	Unit   string
-	Group  string
-	Status string
-	Icon   string
-	ToDay  string
-}
 
 // Объект для работы с документами
 type Document struct {
@@ -91,32 +56,4 @@ type DocSettings struct {
 	DocSet    string
 	DocDatain string
 	DocDatato string
-}
-
-// Метод для валидации ФИО пользователя
-func (u *User) ValidName(name string) bool {
-
-	pattern := `^[А-ЯЁ][а-яё]+ [А-ЯЁ]\.[А-ЯЁ]\.$`
-	re := regexp.MustCompile(pattern)
-
-	return re.MatchString(name)
-
-}
-
-// Метод для валидации логина пользователя
-func (u *User) ValidLogin(login string) bool {
-
-	pattern := `^[a-zA-Z0-9](?:[a-zA-Z0-9._-]{1,10}[a-zA-Z0-9])?$`
-	re := regexp.MustCompile(pattern)
-	return re.MatchString(login) && len(login) >= 3 && len(login) <= 12
-}
-
-// Метод для валидации пароля пользователя
-func (u *User) ValidPass(pass string) bool {
-
-	if len(pass) < 6 || len(pass) > 64{
-        return false
-    } 
-
-    return true
 }

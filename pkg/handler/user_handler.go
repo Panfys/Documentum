@@ -56,3 +56,23 @@ func (h *UserHandler) UpdateUserPassword(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("ok"))
 }
+
+func (h *UserHandler) UpdateUserIcon(w http.ResponseWriter, r *http.Request) {
+
+	login := r.Context().Value(models.LoginKey).(string);
+	icon, header, err := r.FormFile("icon")
+    if err != nil {
+        http.Error(w, "Ошибка получения файла иконки", http.StatusBadRequest)
+        return
+    }
+    defer icon.Close()
+
+    newFilename, err := h.userService.UpdateUserIcon(login, icon, header.Filename)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
+    w.Write([]byte(newFilename))
+}

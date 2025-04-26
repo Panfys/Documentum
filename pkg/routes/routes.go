@@ -34,13 +34,14 @@ func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
 
 	protect.HandleFunc("/users/exit", authHandler.ExitHandler).Methods("POST")
 	protect.HandleFunc("/users/updatepass", userHandler.UpdateUserPassword).Methods("POST")
+	protect.HandleFunc("/users/updateicon", userHandler.UpdateUserIcon).Methods("POST")
 
 	// ERROR 404
 	r.NotFoundHandler = http.HandlerFunc(handler.NotFoundHandler)
 
 	// STATIC
-	staticDir := "web/static"
-	r.PathPrefix("/static/").Handler(handler.StaticHandler(staticDir))
+	r.PathPrefix("/static/").Handler(handler.StaticHandler())
+	r.PathPrefix("/source/").Handler(authHandler.AuthMiddleware(handler.StaticHandler()))
 
 	return r
 }

@@ -10,6 +10,8 @@ type UserStorage interface {
 	GetUnits(function string) ([]models.Unit, error)
 	UpdateUserPassword(login, pass string) error
 	GetUserPassword(login string) (string, error)
+	UpdateUserIcon(icon string, login string) error
+	GetUserIcon(login string) (string, error)
 }
 type SQLUserStorage struct {
 	db *sql.DB
@@ -86,4 +88,27 @@ func (p *SQLUserStorage) GetUserPassword(login string) (string, error) {
 	}
 
 	return pass, nil
+}
+
+func (s *SQLUserStorage) UpdateUserIcon(icon string, login string) error {
+
+	_, err := s.db.Exec("UPDATE `users` SET `icon` = ? WHERE `login` = ?", icon, login)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *SQLUserStorage) GetUserIcon(login string) (string, error) {
+
+	var icon string
+	err := s.db.QueryRow("SELECT `icon` FROM `users` WHERE `login` = ?", login).Scan(&icon)
+
+	if err != nil {
+		return "", err
+	}
+
+	return icon, nil
 }

@@ -105,11 +105,11 @@ func (s *authService) UserRegistration(user models.User) error {
 	} else if exists {
 		return fmt.Errorf("пользователь с логином '%s' уже существует", user.Login)
 	}
-	if !user.ValidLogin(user.Login) {
+	if !models.ValidLogin(user.Login) {
 		return errors.New("неверный формат логина: " + user.Login)
 	}
 
-	if !user.ValidName(user.Name) {
+	if !models.ValidName(user.Name) {
 		return errors.New("неверный формат ФИО")
 	}
 
@@ -117,7 +117,7 @@ func (s *authService) UserRegistration(user models.User) error {
 		return errors.New("должность не указана")
 	}
 
-	if !user.ValidPass(user.Pass) {
+	if !models.ValidPass(user.Pass) {
 		return errors.New("неверный формат пароля")
 	}
 
