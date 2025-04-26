@@ -50,8 +50,7 @@ type PageData struct {
     SRC template.HTML
 }
 
-// WievDocumentHandler метод для просмотра документа
-func (d *DocHandler) WievDocumentHandler(w http.ResponseWriter, r *http.Request) {
+func (d *DocHandler) WievDocument(w http.ResponseWriter, r *http.Request) {
     file := r.URL.Query().Get("file")
     
     // Безопасная проверка пути к файлу
@@ -87,12 +86,37 @@ func (d *DocHandler) WievDocumentHandler(w http.ResponseWriter, r *http.Request)
     }
 }
 
+func (d *DocHandler) WievNewDocument(w http.ResponseWriter, r *http.Request) {
+    file := r.URL.Query().Get("file")
+
+	var SRC template.HTML
+
+	if filepath.Ext(file) == ".pdf" {
+		SRC = template.HTML(fmt.Sprintf("<object><embed src='%s'></embed></object>", file))
+	} else {
+		SRC = template.HTML(file)
+	}
+
+	ts, err := template.ParseFiles("web/static/pages/main_open_doc.html")
+	if err != nil {
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+
+	data := PageData{SRC: SRC}
+	err = ts.Execute(w, data)
+	if err != nil {
+		http.Error(w, "Internal Server Error", 500)
+		return
+	}
+}
+
 func (d *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
 	
 	login := r.Context().Value(models.LoginKey).(string);
 	idStr := r.FormValue("id")
 	id, err := strconv.Atoi(idStr)
-	
+
 	if err != nil {
 		http.Error(w, "Ошибка обработки данных!:", http.StatusBadRequest)
 		return
