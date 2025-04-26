@@ -40,7 +40,8 @@ func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
 	protect.HandleFunc("/users/updateicon", userHandler.UpdateUserIcon).Methods("POST")
 	protect.HandleFunc("/documents/getdoc", docHandler.GetDocuments).Methods("POST")
 	protect.HandleFunc("/documents/ingoing", docHandler.GetIngoingDoc).Methods("POST")
-	protect.HandleFunc("/documents/wievdoc", docHandler.WievDocumentHandler)
+	protect.HandleFunc("/documents/wievdoc", docHandler.WievDocument)
+	protect.HandleFunc("/documents/wievnewdoc", docHandler.WievNewDocument)
 	protect.HandleFunc("/documents/look", docHandler.AddLookDocument).Methods("POST")
 
 	// ERROR 404
