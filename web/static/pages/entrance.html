@@ -35,7 +35,9 @@
             <label id="regist-func-lable">Должность</label>
             <select id="regist-func-input" name="func">
               <option value="0"></option> 
-            
+              {{range .Funcs}}
+              <option value="{{.ID}}">{{ .Name }}</option>
+              {{end}}
             </select>
           </div>
           <p class="authorization__messages" id="regist-func-message"></p>
@@ -144,5 +146,5 @@
           </div>
         </div>
       </div>
-
+      <script src="/static/scripts/entrance.js"></script>
 {{end}}

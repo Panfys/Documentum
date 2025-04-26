@@ -3,27 +3,8 @@ package models
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"time"
 )
-
-// Объект для работы с подразделениями
-type Unit struct {
-	ID   int
-	Name string
-}
-
-// Объект для работы с пользователями
-type User struct {
-	ID     int    `json:"id"`
-	Login  string `json:"login"`
-	Name   string `json:"name"`
-	Func   string `json:"func"`
-	Unit   string `json:"unit"`
-	Group  string `json:"group"`
-	Pass   string `json:"pass"`
-	Status string `json:"status"`
-	Icon   string `json:"icon"`
-	ToDay  string
-}
 
 // Объект для работы с документами
 type Document struct {
@@ -77,3 +58,46 @@ type DocSettings struct {
 	DocDatain string
 	DocDatato string
 }
+
+func ParseDate(date string) (string, error) {
+    newdate, err := time.Parse(time.RFC3339, date)
+    if err != nil {
+        newdate, err = time.Parse("2006-01-02", date)
+        if err != nil {
+            return "", err
+        }
+    }
+
+    formattedDate := "<br>от " + newdate.Format("02.01.2006") + " г."
+    return formattedDate, nil
+}
+
+func ParseResolutionDate(date string) (string, error) {
+
+	newdate, err := time.Parse(time.RFC3339, date)
+    if err != nil {
+        newdate, err = time.Parse("2006-01-02", date)
+        if err != nil {
+            return "", err
+        }
+    }
+
+	formateDate := newdate.Format("02.01.2006") + " г."
+	return formateDate, nil
+}
+
+func ParseTime(restime string) (string, error) {
+	
+	newtime, err := time.Parse(time.RFC3339, restime)
+    if err != nil {
+        newtime, err = time.Parse("2006-01-02", restime)
+        if err != nil {
+            return "", err
+        }
+    }
+
+	// Форматируем дату в нужный формат
+	formateTime := "Исполнить до " + newtime.Format("02.01.2006") + " г."
+	return formateTime, nil
+}
+

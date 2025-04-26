@@ -28,38 +28,54 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 // CacheDuration - время кеширования статических файлов (1 год)
 const CacheDuration = 365 * 24 * time.Hour
 
-func StaticHandler(staticDir string) http.Handler {
-	// Получаем абсолютный путь к статике
-	absPath, err := filepath.Abs(staticDir)
-	if err != nil {
-		log.Println(err.Error())
-		panic("Ошибка получения абсолютного пути: " + err.Error())
-	}
+func StaticHandler() http.Handler {
+    // Базовый путь к папке web
+    webDir := "/app/web"
+    absPath, err := filepath.Abs(webDir)
+    if err != nil {
+        log.Fatalf("Ошибка получения абсолютного пути: %v", err)
+    }
 
-	fs := http.FileServer(http.Dir(absPath))
+    // Создаем файловый сервер для базовой директории
+    fs := http.FileServer(http.Dir(absPath))
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Блокируем доступ к скрытым файлам
-		if strings.HasPrefix(filepath.Base(r.URL.Path), ".") {
-			log.Println(err.Error())
-			NotFoundHandler(w, r)
-			return
-		}
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Разрешаем доступ только к static/ и source/
+        if !strings.HasPrefix(r.URL.Path, "/static/") && !strings.HasPrefix(r.URL.Path, "/source/") {
+            NotFoundHandler(w, r)
+            return
+        }
 
-		// Проверяем существование файла
-		reqPath := filepath.Join(absPath, strings.TrimPrefix(r.URL.Path, "/static/"))
-		info, err := os.Stat(reqPath)
-		if err != nil || info.IsDir() {
-			log.Println(err.Error())
-			NotFoundHandler(w, r)
-			return
-		}
+        // Блокируем доступ к скрытым файлам
+        if strings.HasPrefix(filepath.Base(r.URL.Path), ".") {
+            NotFoundHandler(w, r)
+            return
+        }
 
-		// Кеширование
-		w.Header().Set("Cache-Control", "public, max-age=31536000")
-		w.Header().Set("Expires", time.Now().Add(CacheDuration).UTC().Format(http.TimeFormat))
+        // Полный путь к запрашиваемому файлу
+        reqPath := filepath.Join(absPath, strings.TrimPrefix(r.URL.Path, "/"))
+        
+        // Проверяем существование файла
+        info, err := os.Stat(reqPath)
+        if err != nil {
+            log.Printf("File not found: %s, error: %v", reqPath, err)
+            NotFoundHandler(w, r)
+            return
+        }
 
-		// Отдаем файл
-		http.StripPrefix("/static/", fs).ServeHTTP(w, r)
-	})
+        // Запрещаем доступ к директориям
+        if info.IsDir() {
+            NotFoundHandler(w, r)
+            return
+        }
+
+        // Кеширование для статических файлов
+        if strings.HasPrefix(r.URL.Path, "/static/") {
+            w.Header().Set("Cache-Control", "public, max-age=31536000")
+            w.Header().Set("Expires", time.Now().Add(365*24*time.Hour).UTC().Format(http.TimeFormat))
+        }
+
+        // Отдаем файл без префикса /static/ или /source/
+        http.StripPrefix("/", fs).ServeHTTP(w, r)
+    })
 }

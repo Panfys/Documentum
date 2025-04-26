@@ -72,28 +72,3 @@ if (localStorage.getItem("color")) {
   localStorage.setItem("color", "blue");
   document.body.style.setProperty("--main-rgb", "45, 104, 248");
 }
-
-/*   ПОЛЕЗНОЕ
-
-События для всех див
-var divs = document.querySelectorAll("div");
-
-for (var i = 0; i < divs.length; i++) {
-  divs[i].onclick = function (e) {
-    e.target.style.backgroundColor = bgChange();
-  };
-}
-
-Валидация 
-function isValidLogin(login) {
-  // Проверка имени регулярным выражением
-  const pattern = /^[a-zA-Z0-9]+$/;
-  return pattern.test(login);
-}
-
-function isValidPassword(password) {
-  // Проверка пароля регулярным выражением
-  const pattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{8,20}$/;
-  return pattern.test(password);
-}
-*/

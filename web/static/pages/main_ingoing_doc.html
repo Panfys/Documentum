@@ -90,7 +90,7 @@
       <td class="table__column--number">
         <input class="table__text--input" id="input-newdoc-fnum" name="fnum" type="text" value="">
         <br> от
-        <input class="table__data--input" id="input-newdoc-fdate" name="fdate" type="date" value="{{.ToDay}}">
+        <input class="table__data--input" id="input-newdoc-fdate" name="fdate" type="date" value="{{.AccountData.ToDay}}">
       </td>
       <td class="table__column--number">
         <input class="table__text--input" id="input-newdoc-lnum" name="lnum" type="text">
@@ -117,7 +117,7 @@
 
       <td class="table__column--familiar">
         <input class="table__text--input" id="input-newdoc-familiar" name="familiar" type="text"
-          value="{{.Name}}" readonly>
+          value="{{.AccountData.Name}}" readonly>
       </td>
 
       <td class="table__column--count">

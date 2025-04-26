@@ -61,15 +61,15 @@
               class="main__header--account"
               tabindex="8"
               id="header-btn-userlogin"
-            >{{.Login}}</button>
+            >{{.AccountData.Login}}</button>
           </div>
         </div>
       </div>
       <!--Левая панель (настройки)-----------> 
-      <div class="main__settings" id="settings-panel"></div>
+      <div class="main__settings" id="settings-panel">{{template "settings" .}}</div>
 
       <!--Правая панель (аккаунт)----------->
-      <div class="main__account" id="account-panel"></div>
+      <div class="main__account" id="account-panel">{{template "account" .}}</div>
 
       <!--Центральный блок----------->
       <div class="main">
@@ -77,16 +77,16 @@
         <div class="main__tabs" id="main-tab-personal">Личные</div>
 
         <!--ВХОДЯЩИЕ--------------------->
-        <div class="main__tabs" id="main-tab-ingoing"></div>
+        <div class="main__tabs" id="main-tab-ingoing">{{template "ingoing_doc" .}}</div>
           
         <!--ИСХОДЯЩИЕ--------------------->
-        <div class="main__tabs" id="main-tab-outgoing"></div>
+        <div class="main__tabs" id="main-tab-outgoing">{{template "outgoing_doc" .}}</div>
 
         <!--ПРИКАЗЫ--------------------->
-        <div class="main__tabs" id="main-tab-directive"></div>
+        <div class="main__tabs" id="main-tab-directive">{{template "directive_doc" .}}</div>
 
         <!--ИНВЕНТАРЬ--------------------->
-        <div class="main__tabs" id="main-tab-inventory"></div>
+        <div class="main__tabs" id="main-tab-inventory">{{template "inventory_doc" .}}</div>
       </div>
 
       <!--Окно просмотра нового документа--------------------->
@@ -113,8 +113,7 @@
   </body>
 </html>
 
-<script src="/static/scripts/script_global.js"></script>
 <script src="/static/scripts/jquery-3.7.0.js"></script>
-<script id="mainScript" src="/static/scripts/script_main.js"></script>
+<script id="mainScript" src="/static/scripts/main.js"></script>
 <!--<script src="/scripts/websocket_main.js"></script>-->
 {{end}}
