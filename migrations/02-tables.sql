@@ -213,4 +213,4 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `users` (`id`, `login`, `name`, `func_id`, `unit_id`, `group_id`, `pass`, `status`, `icon`) VALUES
-(1,	'test',	'Иванов И.И.',	12,	4,	1, 	'$2y$10$3FVwCogIztiFc4FWUkhaAu7dvn05IumU6EoDgNyRY6yMjaJtOQVha',	'Администратор','');
+(1,	'test-user',	'Иванов И.И.',	12,	4,	1, 	'$2a$10$R02Yoo/ykAhJPSwMaSwmju71txr2NTR/zBPxYVD9D/0fnVtoYnXsu',	'Пользователь','');

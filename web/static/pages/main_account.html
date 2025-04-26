@@ -1,7 +1,7 @@
 {{define "account"}}
 <div class="main__account--content">
 
-  {{if .Icon}}
+  {{if .AccountData.Icon}}
     <label class="account__img">
       <p>Изменить фотографию</p>
       <input class="account__icon--intut" name="icon" type="file" accept=".jpeg, .png, .jpg, .ico">
@@ -9,7 +9,7 @@
 
     <style>
       .account__img {
-        background-image: url("{{.Icon}}");
+        background-image: url("{{.AccountData.Icon}}");
       }
     </style> 
 
@@ -19,18 +19,18 @@
     </label>
     {{end}}
 
-  <h1 class="account__name" id="account-name" >{{.Name}}</h1>
-  <h2 class="account__function">{{.Func}}</h2>
+  <h1 class="account__name" id="account-name" >{{.AccountData.Name}}</h1>
+  <h2 class="account__function">{{.AccountData.Func}}</h2>
   <h3 class="account__sign">должность</h3>
 
-  {{if .Group}}
-    <h2 class="account__group" >{{.Group}}</h2>
+  {{if .AccountData.Group}}
+    <h2 class="account__group" >{{.AccountData.Group}}</h2>
     <h3 class="account__sign">подразделение</h3>
   {{end}}
 
-  <h2 class="account__unit">{{.Unit}}</h2>
+  <h2 class="account__unit">{{.AccountData.Unit}}</h2>
   <h3 class="account__sign">структурное подразделение</h3>
-  <h2 class="account__status">{{.Status}}</h2>
+  <h2 class="account__status">{{.AccountData.Status}}</h2>
   <h3 class="account__sign">статус</h3>
 
   <button class="account__password--btn" id="account-btn-open">Изменить пароль</button>
@@ -68,4 +68,7 @@
   <button class="account__password--btn" id="account-btn-exit">Выйти из аккаунта</button>
 
 </div>
+
+<script src="/static/scripts/main_account.js"></script>
+
 {{end}}

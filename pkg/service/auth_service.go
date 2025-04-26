@@ -1,262 +1,172 @@
 package service
 
 import (
+	"documentum/pkg/models"
 	"documentum/pkg/storage"
-	"log"
+	"errors"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 
-	//"golang.org/x/crypto/bcrypt"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
+	"time"
+	"net/http"
 )
 
 type AuthService interface {
-	UserAuthorization(login string, pass string, remember string) error
+	UserRegistration(user models.User) error
+	UserAuthorization(login, pass string) (int, error)
 	CheckUserTokenToValid(token string) (string, error)
+	GenerateToken(w http.ResponseWriter, login, remember string) error
+	GetAccountData(login string) (models.AccountData, error)
+	GetFuncs() ([]models.Unit, error)
 }
 
 type authService struct {
 	storage   storage.AuthStorage
-	secretKey string
+	secretKey []byte
 }
 
 func NewAuthService(storage storage.AuthStorage, secretKey string) AuthService {
 	return &authService{
 		storage:   storage,
-		secretKey: secretKey,
+		secretKey: []byte(secretKey),
 	}
 }
 
-func (s *authService) generateToken(login string) (string, error) {
-
-	claims := jwt.MapClaims{
-		"login": login,
+func (s *authService) GetFuncs() ([]models.Unit, error) {
+	var funcs []models.Unit 
+	funcs, err := s.storage.GetFuncs()
+	if err != nil {
+		return nil, err
 	}
+	return funcs, err
+}
+
+func (s *authService) GenerateToken(w http.ResponseWriter, login, remember string)  error {
+
+	claims := jwt.RegisteredClaims{
+		Subject:   login,
+	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(s.secretKey)
+	responceToken, err := token.SignedString(s.secretKey) 
+	if err != nil {
+		return errors.New("ошибка создания токена")
+	}
+
+	if remember == "true"{
+		http.SetCookie(w, &http.Cookie{
+			Name:     "token", // Имя куки
+			Value:    responceToken,   // Значение (наш JWT-токен)
+			Expires:  time.Now().Add(72 * time.Hour),
+			Path:     "/",     // Доступно для всех путей на сайте
+			HttpOnly: true,    // Защита от XSS (недоступно через JavaScript)
+			Secure:   false,    // Только через HTTPS (в production)
+			SameSite: http.SameSiteLaxMode, // Защита от CSRF
+		})
+	} else {
+		http.SetCookie(w, &http.Cookie{
+			Name:     "token", // Имя куки
+			Value:    responceToken,   // Значение (наш JWT-токен)
+			Path:     "/",     // Доступно для всех путей на сайте
+			HttpOnly: true,    // Защита от XSS (недоступно через JavaScript)
+			Secure:   false,    // Только через HTTPS (в production)
+			SameSite: http.SameSiteLaxMode, // Защита от CSRF
+		})
+	}
+
+	return nil
 }
 
-func (s *authService) CheckUserTokenToValid(requestToken string) (string, error) {
-
-	token, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
-
+func (s *authService) CheckUserTokenToValid(tokenString string) (string, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("неизвестный метод шифрования: %v", token.Header["alg"])
+			return nil, fmt.Errorf("неизвестный метод шифрования токена: %v", token.Header["alg"])
 		}
 		return s.secretKey, nil
 	})
 
-	if err != nil || !token.Valid { 
-		log.Printf("Ошибка при валидации токена: %s", err)
-		return "", err
+	if err != nil {
+		return "", fmt.Errorf("ошибка проверки токена: %w", err)
 	}
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return claims["login"].(string), nil
-	} else {
-		log.Printf("Ошибка при получении информации из токена: %s", err)
-		return "", err
-	} 
+	if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
+		return claims.Subject, nil
+	}
+
+	return "", errors.New("токен не валиден")
 }
 
-func (s *authService) UserAuthorization(login string, pass string, remember string) error {
-	/*
-		var exp time.Time
+func (s *authService) UserRegistration(user models.User) error {
 
-		if remember == "true" {
-			exp = time.Now().Add(72 * time.Hour)
-		}
+	if exists, err := s.storage.UserExists(user.Login); err != nil {
+		return fmt.Errorf("ошибка при проверке существования пользователя")
+	} else if exists {
+		return fmt.Errorf("пользователь с логином '%s' уже существует", user.Login)
+	}
+	if !models.ValidLogin(user.Login) {
+		return errors.New("неверный формат логина: " + user.Login)
+	}
 
-		// Проверяем, есть ли пользователь с таким именем и паролем
-		userPass, err := s.db.GetUserPass(login)
+	if !models.ValidName(user.Name) {
+		return errors.New("неверный формат ФИО")
+	}
 
-		if err != nil {
-			return err
-		}
+	if user.Func == "0" {
+		return errors.New("должность не указана")
+	}
 
-		// Проверка валидности пароля
-		if err := bcrypt.CompareHashAndPassword([]byte(userPass), []byte(pass)); err != nil {
-			http.Error(w, "Неверный логин или пароль!", http.StatusUnauthorized)
-			return
-		}
+	if !models.ValidPass(user.Pass) {
+		return errors.New("неверный формат пароля")
+	}
 
-		token, err := generateToken(login)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Pass), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("ошибка хеширования пароля: %w", err)
+	}
 
-		if err != nil {
-			http.Error(w, "ошибка создания токена", 500)
-			return
-		}
-	*/
+	user.Pass = string(hashedPassword)
+
+	if err := s.storage.AddUser(user); err != nil {
+		return fmt.Errorf("ошибка записи данных в БД: %w", err)
+	}
+
 	return nil
 }
 
-/*
-// Секретный ключ
-
-[]byte("EAjbsdr@415tgs**405FW")
-// Определите ключ для контекста
-type contextKey string
-
-const userContextKey contextKey = "user"
-
-func generateToken(login string) (string, error) {
-
-	claims := jwt.MapClaims{
-		"login": login,
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(secretKey)
-}
-
-// Метод для регистарции пользователей
-func (s *AuthService) RegistrationHandler(w http.ResponseWriter, r *http.Request) {
-	var user User
-
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, "ошибка обработки данных пользователя", 400)
-		return
-	}
-
-	// Валидация логина
-	err := s.DB.ValidUserLoginDB(user.Login)
-
+func (s *authService) UserAuthorization(login, pass string) (int, error) {
+	userPass, err := s.storage.GetUserPassByLogin(login)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("%s", err), 400)
-		return
+		return 500, fmt.Errorf("ошибка авторизации: %w", err)
 	}
 
-	if !s.validUserLogin(user.Login) {
-		http.Error(w, "формат логина указан неверно", 400)
-		return
-	}
-
-	// Валидация ФИО
-	if !s.validUserName(user.Name) {
-		http.Error(w, "формат имени указан неверно", 400)
-		return
-	}
-
-	// Валидация должности
-	if user.Func == "0" {
-		http.Error(w, "должность не указана", 400)
-		return
-	}
-
-	// Валидация пароля
-	if !s.validUserPass(user.Pass) {
-		http.Error(w, "формат пароля указан неверно", 400)
-		return
-	}
-
-	hash, err := bcrypt.GenerateFromPassword([]byte(user.Pass), bcrypt.DefaultCost)
-	if err != nil {
-		http.Error(w, "ошибка хеширования данных", 500)
-		return
-	}
-	user.Pass = string(hash)
-
-	err = s.DB.AddUser(user)
-
-	if err != nil {
-		http.Error(w, "ошибка записи данных", 500)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("ok"))
-}
-
-// Метод для проверки токена пользователей
-func (s *AuthService) CheckTokenHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Извлечение токена из заголовка Authorization
-		cookie, err := r.Cookie("token")
-		if err != nil {
-			server.EntranceHandler(w, r)
-			return
-		}
-
-		userToken := cookie.Value
-
-		// Проверяем токен
-		token, err := jwt.Parse(userToken, func(token *jwt.Token) (interface{}, error) {
-			// Проверяем метод подписи
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("неизвестный метод шифрования: %v", token.Header["alg"])
-			}
-			return secretKey, nil
-		})
-
-		if err != nil || !token.Valid {
-			s.EntranceHandler(w, r)
-			return
-		}
-
-		// Извлечение полезных данных из токена
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			// Например, извлекаем поле "user_id"
-			login := claims["login"].(string)
-
-			// Создаем новый контекст с данными пользователя
-			ctx := context.WithValue(r.Context(), userContextKey, login)
-
-			// Обновляем запрос с новым контекстом
-			r = r.WithContext(ctx)
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
-// Метод для авторизации пользователей
-func (s *AuthService) AuthorizationHandler(w http.ResponseWriter, r *http.Request) {
-	login := r.FormValue("login")
-	pass := r.FormValue("pass")
-	remember := r.FormValue("remember")
-	var exp time.Time
-
-	if remember == "true" {
-		exp = time.Now().Add(72 * time.Hour)
-	}
-
-	// Проверяем, есть ли пользователь с таким именем и паролем
-	userPass, err := s.DB.GetUserPass(login)
-
-	if err != nil {
-		http.Error(w, "ошибка обработки данных", http.StatusUnauthorized)
-		return
-	}
-
-	// Проверка валидности пароля
 	if err := bcrypt.CompareHashAndPassword([]byte(userPass), []byte(pass)); err != nil {
-		http.Error(w, "Неверный логин или пароль!", http.StatusUnauthorized)
-		return
+		return 401, errors.New("неверный логин или пароль")
 	}
 
-	token, err := generateToken(login)
+	return 0, nil
+}
+
+func (s *authService) GetAccountData(login string) (models.AccountData, error) {
+	var accountData models.AccountData
+	accountData, err := s.storage.GetAccountData(login)
 
 	if err != nil {
-		http.Error(w, "ошибка создания токена", 500)
-		return
+		return accountData, err
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
-		Value:    token,
-		Path:     "/",
-		HttpOnly: true,  // Защита от доступа через JavaScript
-		Secure:   false, // Используйте только по HTTPS
-		Expires:  exp,
-	})
+	now := time.Now()
 
-	// Создаем новый контекст с данными пользователя
-	ctx := context.WithValue(r.Context(), userContextKey, login)
+	accountData.Login = login
+	accountData.ToDay = now.Format("2006-01-02")
+	
+	return accountData, nil
+}	
 
-	// Обновляем запрос с новым контекстом
-	r = r.WithContext(ctx)
+/*
 
-	s.MainHandler(w, r)
-}
+Метод для проверки токена пользователей
 
 // Метод для авторизации пользователей
 func (s *AuthService) ExitHandler(w http.ResponseWriter, r *http.Request) {
@@ -322,31 +232,4 @@ func (s *AuthService) ChangePasswordHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Пароль успешно изменен!"))
 }
-
-// Метод для валидации ФИО пользователя
-func (s *AuthService) validUserName(name string) bool {
-
-	pattern := `^[А-ЯЁ][а-яё]+ [А-ЯЁ]\.[А-ЯЁ]\.$`
-	re := regexp.MustCompile(pattern)
-
-	return re.MatchString(name)
-
-}
-
-// Метод для валидации логина пользователя
-func (s *AuthService) validUserLogin(login string) bool {
-
-	pattern := `^[a-zA-Z0-9.]{3,12}$`
-	re := regexp.MustCompile(pattern)
-
-	return re.MatchString(login)
-}
-
-// Метод для валидации пароля пользователя
-func (s *AuthService) validUserPass(pass string) bool {
-
-	pattern := `^[a-zA-Z-ЯЁа-яё0-9.]{6,30}$`
-	re := regexp.MustCompile(pattern)
-
-	return re.MatchString(pass)
-}*/
+*/
