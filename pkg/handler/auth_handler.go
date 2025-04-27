@@ -132,8 +132,13 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 		// Получаем токен из cookie
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return
+			if r.Method == http.MethodGet {
+				http.Redirect(w, r, "/", http.StatusSeeOther)
+				return
+			} else {
+				http.Error(w, "Пользователь не авторизован", http.StatusUnauthorized)
+				return
+			}
 		}
 
 		// Проверяем валидность токена
@@ -148,8 +153,13 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 				HttpOnly: true,
 				Secure:   false, // В продакшене должно быть true
 			})
-			http.Redirect(w, r, "/", http.StatusSeeOther) 
-			return
+			if r.Method == http.MethodGet {
+				http.Redirect(w, r, "/", http.StatusSeeOther)
+				return
+			} else {
+				http.Error(w, "Пользователь не авторизован", http.StatusUnauthorized)
+				return
+			}
 		}
 
 		ctx := context.WithValue(r.Context(), models.LoginKey, login)

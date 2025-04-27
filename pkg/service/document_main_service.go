@@ -4,6 +4,7 @@ import (
 	//"documentum/pkg/models"
 	"documentum/pkg/models"
 	"documentum/pkg/storage"
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -11,6 +12,7 @@ import (
 type DocService interface {
 	GetIngoingDoc(settings models.DocSettings) (string, error)
 	AddLookDocument(id int, name string) error
+	AddIngoingDoc(doc models.Document) (models.Document, error)
 }
 
 type docService struct {
@@ -36,7 +38,8 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 
 		// Обработка даты
 		var newFDate, newLDate string
-		newFDate, err = models.ParseDate(document.FDate)
+		
+		newFDate, err = models.ParseDate(document.FDate.String)
 
 		if err != nil {
 			return "", fmt.Errorf("ошибка валидации даты1: %s", err)
@@ -128,7 +131,7 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 			document.Copy,
 			strconv.Itoa(document.Width),
 			document.Location,
-			document.File,
+			document.FileURL,
 			docResolutions)
 	}
 
@@ -136,7 +139,7 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 }
 
 func (d *docService) AddLookDocument(id int, login string) error {
-	
+
 	name, err := d.storage.GetUserName(login)
 	if err != nil {
 		return err
@@ -149,4 +152,23 @@ func (d *docService) AddLookDocument(id int, login string) error {
 	}
 
 	return nil
+}
+
+func (d *docService) AddIngoingDoc(doc models.Document) (models.Document, error) {
+
+	cleanDoc := d.SanitizeDocument(doc)
+	id, err := d.storage.GetAutoIncrement("doc")
+
+	if err != nil {
+		return cleanDoc, errors.New("ошибка получения автоинкремента")
+	}
+	cleanDoc.ID = id
+
+	err = d.validIngoingDoc(cleanDoc)
+	if err != nil {
+		return cleanDoc, err
+	}
+
+	return cleanDoc, nil 
+
 }
