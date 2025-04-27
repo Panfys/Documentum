@@ -43,6 +43,7 @@ func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
 	protect.HandleFunc("/documents/wievdoc", docHandler.WievDocument)
 	protect.HandleFunc("/documents/wievnewdoc", docHandler.WievNewDocument)
 	protect.HandleFunc("/documents/look", docHandler.AddLookDocument).Methods("POST")
+	protect.HandleFunc("/documents/add", docHandler.AddIngoingDoc).Methods("POST")
 
 	// ERROR 404
 	r.NotFoundHandler = http.HandlerFunc(handler.NotFoundHandler)

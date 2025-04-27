@@ -3,6 +3,8 @@ package models
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"html/template"
+	"mime/multipart"
 	"time"
 )
 
@@ -11,7 +13,7 @@ type Document struct {
 	ID          int    `json:"id"`
 	Type        string `json:"type"`
 	FNum        string `json:"fnum"`
-	FDate       string `json:"fdate"`
+	FDate       sql.NullString
 	LNum        string `json:"lnum"`
 	LDate       sql.NullString
 	Name        string `json:"name"`
@@ -19,11 +21,13 @@ type Document struct {
 	Ispolnitel  string `json:"ispolnitel"`
 	Result      string `json:"result"`
 	Familiar    string `json:"familiar"`
-	Count       int    `json:"count"`
+	Count       int
 	Copy        string `json:"copy"`
 	Width       int    `json:"width"`
 	Location    string `json:"location"`
-	File        string
+	FileURL     string
+	File        multipart.File
+	FileHeader  *multipart.FileHeader
 	Creator     string `json:"creator"`
 	Resolutions []*Resolution
 }
@@ -59,45 +63,48 @@ type DocSettings struct {
 	DocDatato string
 }
 
-func ParseDate(date string) (string, error) {
-    newdate, err := time.Parse(time.RFC3339, date)
-    if err != nil {
-        newdate, err = time.Parse("2006-01-02", date)
-        if err != nil {
-            return "", err
-        }
-    }
+type PageData struct {
+	SRC template.HTML
+}
 
-    formattedDate := "<br>от " + newdate.Format("02.01.2006") + " г."
-    return formattedDate, nil
+func ParseDate(date string) (string, error) {
+	newdate, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		newdate, err = time.Parse("2006-01-02", date)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	formattedDate := "<br>от " + newdate.Format("02.01.2006") + " г."
+	return formattedDate, nil
 }
 
 func ParseResolutionDate(date string) (string, error) {
 
 	newdate, err := time.Parse(time.RFC3339, date)
-    if err != nil {
-        newdate, err = time.Parse("2006-01-02", date)
-        if err != nil {
-            return "", err
-        }
-    }
+	if err != nil {
+		newdate, err = time.Parse("2006-01-02", date)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	formateDate := newdate.Format("02.01.2006") + " г."
 	return formateDate, nil
 }
 
 func ParseTime(restime string) (string, error) {
-	
+
 	newtime, err := time.Parse(time.RFC3339, restime)
-    if err != nil {
-        newtime, err = time.Parse("2006-01-02", restime)
-        if err != nil {
-            return "", err
-        }
-    }
+	if err != nil {
+		newtime, err = time.Parse("2006-01-02", restime)
+		if err != nil {
+			return "", err
+		}
+	}
 
 	// Форматируем дату в нужный формат
 	formateTime := "Исполнить до " + newtime.Format("02.01.2006") + " г."
 	return formateTime, nil
 }
-

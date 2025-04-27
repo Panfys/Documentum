@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 	"path/filepath"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 // Объект для работы с пользователями
@@ -56,4 +57,12 @@ func ValidIcon(iconPath string) bool {
 	default:
 		return false
 	}
+}
+
+var Policy = bluemonday.UGCPolicy()
+
+func RemoveScripts(input string) string {
+	// Регулярное выражение для поиска тегов <script>...</script>
+	re := regexp.MustCompile(`(?i)<script.*?>.*?</script>`)
+	return re.ReplaceAllString(input, "")
 }

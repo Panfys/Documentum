@@ -11,7 +11,7 @@ function ServerMessage(action, message) {
         new_date = new Date();
         now_date = new_date.toLocaleString();
         div.style.display = "flex";
-        text.innerHTML +=
+        text.innerHTML =
           "(" + now_date + ") " + "Сообщение от сервера: " + message + "</br>";
         setTimeout(ServerMessage, 10000, "clouse", "");
       }

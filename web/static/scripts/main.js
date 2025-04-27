@@ -447,7 +447,7 @@ btn_addnewdoc.forEach((btn) => {
 
     $.ajax({
       method: "POST",
-      url: "../documents/adddoc",
+      url: "/protect/documents/add",
       data: newdoc_data,
       cache: false,
       contentType: false,
