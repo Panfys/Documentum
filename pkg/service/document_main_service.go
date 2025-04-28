@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"path/filepath"
+	//"os"
 )
 
 type DocService interface {
@@ -156,8 +158,8 @@ func (d *docService) AddIngoingDoc(doc models.Document) (models.Document, error)
 	cleanDoc := d.sanitizeDocument(&doc)
 
 	if err := d.validIngoingDoc(cleanDoc); err != nil {
-        return cleanDoc, err
-    }
+		return cleanDoc, err
+	}
 
 	id, err := d.storage.GetAutoIncrement("doc")
 
@@ -168,20 +170,39 @@ func (d *docService) AddIngoingDoc(doc models.Document) (models.Document, error)
 
 	for i := range cleanDoc.Resolutions {
 		cleanRes := d.sanitizeResolution(cleanDoc.Resolutions[i])
-		
+
 		err := d.validResolution(&cleanRes)
 		if err != nil {
 			return cleanDoc, err
 		}
-		
+
 		cleanRes.DocID = id
 		cleanRes.Creator = cleanDoc.Creator
-        cleanDoc.Resolutions[i] = &cleanRes
-		
+		cleanDoc.Resolutions[i] = &cleanRes
+
 		if cleanRes.Result != "" {
 			cleanDoc.Result = cleanRes.Result
 		}
 	}
 
+	path := "/app/web/source/documents/"
+
+	newFileName, err := models.GenerateUniqueFilename(path, cleanDoc.FileHeader.Filename)
+	if err != nil {
+		return cleanDoc, err
+	} 
+
+	filePath := filepath.Join(path, newFileName)
+	if err := models.SaveFile(cleanDoc.File, filePath); err != nil {
+		return cleanDoc, err
+	}
+
+	cleanDoc.FileURL = filepath.Join("/source/documents/", newFileName)
+	/*
+	if err := d.storage.UpdateUserIcon(storagePath, login); err != nil {
+		os.Remove(filePath) // Откатываем изменения если ошибка
+		return cleanDoc, err
+	}
+	*/
 	return cleanDoc, nil
 }
