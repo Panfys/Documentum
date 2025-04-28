@@ -419,6 +419,8 @@ btn_addnewdoc.forEach((btn) => {
             resolution_data.time = time;
             resolutions_data.push(resolution_data);
           } else {
+            ispolnitel = "NULL"
+            resolution_data.ispolnitel = ispolnitel;
             result = resolution.querySelector("#resolution-result").value;
             resolution_data.result = result;
             resolutions_data.push(resolution_data);
@@ -1085,6 +1087,8 @@ function DocSave() {
       resolution_data.ispolnitel = ispolnitel;
       resolution_data.time = time;
     } else {
+      ispolnitel = "NULL"
+      resolution_data.ispolnitel = ispolnitel;
       result = resolution.querySelector("#resolution-result").value;
       resolution_data.result = result;
     }

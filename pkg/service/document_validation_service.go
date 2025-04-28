@@ -4,7 +4,12 @@ import (
 	"database/sql"
 	"documentum/pkg/models"
 	"errors"
+	"path/filepath"
 	_ "github.com/go-sql-driver/mysql"
+	"mime"
+	"mime/multipart"
+	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -20,11 +25,21 @@ func (d *docService) validIngoingDoc(doc models.Document) error {
 		return err
 	}
 
-	if !d.validDocDate(doc.FDate) {
+	docFDate, err := models.StringToDateNullString(doc.FDate)
+	if err != nil {
+		return errors.New("дата документа указана неверно")
+	}
+
+	if !d.validDocDate(docFDate) {
 		return errors.New("дата документа не указана")
 	}
 
-	err = d.validDocLdate(doc.LDate, doc.LNum)
+	docLDate, err := models.StringToDateNullString(doc.LDate)
+	if err != nil {
+		return errors.New("дата поступившего документа указана неверно")
+	}
+
+	err = d.validDocLdate(docLDate, doc.LNum)
 	if err != nil {
 		return err
 	}
@@ -44,7 +59,21 @@ func (d *docService) validIngoingDoc(doc models.Document) error {
 		return err
 	}
 
-	err = d.validDoсCount(doc.Count)
+	err = d.validDocCount(doc.Count)
+	if err != nil {
+		return err
+	}
+
+	err = d.validDocWidth(doc.Width)
+	if err != nil {
+		return err
+	}
+
+	if doc.Location != "" && !d.validDocLocation(doc.Location) {
+		return errors.New(`отметка о подшивке указана неверно, примеры: "Дело 12, стр. 12", "Дело 1, стр. 12-19"`)
+	}
+
+	err = d.validDocFile(doc.FileHeader)
 	if err != nil {
 		return err
 	}
@@ -191,10 +220,99 @@ func (d *docService) validDocIspolnitel(ispolnitel string, resolutions []*models
 	return nil
 }
 
-func (d *docService) validDoсCount(count int) error {
+func (d *docService) validDocCount(count int) error {
 
 	if count < 1 {
-		return errors.New("количестов экземпляров не может быть меньше нуля")
+		return errors.New("количестов экземпляров не может быть меньше единицы")
+	}
+
+	return nil
+}
+
+func (d *docService) validDocWidth(width string) error {
+	if width == "" {
+		return errors.New("количество листов не указано")
+	}
+
+	parts := strings.Split(width, "/")
+
+	// Проверяем что частей не больше 2
+	if len(parts) > 2 {
+		return errors.New(`количество листов указано неверно, пример: "1", "1/25"`)
+	}
+
+	// Проверяем каждую часть
+	for _, part := range parts {
+		num, err := strconv.Atoi(part)
+		if err != nil {
+			return errors.New(`количество листов указано неверно, пример: "1", "1/25"`)
+		}
+		if num < 1 {
+			return errors.New("количество листов не может быть меньше единицы")
+		}
+	}
+
+	return nil
+}
+
+func (d *docService) validDocLocation(location string) bool {
+
+	// Проверяем общий формат: "Дело <число>, стр. <число>[-<число>]"
+	pattern := `^Дело (\d+), стр\. (\d+)(?:-(\d+))?$`
+	re := regexp.MustCompile(pattern)
+	matches := re.FindStringSubmatch(location)
+
+	if matches == nil {
+		return false
+	}
+
+	// Проверяем, что все числа валидны (положительные)
+	_, err := strconv.Atoi(matches[1]) // Номер дела
+	if err != nil || matches[1] == "0" {
+		return false
+	}
+
+	_, err = strconv.Atoi(matches[2]) // Первая страница
+	if err != nil || matches[2] == "0" {
+		return false
+	}
+
+	// Если есть диапазон (например, "12-19"), проверяем второе число
+	if matches[3] != "" {
+		pageEnd, err := strconv.Atoi(matches[3])
+		if err != nil || matches[3] == "0" {
+			return false
+		}
+
+		pageStart, _ := strconv.Atoi(matches[2])
+		if pageEnd <= pageStart {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (d *docService) validDocFile(file *multipart.FileHeader) error {
+	if file == nil {
+		return errors.New("файл не указан")
+	}
+
+	if file.Size == 0 {
+		return errors.New("файл не должен быть пустым")
+	}
+
+	// Получаем MIME-тип файла
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	mimeType := mime.TypeByExtension(ext)
+
+	// Проверяем, что файл PDF или изображение
+	isPDF := ext == ".pdf"
+	isImage := strings.HasPrefix(mimeType, "image/") &&
+		(ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif")
+
+	if !isPDF && !isImage {
+		return errors.New("поддерживаются только файлы PDF и изображения")
 	}
 
 	return nil
@@ -209,7 +327,7 @@ func (d *docService) containsDigit(s string) bool {
 	return false
 }
 
-func (d *docService) SanitizeDocument(doc models.Document) models.Document {
+func (d *docService) sanitizeDocument(doc *models.Document) models.Document {
 
 	doc.Type = models.Policy.Sanitize(models.RemoveScripts(doc.Type))
 	doc.FNum = models.Policy.Sanitize(models.RemoveScripts(doc.FNum))
@@ -223,5 +341,5 @@ func (d *docService) SanitizeDocument(doc models.Document) models.Document {
 	doc.Location = models.Policy.Sanitize(models.RemoveScripts(doc.Location))
 	doc.Creator = models.Policy.Sanitize(models.RemoveScripts(doc.Creator))
 
-	return doc
+	return *doc
 }

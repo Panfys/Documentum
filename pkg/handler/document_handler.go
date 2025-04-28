@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"database/sql"
 	"documentum/pkg/models"
 	"documentum/pkg/service"
 	"encoding/json"
@@ -128,37 +127,26 @@ func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 	login := r.Context().Value(models.LoginKey).(string)
 
 	countStr := r.FormValue("count")
-	widthStr := r.FormValue("width")
 
 	count, err := strconv.Atoi(countStr)
 	if err != nil {
-		http.Error(w, reqError, http.StatusBadRequest)
-		return
-	}
-
-	width, err := strconv.Atoi(widthStr)
-	if err != nil {
-		http.Error(w, reqError, http.StatusBadRequest)
+		http.Error(w, reqError + err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, reqError, http.StatusBadRequest)
+		http.Error(w, reqError + err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer file.Close()
 
 	document := models.Document{
-		Type:  r.FormValue("type"),
-		FNum:  r.FormValue("fnum"),
-		FDate: sql.NullString{
-			String: r.FormValue("fdate"),
-			Valid:  r.FormValue("fdate") != ""},
-		LNum:  r.FormValue("lnum"),
-		LDate: sql.NullString{
-			String: r.FormValue("ldate"),
-			Valid:  r.FormValue("ldate") != ""},
+		Type:       r.FormValue("type"),
+		FNum:       r.FormValue("fnum"),
+		FDate:      r.FormValue("fdate"),
+		LNum:       r.FormValue("lnum"),
+		LDate:      r.FormValue("ldate"),
 		Name:       r.FormValue("name"),
 		Sender:     r.FormValue("sender"),
 		Ispolnitel: r.FormValue("ispolnitel"),
@@ -166,7 +154,7 @@ func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 		Familiar:   r.FormValue("familiar"),
 		Count:      count,
 		Copy:       r.FormValue("copy"),
-		Width:      width,
+		Width:      r.FormValue("width"),
 		Location:   r.FormValue("location"),
 		Creator:    login,
 		File:       file,
@@ -175,7 +163,7 @@ func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 
 	resolutionsJSON := r.FormValue("resolutions")
 	if err := json.Unmarshal([]byte(resolutionsJSON), &document.Resolutions); err != nil {
-		http.Error(w, reqError, http.StatusBadRequest)
+		http.Error(w, reqError + err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -185,11 +173,11 @@ func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json") 
+	w.Header().Set("Content-Type", "application/json")
 
 	// Кодируем данные в JSON и отправляем
 	if err := json.NewEncoder(w).Encode(doc); err != nil {
-		http.Error(w, "Ошибка формирования ответа", http. StatusInternalServerError)
+		http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
 		return
 	}
 }
