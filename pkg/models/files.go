@@ -28,7 +28,7 @@ func GenerateUniqueFilename(path, originalFilename string) (string, error) {
 
 	for i := 0; i < 10; i++ {
 		// Генерируем случайную часть имени
-		randomPart := generateRandomName(8)
+		randomPart := generateRandomName(10)
 
 		// Собираем новое имя файла с оригинальным расширением
 		newFilename := randomPart + ext

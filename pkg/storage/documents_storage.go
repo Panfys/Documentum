@@ -108,3 +108,7 @@ func (d *docStorage) GetAutoIncrement(table string) (int, error) {
 
 	return autoIncrement, nil
 }
+
+func (d *docStorage) AddDocument(doc models.Document) error {
+	return nil
+}
