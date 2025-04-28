@@ -38,18 +38,16 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 
 		// Обработка даты
 		var newFDate, newLDate string
-		
-		newFDate, err = models.ParseDate(document.FDate.String)
+
+		newFDate, err = models.ParseDate(document.FDate)
 
 		if err != nil {
 			return "", fmt.Errorf("ошибка валидации даты1: %s", err)
 		}
 
-		if document.LDate.Valid {
-			newLDate, err = models.ParseDate(document.LDate.String)
-			if err != nil {
-				return "", fmt.Errorf("ошибка валидации даты2: %s", err)
-			}
+		newLDate, err = models.ParseDate(document.LDate)
+		if err != nil {
+			return "", fmt.Errorf("ошибка валидации даты2: %s", err)
 		}
 
 		// Обработка резолюции
@@ -73,11 +71,10 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 
 			// Сборка резолюций
 			for _, resolution := range resolutions {
-				if resolution.Time.Valid {
-					newTime, err = models.ParseTime(resolution.Time.String)
-					if err != nil {
-						return "", fmt.Errorf("ошибка валидации даты: %s", err)
-					}
+
+				newTime, err = models.ParseTime(resolution.Time)
+				if err != nil {
+					return "", fmt.Errorf("ошибка валидации даты: %s", err)
 				}
 
 				newDate, err = models.ParseResolutionDate(resolution.Date)
@@ -129,7 +126,7 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 			document.Familiar,
 			strconv.Itoa(document.Count),
 			document.Copy,
-			strconv.Itoa(document.Width),
+			document.Width,
 			document.Location,
 			document.FileURL,
 			docResolutions)
@@ -156,7 +153,12 @@ func (d *docService) AddLookDocument(id int, login string) error {
 
 func (d *docService) AddIngoingDoc(doc models.Document) (models.Document, error) {
 
-	cleanDoc := d.SanitizeDocument(doc)
+	cleanDoc := d.sanitizeDocument(&doc)
+
+	if err := d.validIngoingDoc(cleanDoc); err != nil {
+        return cleanDoc, err
+    }
+
 	id, err := d.storage.GetAutoIncrement("doc")
 
 	if err != nil {
@@ -164,11 +166,22 @@ func (d *docService) AddIngoingDoc(doc models.Document) (models.Document, error)
 	}
 	cleanDoc.ID = id
 
-	err = d.validIngoingDoc(cleanDoc)
-	if err != nil {
-		return cleanDoc, err
+	for i := range cleanDoc.Resolutions {
+		cleanRes := d.sanitizeResolution(cleanDoc.Resolutions[i])
+		
+		err := d.validResolution(&cleanRes)
+		if err != nil {
+			return cleanDoc, err
+		}
+		
+		cleanRes.DocID = id
+		cleanRes.Creator = cleanDoc.Creator
+        cleanDoc.Resolutions[i] = &cleanRes
+		
+		if cleanRes.Result != "" {
+			cleanDoc.Result = cleanRes.Result
+		}
 	}
 
-	return cleanDoc, nil 
-
+	return cleanDoc, nil
 }

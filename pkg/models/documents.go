@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	"html/template"
 	"mime/multipart"
@@ -13,9 +14,9 @@ type Document struct {
 	ID          int    `json:"id"`
 	Type        string `json:"type"`
 	FNum        string `json:"fnum"`
-	FDate       sql.NullString
+	FDate       string `json:"fdate"`
 	LNum        string `json:"lnum"`
-	LDate       sql.NullString
+	LDate       string `json:"ldate"`
 	Name        string `json:"name"`
 	Sender      string `json:"sender"`
 	Ispolnitel  string `json:"ispolnitel"`
@@ -23,7 +24,7 @@ type Document struct {
 	Familiar    string `json:"familiar"`
 	Count       int
 	Copy        string `json:"copy"`
-	Width       int    `json:"width"`
+	Width       string `json:"width"`
 	Location    string `json:"location"`
 	FileURL     string
 	File        multipart.File
@@ -31,20 +32,8 @@ type Document struct {
 	Creator     string `json:"creator"`
 	Resolutions []*Resolution
 }
-
-type ResolutionDB struct {
-	ID         int
-	DocID      int            `json:"doc_id"`
-	Ispolnitel string         `json:"ispolnitel"`
-	Text       string         `json:"text"`
-	Time       sql.NullString `json:"time"`
-	Date       string         `json:"date"`
-	User       string         `json:"user"`
-	Creator    string         `json:"creator"`
-	Result     string         `json:"result"`
-}
-
 type Resolution struct {
+	ID         string    `json:"id"`
 	DocID      int    `json:"doc_id"`
 	Ispolnitel string `json:"ispolnitel"`
 	Text       string `json:"text"`
@@ -107,4 +96,32 @@ func ParseTime(restime string) (string, error) {
 	// Форматируем дату в нужный формат
 	formateTime := "Исполнить до " + newtime.Format("02.01.2006") + " г."
 	return formateTime, nil
+}
+
+func StringToDateNullString(dateStr string) (sql.NullString, error) {
+	if dateStr == "" {
+		return sql.NullString{Valid: false}, nil
+	}
+
+	// Пробуем распарсить дату в разных форматах
+	formats := []string{
+		"2006-01-02",
+		time.RFC3339,
+	}
+
+	var parsedTime time.Time
+	var err error
+
+	for _, format := range formats {
+		parsedTime, err = time.Parse(format, dateStr)
+		if err == nil {
+			// Если дата распарсилась успешно - возвращаем в стандартном формате
+			return sql.NullString{
+				String: parsedTime.Format("2006-01-02"),
+				Valid:  true,
+			}, nil
+		}
+	}
+
+	return sql.NullString{}, errors.New("неверный формат даты")
 }

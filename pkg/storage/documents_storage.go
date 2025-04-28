@@ -8,7 +8,7 @@ import (
 
 type DocStorage interface {
 	GetDocuments(settings models.DocSettings) ([]models.Document, error)
-	GetResolutoins(id int) ([]models.ResolutionDB, error)
+	GetResolutoins(id int) ([]models.Resolution, error)
 	AddLookDocument(id int, name string) error
 	GetUserName(login string) (string, error)
 	GetAutoIncrement(table string) (int, error)
@@ -50,7 +50,7 @@ func (d *docStorage) GetDocuments(settings models.DocSettings) ([]models.Documen
 	return documents, nil
 }
 
-func (d *docStorage) GetResolutoins(id int) ([]models.ResolutionDB, error) {
+func (d *docStorage) GetResolutoins(id int) ([]models.Resolution, error) {
 	
 	rows, err := d.db.Query("SELECT * FROM `res` WHERE `doc_id` = ?", id)
 
@@ -60,10 +60,10 @@ func (d *docStorage) GetResolutoins(id int) ([]models.ResolutionDB, error) {
 
 	defer rows.Close()
 
-	var resolutions []models.ResolutionDB
+	var resolutions []models.Resolution
 
 	for rows.Next() {
-		var resolution models.ResolutionDB
+		var resolution models.Resolution
 		if err := rows.Scan(&resolution.ID, &resolution.DocID, &resolution.Ispolnitel, &resolution.Text, &resolution.Time, &resolution.Date, &resolution.User, &resolution.Creator); err != nil {
 			return nil, err
 		}
