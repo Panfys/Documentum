@@ -85,5 +85,5 @@ func (d *docService) sanitizeResolution(res *models.Resolution) models.Resolutio
 	res.User = models.Policy.Sanitize(models.RemoveScripts(res.User))
 	res.Creator = models.Policy.Sanitize(models.RemoveScripts(res.Creator))
 
-	return *res
+	return *res 
 }
