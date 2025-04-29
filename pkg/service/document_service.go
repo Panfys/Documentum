@@ -6,8 +6,8 @@ import (
 	"documentum/pkg/storage"
 	"errors"
 	"fmt"
-	"strconv"
 	"path/filepath"
+	"strconv"
 	//"os"
 )
 
@@ -47,9 +47,11 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 			return "", fmt.Errorf("ошибка валидации даты1: %s", err)
 		}
 
-		newLDate, err = models.ParseDate(document.LDate)
-		if err != nil {
-			return "", fmt.Errorf("ошибка валидации даты2: %s", err)
+		if document.LDate != "" {
+			newLDate, err = models.ParseDate(document.LDate)
+			if err != nil {
+				return "", fmt.Errorf("ошибка валидации даты2: %s", err)
+			}
 		}
 
 		// Обработка резолюции
@@ -74,9 +76,11 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 			// Сборка резолюций
 			for _, resolution := range resolutions {
 
-				newTime, err = models.ParseTime(resolution.Time)
-				if err != nil {
-					return "", fmt.Errorf("ошибка валидации даты: %s", err)
+				if resolution.Time != "" {
+					newTime, err = models.ParseTime(resolution.Time)
+					if err != nil {
+						return "", fmt.Errorf("ошибка валидации даты: %s", err)
+					}
 				}
 
 				newDate, err = models.ParseResolutionDate(resolution.Date)
@@ -190,7 +194,7 @@ func (d *docService) AddIngoingDoc(doc models.Document) (models.Document, error)
 	newFileName, err := models.GenerateUniqueFilename(path, cleanDoc.FileHeader.Filename)
 	if err != nil {
 		return cleanDoc, err
-	} 
+	}
 
 	filePath := filepath.Join(path, newFileName)
 	if err := models.SaveFile(cleanDoc.File, filePath); err != nil {
@@ -199,10 +203,10 @@ func (d *docService) AddIngoingDoc(doc models.Document) (models.Document, error)
 
 	cleanDoc.FileURL = filepath.Join("/source/documents/", newFileName)
 	/*
-	if err := d.storage.UpdateUserIcon(storagePath, login); err != nil {
-		os.Remove(filePath) // Откатываем изменения если ошибка
-		return cleanDoc, err
-	}
+		if err := d.storage.UpdateUserIcon(storagePath, login); err != nil {
+			os.Remove(filePath) // Откатываем изменения если ошибка
+			return cleanDoc, err
+		}
 	*/
 	return cleanDoc, nil
 }

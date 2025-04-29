@@ -3,6 +3,7 @@ package routes
 import (
 	"database/sql"
 	"documentum/pkg/handler"
+	"documentum/pkg/service/user_service"
 	"documentum/pkg/service"
 	"documentum/pkg/storage"
 	"net/http"
@@ -16,7 +17,7 @@ func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
 	docStorage := storage.NewDocStorage(db)
 	userStoreg := storage.NewUserStorage(db)
 	authStoreg := storage.NewAuthStorage(db)
-	userService := service.NewUserService(userStoreg)
+	userService := user_service.NewUserService(userStoreg)
 	docService := service.NewDocService(docStorage)
 	authServise := service.NewAuthService(authStoreg, secretKey)
 	authHandler := handler.NewAuthHandler(authServise)

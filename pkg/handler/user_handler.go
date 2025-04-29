@@ -1,17 +1,17 @@
 package handler
 
 import (
-	"documentum/pkg/service"
+	"documentum/pkg/service/user_service"
 	"documentum/pkg/models"
 	"fmt"
 	"net/http"
 )
 
 type UserHandler struct {
-	userService service.UserService
+	userService user_service.UserService
 }
 
-func NewUserHandler(userService service.UserService) *UserHandler {
+func NewUserHandler(userService user_service.UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
