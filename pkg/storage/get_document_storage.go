@@ -6,22 +6,7 @@ import (
 	"fmt"
 )
 
-type DocStorage interface {
-	GetDocuments(settings models.DocSettings) ([]models.Document, error)
-	GetResolutoins(id int) ([]models.Resolution, error)
-	AddLookDocument(id int, name string) error
-	GetUserName(login string) (string, error)
-	GetAutoIncrement(table string) (int, error)
-}
-type docStorage struct {
-	db *sql.DB
-}
-
-func NewDocStorage(db *sql.DB) *docStorage {
-	return &docStorage{db: db}
-}
-
-func (d *docStorage) GetDocuments(settings models.DocSettings) ([]models.Document, error) {
+func (d *SQLStorage) GetDocuments(settings models.DocSettings) ([]models.Document, error) {
 
 	query := fmt.Sprintf("SELECT * FROM `doc` WHERE `type` = ? AND `fdate` BETWEEN ? AND ? ORDER BY %s %s", settings.DocCol, settings.DocSet)
 
@@ -59,7 +44,7 @@ func (d *docStorage) GetDocuments(settings models.DocSettings) ([]models.Documen
 	return documents, nil
 }
 
-func (d *docStorage) GetResolutoins(id int) ([]models.Resolution, error) {
+func (d *SQLStorage) GetResolutoins(id int) ([]models.Resolution, error) {
 
 	rows, err := d.db.Query("SELECT * FROM `res` WHERE `doc_id` = ?", id)
 
@@ -93,26 +78,7 @@ func (d *docStorage) GetResolutoins(id int) ([]models.Resolution, error) {
 	return resolutions, nil
 }
 
-func (d *docStorage) AddLookDocument(id int, name string) error {
-	username := "<br>" + name
-
-	_, err := d.db.Exec("UPDATE `doc` SET `familiar` = IF(`familiar` LIKE ?, `familiar`, CONCAT(`familiar`, ?)) WHERE `id` = ?", "%"+name+"%", username, id)
-	return err
-}
-
-func (d *docStorage) GetUserName(login string) (string, error) {
-	var name string
-
-	err := d.db.QueryRow("SELECT `name` FROM `users` WHERE `login` = ?", login).Scan(&name)
-
-	if err != nil {
-		return "oшибка обработки данных пользователя в БД", err
-	}
-
-	return name, nil
-}
-
-func (d *docStorage) GetAutoIncrement(table string) (int, error) {
+func (d *SQLStorage) GetAutoIncrement(table string) (int, error) {
 
 	var autoIncrement int
 
@@ -123,8 +89,4 @@ func (d *docStorage) GetAutoIncrement(table string) (int, error) {
 	}
 
 	return autoIncrement, nil
-}
-
-func (d *docStorage) AddDocument(doc models.Document) error {
-	return nil
 }

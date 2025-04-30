@@ -1,4 +1,4 @@
-package user_service
+package user
 
 import (
 	"documentum/pkg/models"
@@ -9,14 +9,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UpdateUserService interface {
-	UpdateUserPassword(login, pass, newPass string) (int, error)
-	UpdateUserIcon(login string, icon multipart.File, iconName string) (string, error)
-}
-
 func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, error) {
 
-	userPass, err := s.storage.GetUserPassword(login)
+	userPass, err := s.stor.GetUserPassword(login)
 
 	if err != nil {
 		return 500, err
@@ -28,7 +23,7 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 	}
 
 	// Валидация пароля
-	if !models.ValidPass(newPass) || pass == newPass {
+	if !s.valid.ValidUserPass(newPass) || pass == newPass {
 		return 400, errors.New("Неверный формат нового пароля!")
 	}
 
@@ -38,7 +33,7 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 		return 500, errors.New("ошибка хеширования нового пароля")
 	}
 
-	err = s.storage.UpdateUserPassword(login, string(newHash))
+	err = s.stor.UpdateUserPassword(login, string(newHash))
 	if err != nil {
 		return 500, errors.New("ошибка обновления пароля в БД")
 	}
@@ -50,12 +45,12 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 func (s *userService) UpdateUserIcon(login string, icon multipart.File, iconName string) (string, error) {
 	path := "/app/web/source/icons/"
 
-	oldIconName, err := s.storage.GetUserIcon(login)
+	oldIconName, err := s.stor.GetUserIcon(login)
 	if err != nil {
 		return "", err
 	}
 
-	if !models.ValidIcon(iconName) {
+	if !s.valid.ValidUserIcon(iconName) {
 		return "", errors.New("неподдерживаемый формат файла")
 	}
 
@@ -71,7 +66,7 @@ func (s *userService) UpdateUserIcon(login string, icon multipart.File, iconName
 
 	storagePath := filepath.Join("/source/icons/", newFilename)
 
-	if err := s.storage.UpdateUserIcon(storagePath, login); err != nil {
+	if err := s.stor.UpdateUserIcon(storagePath, login); err != nil {
 		os.Remove(filePath) // Откатываем изменения если ошибка
 		return "", err
 	}

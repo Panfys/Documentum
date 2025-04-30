@@ -1,4 +1,4 @@
-package service
+package valid
 
 import (
 	"database/sql"
@@ -14,74 +14,81 @@ import (
 	"unicode"
 )
 
-func (d *docService) validIngoingDoc(doc models.Document) error {
+type DocValidator interface {
+	ValidIngoingDoc(reqDoc models.Document) (models.Document, error)
+	ValidResolution(res *models.Resolution) (models.Resolution, error)
+}
 
-	if !d.validDocType(doc.Type) {
-		return errors.New("тип документа указан некорректно")
+func (v *Validator) ValidIngoingDoc(reqDoc models.Document) (models.Document, error) {
+
+	doc := v.sanitizeDocument(&reqDoc)
+
+	if !v.validDocType(doc.Type) {
+		return models.Document{}, errors.New("тип документа указан некорректно")
 	}
 
-	err := d.validDocFNum(doc.FNum)
+	err := v.validDocFNum(doc.FNum)
 	if err != nil {
-		return err
+		return models.Document{}, err
 	}
 
 	docFDate, err := models.StringToDateNullString(doc.FDate)
 	if err != nil {
-		return errors.New("дата документа указана неверно")
+		return models.Document{}, errors.New("дата документа указана неверно")
 	}
 
-	if !d.validDocDate(docFDate) {
-		return errors.New("дата документа не указана")
+	if !v.validDocDate(docFDate) {
+		return models.Document{}, errors.New("дата документа не указана")
 	}
 
 	docLDate, err := models.StringToDateNullString(doc.LDate)
 	if err != nil {
-		return errors.New("дата поступившего документа указана неверно")
+		return models.Document{}, errors.New("дата поступившего документа указана неверно")
 	}
 
-	err = d.validDocLdate(docLDate, doc.LNum)
+	err = v.validDocLdate(docLDate, doc.LNum)
 	if err != nil {
-		return err
+		return models.Document{}, err
 	}
 
-	err = d.validDocName(doc.Name)
+	err = v.validDocName(doc.Name)
 	if err != nil {
-		return err
+		return models.Document{}, err
 	}
 
-	err = d.validDocSender(doc.Sender)
+	err = v.validDocSender(doc.Sender)
 	if err != nil {
-		return err
+		return models.Document{}, err
 	}
 
-	err = d.validDocIspolnitel(doc.Ispolnitel, doc.Resolutions)
+	err = v.validDocIspolnitel(doc.Ispolnitel, doc.Resolutions)
 	if err != nil {
-		return err
+		return models.Document{}, err
 	}
 
-	err = d.validDocCount(doc.Count)
+	err = v.validDocCount(doc.Count)
 	if err != nil {
-		return err
+		return models.Document{}, err
 	}
 
-	err = d.validDocWidth(doc.Width)
+	err = v.validDocWidth(doc.Width)
 	if err != nil {
-		return err
+		return models.Document{}, err
 	}
 
-	if doc.Location != "" && !d.validDocLocation(doc.Location) {
-		return errors.New(`отметка о подшивке указана неверно, примеры: "Дело 12, стр. 12", "Дело 1, стр. 12-19"`)
+	if doc.Location != "" && !v.validDocLocation(doc.Location) {
+		return models.Document{}, errors.New(`отметка о подшивке указана неверно, примеры: "Дело 12, стр. 12", "Дело 1, стр. 12-19"`)
 	}
 
-	err = d.validDocFile(doc.FileHeader)
+	err = v.validDocFile(doc.FileHeader)
 	if err != nil {
-		return err
+		return models.Document{}, err
 	}
 
-	return nil
+	return doc, nil
 }
 
-func (d *docService) validDocType(docType string) bool {
+func (v *Validator) validDocType(docType string) bool {
 
 	switch docType {
 	case "Входящий", "Исходящий", "Директива", "Инвентарный":
@@ -89,10 +96,9 @@ func (d *docService) validDocType(docType string) bool {
 	default:
 		return false
 	}
-
 }
 
-func (d *docService) validDocFNum(fnum string) error {
+func (v *Validator) validDocFNum(fnum string) error {
 	trimFnum := strings.TrimSpace(fnum)
 
 	if trimFnum == "" {
@@ -105,7 +111,7 @@ func (d *docService) validDocFNum(fnum string) error {
 
 	if strings.HasPrefix(trimFnum, "Вх. № ") {
 		numPart := strings.TrimPrefix(trimFnum, "Вх. № ")
-		if !d.containsDigit(numPart) {
+		if !v.containsDigit(numPart) {
 			return errors.New(`номер документа должен начинаться либо с "Вх. № ", либо с цифры`)
 		}
 	} else {
@@ -114,14 +120,14 @@ func (d *docService) validDocFNum(fnum string) error {
 		}
 	}
 
-	if !d.containsDigit(trimFnum) {
+	if !v.containsDigit(trimFnum) {
 		return errors.New(`номер документа указан некорректно, примеры правильного номера: "Вх. № 1", "Вх. № 317/124дсп", "312/8321", "215/1111дсп"`)
 	}
 
 	return nil
 }
 
-func (d *docService) validDocLNum(lnum string) error {
+func (v *Validator) validDocLNum(lnum string) error {
 	trimFnum := strings.TrimSpace(lnum)
 
 	if trimFnum == "" {
@@ -134,7 +140,7 @@ func (d *docService) validDocLNum(lnum string) error {
 
 	if strings.HasPrefix(trimFnum, "Исх. № ") {
 		numPart := strings.TrimPrefix(trimFnum, "Исх. № ")
-		if !d.containsDigit(numPart) {
+		if !v.containsDigit(numPart) {
 			return errors.New(`номер документа должен начинаться либо с "Исх. № ", либо с цифры`)
 		}
 	} else {
@@ -143,20 +149,20 @@ func (d *docService) validDocLNum(lnum string) error {
 		}
 	}
 
-	if !d.containsDigit(trimFnum) {
+	if !v.containsDigit(trimFnum) {
 		return errors.New(`номер документа указан некорректно, примеры правильного номера: "Исх. № 1", "Исх. № 317/124дсп", "330/8321", "215/1111дсп"`)
 	}
 
 	return nil
 }
 
-func (d *docService) validDocDate(date sql.NullString) bool {
+func (v *Validator) validDocDate(date sql.NullString) bool {
 	return date.Valid
 }
 
-func (d *docService) validDocLdate(date sql.NullString, num string) error {
+func (v *Validator) validDocLdate(date sql.NullString, num string) error {
 	if num != "" {
-		err := d.validDocLNum(num)
+		err := v.validDocLNum(num)
 		if err != nil {
 			return err
 		}
@@ -172,7 +178,7 @@ func (d *docService) validDocLdate(date sql.NullString, num string) error {
 	return nil
 }
 
-func (d *docService) validDocName(name string) error {
+func (v *Validator) validDocName(name string) error {
 	trimName := strings.TrimSpace(name)
 
 	if trimName == "" {
@@ -191,7 +197,7 @@ func (d *docService) validDocName(name string) error {
 	return nil
 }
 
-func (d *docService) validDocSender(sender string) error {
+func (v *Validator) validDocSender(sender string) error {
 	trimSender := strings.TrimSpace(sender)
 
 	if trimSender == "" {
@@ -205,7 +211,7 @@ func (d *docService) validDocSender(sender string) error {
 	return nil
 }
 
-func (d *docService) validDocIspolnitel(ispolnitel string, resolutions []*models.Resolution) error {
+func (v *Validator) validDocIspolnitel(ispolnitel string, resolutions []*models.Resolution) error {
 	trimIspolnitel := strings.TrimSpace(ispolnitel)
 
 	if len(resolutions) == 0 {
@@ -220,7 +226,7 @@ func (d *docService) validDocIspolnitel(ispolnitel string, resolutions []*models
 	return nil
 }
 
-func (d *docService) validDocCount(count int) error {
+func (v *Validator) validDocCount(count int) error {
 
 	if count < 1 {
 		return errors.New("количестов экземпляров не может быть меньше единицы")
@@ -229,7 +235,7 @@ func (d *docService) validDocCount(count int) error {
 	return nil
 }
 
-func (d *docService) validDocWidth(width string) error {
+func (v *Validator) validDocWidth(width string) error {
 	if width == "" {
 		return errors.New("количество листов не указано")
 	}
@@ -255,7 +261,7 @@ func (d *docService) validDocWidth(width string) error {
 	return nil
 }
 
-func (d *docService) validDocLocation(location string) bool {
+func (v *Validator) validDocLocation(location string) bool {
 
 	// Проверяем общий формат: "Дело <число>, стр. <число>[-<число>]"
 	pattern := `^Дело (\d+), стр\. (\d+)(?:-(\d+))?$`
@@ -293,7 +299,7 @@ func (d *docService) validDocLocation(location string) bool {
 	return true
 }
 
-func (d *docService) validDocFile(file *multipart.FileHeader) error {
+func (v *Validator) validDocFile(file *multipart.FileHeader) error {
 	if file == nil {
 		return errors.New("файл не указан")
 	}
@@ -318,7 +324,7 @@ func (d *docService) validDocFile(file *multipart.FileHeader) error {
 	return nil
 }
 
-func (d *docService) containsDigit(s string) bool {
+func (v *Validator) containsDigit(s string) bool {
 	for _, r := range s {
 		if unicode.IsDigit(r) {
 			return true
@@ -327,19 +333,21 @@ func (d *docService) containsDigit(s string) bool {
 	return false
 }
 
-func (d *docService) sanitizeDocument(doc *models.Document) models.Document {
+func (v *Validator) sanitizeDocument(doc *models.Document) models.Document {
 
-	doc.Type = models.Policy.Sanitize(models.RemoveScripts(doc.Type))
-	doc.FNum = models.Policy.Sanitize(models.RemoveScripts(doc.FNum))
-	doc.LNum = models.Policy.Sanitize(models.RemoveScripts(doc.LNum))
-	doc.Name = models.Policy.Sanitize(models.RemoveScripts(doc.Name))
-	doc.Sender = models.Policy.Sanitize(models.RemoveScripts(doc.Sender))
-	doc.Ispolnitel = models.Policy.Sanitize(models.RemoveScripts(doc.Ispolnitel))
-	doc.Result = models.Policy.Sanitize(models.RemoveScripts(doc.Result))
-	doc.Familiar = models.Policy.Sanitize(models.RemoveScripts(doc.Familiar))
-	doc.Copy = models.Policy.Sanitize(models.RemoveScripts(doc.Copy))
-	doc.Location = models.Policy.Sanitize(models.RemoveScripts(doc.Location))
-	doc.Creator = models.Policy.Sanitize(models.RemoveScripts(doc.Creator))
+	doc.Type = v.policy.Sanitize(doc.Type)
+	doc.FNum = v.policy.Sanitize(doc.FNum)
+	doc.LNum = v.policy.Sanitize(doc.LNum)
+	doc.Name = v.policy.Sanitize(doc.Name)
+	doc.Sender = v.policy.Sanitize(doc.Sender)
+	doc.Ispolnitel = v.policy.Sanitize(doc.Ispolnitel)
+	doc.Result = v.policy.Sanitize(doc.Result)
+	doc.Familiar = v.policy.Sanitize(doc.Familiar)
+	doc.Copy = v.policy.Sanitize(doc.Copy)
+	doc.Width = v.policy.Sanitize(doc.Width)
+	doc.Location = v.policy.Sanitize(doc.Location)
+	doc.FileHeader.Filename = v.policy.Sanitize(doc.FileHeader.Filename)
+	doc.Creator = v.policy.Sanitize(doc.Creator)
 
 	return *doc
 }
