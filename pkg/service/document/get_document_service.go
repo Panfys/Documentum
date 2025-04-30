@@ -1,34 +1,15 @@
 package service
 
 import (
-	//"documentum/pkg/models"
 	"documentum/pkg/models"
-	"documentum/pkg/storage"
-	"errors"
 	"fmt"
-	"path/filepath"
 	"strconv"
-	//"os"
 )
-
-type DocService interface {
-	GetIngoingDoc(settings models.DocSettings) (string, error)
-	AddLookDocument(id int, name string) error
-	AddIngoingDoc(doc models.Document) (models.Document, error)
-}
-
-type docService struct {
-	storage storage.DocStorage
-}
-
-func NewDocService(storage storage.DocStorage) DocService {
-	return &docService{storage: storage}
-}
 
 func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) {
 	var documents []models.Document
 
-	documents, err := d.storage.GetDocuments(settings)
+	documents, err := d.stor.GetDocuments(settings)
 
 	if err != nil {
 		return "", err
@@ -56,7 +37,7 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 
 		// Обработка резолюции
 
-		resolutions, err := d.storage.GetResolutoins(document.ID)
+		resolutions, err := d.stor.GetResolutoins(document.ID)
 
 		if err != nil {
 			return "", err
@@ -139,74 +120,4 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 	}
 
 	return response, nil
-}
-
-func (d *docService) AddLookDocument(id int, login string) error {
-
-	name, err := d.storage.GetUserName(login)
-	if err != nil {
-		return err
-	}
-
-	err = d.storage.AddLookDocument(id, name)
-
-	if err != nil {
-		return fmt.Errorf("ошибка записи просмотра документа в БД")
-	}
-
-	return nil
-}
-
-func (d *docService) AddIngoingDoc(doc models.Document) (models.Document, error) {
-
-	cleanDoc := d.sanitizeDocument(&doc)
-
-	if err := d.validIngoingDoc(cleanDoc); err != nil {
-		return cleanDoc, err
-	}
-
-	id, err := d.storage.GetAutoIncrement("doc")
-
-	if err != nil {
-		return cleanDoc, errors.New("ошибка получения автоинкремента")
-	}
-	cleanDoc.ID = id
-
-	for i := range cleanDoc.Resolutions {
-		cleanRes := d.sanitizeResolution(cleanDoc.Resolutions[i])
-
-		err := d.validResolution(&cleanRes)
-		if err != nil {
-			return cleanDoc, err
-		}
-
-		cleanRes.DocID = id
-		cleanRes.Creator = cleanDoc.Creator
-		cleanDoc.Resolutions[i] = &cleanRes
-
-		if cleanRes.Result != "" {
-			cleanDoc.Result = cleanRes.Result
-		}
-	}
-
-	path := "/app/web/source/documents/"
-
-	newFileName, err := models.GenerateUniqueFilename(path, cleanDoc.FileHeader.Filename)
-	if err != nil {
-		return cleanDoc, err
-	}
-
-	filePath := filepath.Join(path, newFileName)
-	if err := models.SaveFile(cleanDoc.File, filePath); err != nil {
-		return cleanDoc, err
-	}
-
-	cleanDoc.FileURL = filepath.Join("/source/documents/", newFileName)
-	/*
-		if err := d.storage.UpdateUserIcon(storagePath, login); err != nil {
-			os.Remove(filePath) // Откатываем изменения если ошибка
-			return cleanDoc, err
-		}
-	*/
-	return cleanDoc, nil
 }

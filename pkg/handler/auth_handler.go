@@ -3,14 +3,17 @@ package handler
 import (
 	"context"
 	"documentum/pkg/models"
-	"documentum/pkg/service"
+	"documentum/pkg/service/auth"
+	"documentum/pkg/service/user"
+	"documentum/pkg/service/structure"
 	"encoding/json"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"html/template"
 	"log"
 	"net/http"
 	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var pages = []string{
@@ -26,12 +29,16 @@ var pages = []string{
 }
 
 type AuthHandler struct {
-	authService service.AuthService
+	authSrv auth.AuthService
+	userSrv	user.UserService
+	structSrv structure.StructureService
 }
 
-func NewAuthHandler(authService service.AuthService) *AuthHandler {
+func NewAuthHandler(authSrv auth.AuthService, userSrv	user.UserService, structSrv structure.StructureService) *AuthHandler {
 	return &AuthHandler{
-		authService: authService,
+		authSrv: authSrv,
+		userSrv: userSrv,
+		structSrv: structSrv,
 	}
 }
 
@@ -43,7 +50,7 @@ func (p AuthHandler) RegistrationHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err := p.authService.UserRegistration(user)
+	err := p.authSrv.UserRegistration(user)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -61,14 +68,14 @@ func (p *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 	remember := r.FormValue("remember")
 
 	// Авторизация пользователя
-	status, err := p.authService.UserAuthorization(login, pass)
+	status, err := p.authSrv.UserAuthorization(login, pass)
 	if err != nil {
 		http.Error(w, err.Error(), status)
 		return
 	}
 
 	// Генерация и установка токена
-	if err := p.authService.GenerateToken(w, login, remember); err != nil {
+	if err := p.authSrv.GenerateToken(w, login, remember); err != nil {
 		http.Error(w, "Ошибка генерации токена: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -78,7 +85,7 @@ func (p *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 	}{}
 
 	// Получение данных аккаунта
-	responseData.AccountData, err = p.authService.GetAccountData(login)
+	responseData.AccountData, err = p.userSrv.GetUserAccountData(login)
 	if err != nil {
 		log.Printf("Ошибка получения данных пользователя %s: %v", login, err)
 		http.Error(w, "Ошибка получения данных о пользователе", http.StatusInternalServerError)
@@ -102,9 +109,9 @@ func (h *AuthHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	// Проверка токена
 	cookie, err := r.Cookie("token")
 	if err == nil {
-		login, err := h.authService.CheckUserTokenToValid(cookie.Value)
+		login, err := h.authSrv.CheckUserTokenToValid(cookie.Value)
 		responseData.UserIsValid = err == nil
-		responseData.AccountData, err = h.authService.GetAccountData(login)
+		responseData.AccountData, err = h.userSrv.GetUserAccountData(login)
 		if err != nil {
 			log.Printf("Ошибка получения данных пользователя %s: %v", login, err)
 			http.Error(w, "Ошибка получения данных о пользователе", http.StatusInternalServerError)
@@ -113,7 +120,7 @@ func (h *AuthHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получение функций
-	funcs, err := h.authService.GetFuncs()
+	funcs, err := h.structSrv.GetFuncs()
 	if err != nil {
 		log.Printf("Ошибка получения должности: %v", err)
 	}
@@ -142,7 +149,7 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Проверяем валидность токена
-		login, err := h.authService.CheckUserTokenToValid(cookie.Value)
+		login, err := h.authSrv.CheckUserTokenToValid(cookie.Value)
 		if err != nil {
 			// Удаляем невалидный токен
 			http.SetCookie(w, &http.Cookie{
@@ -190,7 +197,7 @@ func (h *AuthHandler) ExitHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получение функций
-	funcs, err := h.authService.GetFuncs()
+	funcs, err := h.structSrv.GetFuncs()
 	if err != nil {
 		log.Printf("Ошибка получения должности: %v", err)
 	}

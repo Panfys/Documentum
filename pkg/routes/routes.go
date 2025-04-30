@@ -3,9 +3,11 @@ package routes
 import (
 	"database/sql"
 	"documentum/pkg/handler"
-	"documentum/pkg/service/user_service"
+	"documentum/pkg/service/user"
+	"documentum/pkg/service/valid"
 	"documentum/pkg/service"
 	"documentum/pkg/storage"
+	
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -14,14 +16,18 @@ import (
 func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
 	r := mux.NewRouter()
 
-	docStorage := storage.NewDocStorage(db)
-	userStoreg := storage.NewUserStorage(db)
-	authStoreg := storage.NewAuthStorage(db)
-	userService := user_service.NewUserService(userStoreg)
-	docService := service.NewDocService(docStorage)
-	authServise := service.NewAuthService(authStoreg, secretKey)
+	//Storage
+	storage := storage.NewSQLStorage(db)
+	
+	//Service
+	var valid valid.Validator
+	//userService := 
+	//docService := service.NewDocService(docStorage)
+	authServise := service.NewAuthService(storage, valid, secretKey)
+
+	//Handlers
 	authHandler := handler.NewAuthHandler(authServise)
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(&getUserService, &updateUserService)
 	docHandler := handler.NewDocHandler(docService)
 
 	r.HandleFunc("/", authHandler.GetHandler)
