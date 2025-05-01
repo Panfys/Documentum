@@ -15,7 +15,7 @@ func NewSQLStorage(db *sql.DB, log logger.Logger) *SQLStorage {
 	return &SQLStorage{
 		db: db,
 		log: log,
-	}
+	} 
 }
 
 type AuthStorage interface {
@@ -44,7 +44,6 @@ type DocStorage interface {
 	GetResolutoins(id int) ([]models.Resolution, error)
 	AddLookDocument(id int, name string) error
 	GetUserName(login string) (string, error)
-	GetAutoIncrement(table string) (int, error)
 	AddDocumentWithResolutions(doc models.Document) error
 	AddDocument(doc models.Document) error
 }

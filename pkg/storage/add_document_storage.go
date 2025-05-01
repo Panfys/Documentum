@@ -6,21 +6,21 @@ import (
 	"fmt"
 )
 
-func (d *SQLStorage) AddLookDocument(id int, name string) error {
+func (s *SQLStorage) AddLookDocument(id int, name string) error {
 	username := "<br>" + name
 
-	_, err := d.db.Exec("UPDATE `doc` SET `familiar` = IF(`familiar` LIKE ?, `familiar`, CONCAT(`familiar`, ?)) WHERE `id` = ?", "%"+name+"%", username, id)
+	_, err := s.db.Exec("UPDATE `doc` SET `familiar` = IF(`familiar` LIKE ?, `familiar`, CONCAT(`familiar`, ?)) WHERE `id` = ?", "%"+name+"%", username, id)
 	if err != nil {
-		return errors.New("ошибка записи просмотра докумнета в БД")
+		return s.log.Error(models.ErrAddDataInDB, err)
 	}
 	return nil
 }
 
-func (d *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
+func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 
-	tx, err := d.db.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
-		return err
+		return s.log.Error(models.ErrAddDataInDB, err)
 	}
 
 	var docID int64
@@ -32,19 +32,19 @@ func (d *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 		doc.Width, doc.Location,
 		doc.FileURL, doc.Creator)
 	if err != nil {
-		tx.Rollback() 
-		return errors.New("ошибка записи докумнта в БД")
+		tx.Rollback()
+		return s.log.Error(models.ErrAddDataInDB, err)
 	}
 
-	docID, err = result.LastInsertId()  
+	docID, err = result.LastInsertId()
 	if err != nil {
 		tx.Rollback()
-		return errors.New("ошибка получения ID из БД")
+		return s.log.Error(models.ErrAddDataInDB, err)
 	}
-	
+
 	for _, res := range doc.Resolutions {
 		insertResQuery := "INSERT INTO res (doc_id, ispolnitel, text, time, date, user, creator) VALUES (?, ?, ?, ?, ?, ?, ?)"
-		
+
 		if _, err := tx.Exec(insertResQuery,
 			docID,
 			res.Ispolnitel,
@@ -53,12 +53,16 @@ func (d *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 			res.Date,
 			res.User,
 			res.Creator); err != nil {
-			tx.Rollback() 
-			return errors.New("ошибка записи резолюции в БД")
+			tx.Rollback()
+			return s.log.Error(models.ErrAddDataInDB, err)
 		}
 	}
 
-	return tx.Commit()
+	if err = tx.Commit(); err != nil {
+		s.log.Error(models.ErrAddDataInDB, err)
+	}
+
+	return nil
 }
 
 func (d *SQLStorage) AddDocument(doc models.Document) error {

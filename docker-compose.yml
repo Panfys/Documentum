@@ -5,6 +5,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -12,12 +17,12 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
-    restart: always
+    restart: unless-stopped
   
   #Adminer
   adminer:
     image: adminer
-    restart: always
+    restart: unless-stopped
     ports:
       - 8080:8080
   
@@ -27,8 +32,9 @@ services:
     ports:
       - 80:80
     depends_on:
-      - db  
-    restart: always
+      db:
+        condition: service_healthy  
+    restart: unless-stopped
     command: air -c .air.toml 
     volumes:
       - .:/app

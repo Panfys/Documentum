@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 	"path/filepath"
 	"golang.org/x/crypto/bcrypt"
+	"documentum/pkg/models"
 )
 
 func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, error) {
@@ -28,12 +29,12 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 	// Хешируем новый пароль
 	newHash, err := bcrypt.GenerateFromPassword([]byte(newPass), bcrypt.DefaultCost)
 	if err != nil {
-		return 500, errors.New("ошибка хеширования нового пароля")
+		return 500, s.log.Error(models.ErrGetDataInDB, err)
 	}
 
 	err = s.stor.UpdateUserPassword(login, string(newHash))
 	if err != nil {
-		return 500, errors.New("ошибка обновления пароля в БД")
+		return 500, err
 	}
 
 	return 0, nil
@@ -41,6 +42,7 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 
 // Метод для изменения иконки пользователя
 func (s *userService) UpdateUserIcon(login string, icon multipart.File, iconName string) (string, error) {
+	
 	path := "/app/web/source/icons/"
 
 	oldIconName, err := s.stor.GetUserIcon(login)
