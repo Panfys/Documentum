@@ -2,6 +2,7 @@ package user
 
 import (
 	"documentum/pkg/service/valid"
+	"documentum/pkg/service/file"
 	"documentum/pkg/storage"
 	"documentum/pkg/models"
 	"mime/multipart"
@@ -15,12 +16,14 @@ type UserService interface {
 
 type userService struct {
 	stor  storage.UserStorage
-	valid valid.UserValidator
+	validSrv valid.UserValidatService
+	fileSrv file.FileServece
 }
 
-func NewUserService(stor storage.UserStorage, valid valid.UserValidator) UserService {
+func NewUserService(stor storage.UserStorage, validSrv valid.UserValidatService, fileSrv file.FileServece) UserService {
 	return &userService{
 		stor:  stor,
-		valid: valid,
+		validSrv: validSrv,
+		fileSrv: fileSrv,
 	}
 }

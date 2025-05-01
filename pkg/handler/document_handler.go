@@ -146,7 +146,7 @@ func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 		FNum:       r.FormValue("fnum"),
 		FDate:      r.FormValue("fdate"),
 		LNum:       r.FormValue("lnum"),
-		LDate:      r.FormValue("ldate"),
+		LDateStr:      r.FormValue("ldate"),
 		Name:       r.FormValue("name"),
 		Sender:     r.FormValue("sender"),
 		Ispolnitel: r.FormValue("ispolnitel"),

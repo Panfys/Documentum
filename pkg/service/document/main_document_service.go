@@ -4,6 +4,7 @@ import (
 	"documentum/pkg/models"
 	"documentum/pkg/storage"
 	"documentum/pkg/service/valid"
+	"documentum/pkg/service/file"
 )
 
 type DocService interface {
@@ -14,12 +15,14 @@ type DocService interface {
 
 type docService struct {
 	stor storage.DocStorage
-	valid valid.DocValidator
+	validSrv valid.DocValidatService
+	fileSrv file.FileServece
 }
 
-func NewDocService(stor storage.DocStorage, valid valid.DocValidator) DocService {
+func NewDocService(stor storage.DocStorage, validSrv valid.DocValidatService, fileSrv file.FileServece) DocService {
 	return &docService{
 		stor: stor,
-		valid: valid,
+		validSrv: validSrv,
+		fileSrv: fileSrv, 
 	}
 }

@@ -40,4 +40,6 @@ type DocStorage interface {
 	AddLookDocument(id int, name string) error
 	GetUserName(login string) (string, error)
 	GetAutoIncrement(table string) (int, error)
+	AddDocumentWithResolutions(doc models.Document) error 
+	AddDocument(doc models.Document) error
 }

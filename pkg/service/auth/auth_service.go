@@ -24,11 +24,11 @@ type AuthService interface {
 
 type authService struct {
 	stor storage.AuthStorage 
-	valid valid.UserValidator  
+	valid valid.UserValidatService 
 	secretKey []byte
 }
 
-func NewAuthService(stor storage.AuthStorage, valid valid.UserValidator, secretKey string) AuthService {
+func NewAuthService(stor storage.AuthStorage, valid valid.UserValidatService , secretKey string) AuthService {
 	return &authService{
 		stor: stor,
 		valid: valid,

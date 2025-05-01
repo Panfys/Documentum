@@ -4,12 +4,12 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 )
 
-type Validator struct {
+type validatService struct {
     policy *bluemonday.Policy
 }
 
-func NewValidator() *Validator {
-    return &Validator{
+func NewValidatService() *validatService {
+    return &validatService{
         policy: bluemonday.UGCPolicy(),
     }
 }

@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"database/sql"
 	"documentum/pkg/models"
 	"fmt"
 )
@@ -23,16 +22,12 @@ func (d *SQLStorage) GetDocuments(settings models.DocSettings) ([]models.Documen
 	)
 
 	for rows.Next() {
-		var (
-			document models.Document
-			ldate    sql.NullString
-		)
+		var document models.Document
 
-		if err := rows.Scan(&document.ID, &document.Type, &document.FNum, &document.FDate, &document.LNum, &ldate, &document.Name, &document.Sender, &document.Ispolnitel, &document.Result, &document.Familiar, &document.Count, &document.Copy, &document.Width, &document.Location, &document.FileURL, &document.Creator); err != nil {
+
+		if err := rows.Scan(&document.ID, &document.Type, &document.FNum, &document.FDate, &document.LNum, &document.LDate, &document.Name, &document.Sender, &document.Ispolnitel, &document.Result, &document.Familiar, &document.Count, &document.Copy, &document.Width, &document.Location, &document.FileURL, &document.Creator); err != nil {
 			return nil, err
 		}
-
-		document.LDate = ldate.String
 
 		documents = append(documents, document)
 	}
@@ -57,16 +52,11 @@ func (d *SQLStorage) GetResolutoins(id int) ([]models.Resolution, error) {
 	var resolutions []models.Resolution
 
 	for rows.Next() {
-		var (
-			resolution models.Resolution
-			time       sql.NullString
-		)
+		var resolution models.Resolution
 
-		if err := rows.Scan(&resolution.ID, &resolution.DocID, &resolution.Ispolnitel, &resolution.Text, &time, &resolution.Date, &resolution.User, &resolution.Creator); err != nil {
+		if err := rows.Scan(&resolution.ID, &resolution.DocID, &resolution.Ispolnitel, &resolution.Text, &resolution.Time, &resolution.Date, &resolution.User, &resolution.Creator); err != nil {
 			return nil, err
 		}
-
-		resolution.Time = time.String
 
 		resolutions = append(resolutions, resolution)
 	}

@@ -25,13 +25,13 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 		newFDate, err = models.ParseDate(document.FDate)
 
 		if err != nil {
-			return "", fmt.Errorf("ошибка валидации даты1: %s", err)
+			return "", fmt.Errorf("ошибка валидации даты: %s", err)
 		}
 
-		if document.LDate != "" {
-			newLDate, err = models.ParseDate(document.LDate)
+		if document.LDate.Valid{
+			newLDate, err = models.ParseDate(document.LDate.String)
 			if err != nil {
-				return "", fmt.Errorf("ошибка валидации даты2: %s", err)
+				return "", fmt.Errorf("ошибка валидации даты документа: %s", err)
 			}
 		}
 
@@ -57,8 +57,8 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 			// Сборка резолюций
 			for _, resolution := range resolutions {
 
-				if resolution.Time != "" {
-					newTime, err = models.ParseTime(resolution.Time)
+				if resolution.Time.Valid {
+					newTime, err = models.ParseTime(resolution.Time.String)
 					if err != nil {
 						return "", fmt.Errorf("ошибка валидации даты: %s", err)
 					}

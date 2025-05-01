@@ -16,13 +16,14 @@ type Document struct {
 	FNum        string `json:"fnum"`
 	FDate       string `json:"fdate"`
 	LNum        string `json:"lnum"`
-	LDate       string `json:"ldate"`
+	LDateStr    string `json:"ldate"`
+	LDate       sql.NullString
 	Name        string `json:"name"`
 	Sender      string `json:"sender"`
 	Ispolnitel  string `json:"ispolnitel"`
 	Result      string `json:"result"`
 	Familiar    string `json:"familiar"`
-	Count       int
+	Count       int    `json:"count"`
 	Copy        string `json:"copy"`
 	Width       string `json:"width"`
 	Location    string `json:"location"`
@@ -32,12 +33,14 @@ type Document struct {
 	Creator     string `json:"creator"`
 	Resolutions []*Resolution
 }
+
 type Resolution struct {
-	ID         string    `json:"id"`
+	ID         string `json:"id"`
 	DocID      int    `json:"doc_id"`
 	Ispolnitel string `json:"ispolnitel"`
 	Text       string `json:"text"`
-	Time       string `json:"time"`
+	Time       sql.NullString
+	TimeStr    string `json:"time"`
 	Date       string `json:"date"`
 	User       string `json:"user"`
 	Creator    string `json:"creator"`

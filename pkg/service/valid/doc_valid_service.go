@@ -14,12 +14,12 @@ import (
 	"unicode"
 )
 
-type DocValidator interface {
+type DocValidatService interface {
 	ValidIngoingDoc(reqDoc models.Document) (models.Document, error)
 	ValidResolution(res *models.Resolution) (models.Resolution, error)
 }
 
-func (v *Validator) ValidIngoingDoc(reqDoc models.Document) (models.Document, error) {
+func (v *validatService) ValidIngoingDoc(reqDoc models.Document) (models.Document, error) {
 
 	doc := v.sanitizeDocument(&reqDoc)
 
@@ -41,12 +41,12 @@ func (v *Validator) ValidIngoingDoc(reqDoc models.Document) (models.Document, er
 		return models.Document{}, errors.New("дата документа не указана")
 	}
 
-	docLDate, err := models.StringToDateNullString(doc.LDate)
+	doc.LDate, err = models.StringToDateNullString(doc.LDateStr)
 	if err != nil {
 		return models.Document{}, errors.New("дата поступившего документа указана неверно")
 	}
 
-	err = v.validDocLdate(docLDate, doc.LNum)
+	err = v.validDocLdate(doc.LDate, doc.LNum)
 	if err != nil {
 		return models.Document{}, err
 	}
@@ -88,7 +88,7 @@ func (v *Validator) ValidIngoingDoc(reqDoc models.Document) (models.Document, er
 	return doc, nil
 }
 
-func (v *Validator) validDocType(docType string) bool {
+func (v *validatService) validDocType(docType string) bool {
 
 	switch docType {
 	case "Входящий", "Исходящий", "Директива", "Инвентарный":
@@ -98,7 +98,7 @@ func (v *Validator) validDocType(docType string) bool {
 	}
 }
 
-func (v *Validator) validDocFNum(fnum string) error {
+func (v *validatService) validDocFNum(fnum string) error {
 	trimFnum := strings.TrimSpace(fnum)
 
 	if trimFnum == "" {
@@ -127,7 +127,7 @@ func (v *Validator) validDocFNum(fnum string) error {
 	return nil
 }
 
-func (v *Validator) validDocLNum(lnum string) error {
+func (v *validatService) validDocLNum(lnum string) error {
 	trimFnum := strings.TrimSpace(lnum)
 
 	if trimFnum == "" {
@@ -156,11 +156,11 @@ func (v *Validator) validDocLNum(lnum string) error {
 	return nil
 }
 
-func (v *Validator) validDocDate(date sql.NullString) bool {
+func (v *validatService) validDocDate(date sql.NullString) bool {
 	return date.Valid
 }
 
-func (v *Validator) validDocLdate(date sql.NullString, num string) error {
+func (v *validatService) validDocLdate(date sql.NullString, num string) error {
 	if num != "" {
 		err := v.validDocLNum(num)
 		if err != nil {
@@ -178,7 +178,7 @@ func (v *Validator) validDocLdate(date sql.NullString, num string) error {
 	return nil
 }
 
-func (v *Validator) validDocName(name string) error {
+func (v *validatService) validDocName(name string) error {
 	trimName := strings.TrimSpace(name)
 
 	if trimName == "" {
@@ -197,7 +197,7 @@ func (v *Validator) validDocName(name string) error {
 	return nil
 }
 
-func (v *Validator) validDocSender(sender string) error {
+func (v *validatService) validDocSender(sender string) error {
 	trimSender := strings.TrimSpace(sender)
 
 	if trimSender == "" {
@@ -211,7 +211,7 @@ func (v *Validator) validDocSender(sender string) error {
 	return nil
 }
 
-func (v *Validator) validDocIspolnitel(ispolnitel string, resolutions []*models.Resolution) error {
+func (v *validatService) validDocIspolnitel(ispolnitel string, resolutions []*models.Resolution) error {
 	trimIspolnitel := strings.TrimSpace(ispolnitel)
 
 	if len(resolutions) == 0 {
@@ -226,7 +226,7 @@ func (v *Validator) validDocIspolnitel(ispolnitel string, resolutions []*models.
 	return nil
 }
 
-func (v *Validator) validDocCount(count int) error {
+func (v *validatService) validDocCount(count int) error {
 
 	if count < 1 {
 		return errors.New("количестов экземпляров не может быть меньше единицы")
@@ -235,7 +235,7 @@ func (v *Validator) validDocCount(count int) error {
 	return nil
 }
 
-func (v *Validator) validDocWidth(width string) error {
+func (v *validatService) validDocWidth(width string) error {
 	if width == "" {
 		return errors.New("количество листов не указано")
 	}
@@ -261,7 +261,7 @@ func (v *Validator) validDocWidth(width string) error {
 	return nil
 }
 
-func (v *Validator) validDocLocation(location string) bool {
+func (v *validatService) validDocLocation(location string) bool {
 
 	// Проверяем общий формат: "Дело <число>, стр. <число>[-<число>]"
 	pattern := `^Дело (\d+), стр\. (\d+)(?:-(\d+))?$`
@@ -299,7 +299,7 @@ func (v *Validator) validDocLocation(location string) bool {
 	return true
 }
 
-func (v *Validator) validDocFile(file *multipart.FileHeader) error {
+func (v *validatService) validDocFile(file *multipart.FileHeader) error {
 	if file == nil {
 		return errors.New("файл не указан")
 	}
@@ -324,7 +324,7 @@ func (v *Validator) validDocFile(file *multipart.FileHeader) error {
 	return nil
 }
 
-func (v *Validator) containsDigit(s string) bool {
+func (v *validatService) containsDigit(s string) bool {
 	for _, r := range s {
 		if unicode.IsDigit(r) {
 			return true
@@ -333,7 +333,7 @@ func (v *Validator) containsDigit(s string) bool {
 	return false
 }
 
-func (v *Validator) sanitizeDocument(doc *models.Document) models.Document {
+func (v *validatService) sanitizeDocument(doc *models.Document) models.Document {
 
 	doc.Type = v.policy.Sanitize(doc.Type)
 	doc.FNum = v.policy.Sanitize(doc.FNum)

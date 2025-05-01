@@ -2,6 +2,7 @@ package storage
 
 import (
 	"documentum/pkg/models"
+	"errors"
 )
 
 func (s *SQLStorage) AddUser(user models.User) error {
@@ -11,7 +12,7 @@ func (s *SQLStorage) AddUser(user models.User) error {
 	_, err := s.db.Exec(newUser, user.Login, user.Name, user.Func, user.Unit, user.Group, user.Pass, "Пользователь", "")
 
 	if err != nil {
-		return err
+		return errors.New("ошибка записи пользователя в БД")
 	}
 
 	return nil

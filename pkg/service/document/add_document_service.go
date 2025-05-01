@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	
 )
 
 func (d *docService) AddLookDocument(id int, login string) error {
@@ -26,27 +25,22 @@ func (d *docService) AddLookDocument(id int, login string) error {
 
 func (d *docService) AddIngoingDoc(reqDoc models.Document) (models.Document, error) {
 
-	doc, err := d.valid.ValidIngoingDoc(reqDoc) 
+	doc, err := d.validSrv.ValidIngoingDoc(reqDoc)
 	if err != nil {
 		return models.Document{}, err
 	}
-
-	id, err := d.stor.GetAutoIncrement("doc")
 
 	if err != nil {
 		return models.Document{}, errors.New("ошибка получения автоинкремента")
 	}
 
-	doc.ID = id
-
 	for i := range doc.Resolutions {
 
-		res, err := d.valid.ValidResolution(doc.Resolutions[i])
+		res, err := d.validSrv.ValidResolution(doc.Resolutions[i])
 		if err != nil {
 			return models.Document{}, err
 		}
 
-		res.DocID = id
 		res.Creator = doc.Creator
 		doc.Resolutions[i] = &res
 
@@ -57,22 +51,18 @@ func (d *docService) AddIngoingDoc(reqDoc models.Document) (models.Document, err
 
 	path := "/app/web/source/documents/"
 
-	newFileName, err := models.GenerateUniqueFilename(path, doc.FileHeader.Filename)
-	if err != nil {
-		return doc, err
-	}
+	newFileName, err := d.fileSrv.AddFile(path, doc.FileHeader.Filename, doc.File)
 
-	filePath := filepath.Join(path, newFileName)
-	if err := models.SaveFile(doc.File, filePath); err != nil {
-		return doc, err
+	if err != nil {
+		return models.Document{}, err
 	}
 
 	doc.FileURL = filepath.Join("/source/documents/", newFileName)
-	/*
-		if err := d.storage.UpdateUserIcon(storagePath, login); err != nil {
-			os.Remove(filePath) // Откатываем изменения если ошибка
-			return cleanDoc, err
-		}
-	*/
+
+	if err := d.stor.AddDocumentWithResolutions(doc); err != nil {
+		d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName)) 
+		return models.Document{}, err
+	}
+	
 	return doc, nil
 }
