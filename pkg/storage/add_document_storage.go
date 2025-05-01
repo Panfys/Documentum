@@ -10,7 +10,10 @@ func (d *SQLStorage) AddLookDocument(id int, name string) error {
 	username := "<br>" + name
 
 	_, err := d.db.Exec("UPDATE `doc` SET `familiar` = IF(`familiar` LIKE ?, `familiar`, CONCAT(`familiar`, ?)) WHERE `id` = ?", "%"+name+"%", username, id)
-	return err
+	if err != nil {
+		return errors.New("ошибка записи просмотра докумнета в БД")
+	}
+	return nil
 }
 
 func (d *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
@@ -30,13 +33,13 @@ func (d *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 		doc.FileURL, doc.Creator)
 	if err != nil {
 		tx.Rollback() 
-		return err
+		return errors.New("ошибка записи докумнта в БД")
 	}
 
 	docID, err = result.LastInsertId()  
 	if err != nil {
 		tx.Rollback()
-		return err
+		return errors.New("ошибка получения ID из БД")
 	}
 	
 	for _, res := range doc.Resolutions {
@@ -51,7 +54,7 @@ func (d *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 			res.User,
 			res.Creator); err != nil {
 			tx.Rollback() 
-			return err
+			return errors.New("ошибка записи резолюции в БД")
 		}
 	}
 
