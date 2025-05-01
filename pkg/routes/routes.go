@@ -8,6 +8,7 @@ import (
 	"documentum/pkg/service/structure"
 	"documentum/pkg/service/user"
 	"documentum/pkg/service/valid"
+	"documentum/pkg/service/file"
 	"documentum/pkg/storage"
 
 	"net/http"
@@ -22,10 +23,11 @@ func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
 	stor := storage.NewSQLStorage(db)
 	
 	//Service
-	validService := valid.NewValidator()
-	userService := user.NewUserService(stor, validService)
+	fileService := file.NewFilesService()
+	validService := valid.NewValidatService()
+	userService := user.NewUserService(stor, validService, fileService)
 	structService := structure.NewstructureService(stor)
-	docService := document.NewDocService(stor, validService)
+	docService := document.NewDocService(stor, validService, fileService)
 	authServise := auth.NewAuthService(stor, validService, secretKey)
 
 	//Handlers

@@ -8,17 +8,24 @@ import (
 	"unicode"
 )
 
-func (v *Validator) ValidResolution(reqRes *models.Resolution) (models.Resolution, error) {
+func (v *validatService) ValidResolution(reqRes *models.Resolution) (models.Resolution, error) {
 
 	res := v.sanitizeResolution(reqRes)
 
 	if res.Ispolnitel != "NULL" && !v.validResIspolnitel(res.Ispolnitel) {
 		return models.Resolution{}, errors.New(`исполнитель документа в резолюции указан неверно, пример: "Панфилов А.П." или "Панфилов А.П., Якель Е.В."`)
+	} else {
+		res.Ispolnitel = ""
 	}
 
 	err := v.validResText(res.Text) 
 	if err != nil {
 		return models.Resolution{}, err
+	}
+
+	res.Time, err = models.StringToDateNullString(res.TimeStr)
+	if err != nil {
+		return models.Resolution{}, errors.New("срок исполнения документа указан неверно")
 	}
 
 	resDate, err := models.StringToDateNullString(res.Date)
@@ -37,7 +44,7 @@ func (v *Validator) ValidResolution(reqRes *models.Resolution) (models.Resolutio
 }
 
 // Ispolnitel
-func (v *Validator) validResIspolnitel(ispolnitel string) bool {
+func (v *validatService) validResIspolnitel(ispolnitel string) bool {
 
 	if ispolnitel == "" {
 		return  false
@@ -53,7 +60,7 @@ func (v *Validator) validResIspolnitel(ispolnitel string) bool {
 }
 
 // Text
-func (v *Validator) validResText(text string) error {
+func (v *validatService) validResText(text string) error {
 	trimText := strings.TrimSpace(text)
 
 	if trimText == "" {
@@ -73,13 +80,13 @@ func (v *Validator) validResText(text string) error {
 }
 
 // User
-func (v *Validator) validResUser(user string) bool {
+func (v *validatService) validResUser(user string) bool {
     pattern := `^[А-ЯЁ]\.[А-ЯЁ][а-яё]+$`
     re := regexp.MustCompile(pattern)
     return  re.MatchString(user)
 }
 
-func (v *Validator) sanitizeResolution(res *models.Resolution) models.Resolution {
+func (v *validatService) sanitizeResolution(res *models.Resolution) models.Resolution {
 
 	res.Ispolnitel = v.policy.Sanitize(res.Ispolnitel)
 	res.Result = v.policy.Sanitize(res.Result)

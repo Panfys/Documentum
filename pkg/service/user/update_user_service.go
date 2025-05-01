@@ -1,10 +1,8 @@
 package user
 
 import (
-	"documentum/pkg/models"
 	"errors"
 	"mime/multipart"
-	"os"
 	"path/filepath"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -23,7 +21,7 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 	}
 
 	// Валидация пароля
-	if !s.valid.ValidUserPass(newPass) || pass == newPass {
+	if !s.validSrv.ValidUserPass(newPass) || pass == newPass {
 		return 400, errors.New("Неверный формат нового пароля!")
 	}
 
@@ -50,30 +48,26 @@ func (s *userService) UpdateUserIcon(login string, icon multipart.File, iconName
 		return "", err
 	}
 
-	if !s.valid.ValidUserIcon(iconName) {
+	if !s.validSrv.ValidUserIcon(iconName) {
 		return "", errors.New("неподдерживаемый формат файла")
 	}
 
-	newFilename, err := models.GenerateUniqueFilename(path, iconName)
+	newFilename, err := s.fileSrv.AddFile(path, iconName, icon)
 	if err != nil {
 		return "", err
 	}
 
-	filePath := filepath.Join(path, newFilename)
-	if err := models.SaveFile(icon, filePath); err != nil {
-		return "", err
-	}
-
+	filePath := filepath.Join(path, newFilename) 
 	storagePath := filepath.Join("/source/icons/", newFilename)
 
 	if err := s.stor.UpdateUserIcon(storagePath, login); err != nil {
-		os.Remove(filePath) // Откатываем изменения если ошибка
+		s.fileSrv.DeleteFileIfExists(filePath)
 		return "", err
 	}
 
 	if oldIconName != "" {
 		oldIconPath := filepath.Join("/app/web", oldIconName)
-		models.DeleteFileIfExists(oldIconPath)
+		s.fileSrv.DeleteFileIfExists(oldIconPath)
 	}
 
 	return storagePath, nil
