@@ -1,4 +1,4 @@
-package service
+package document
 
 import (
 	"documentum/pkg/models"

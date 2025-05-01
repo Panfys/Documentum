@@ -1,4 +1,4 @@
-package service
+package document
 
 import (
 	"documentum/pkg/models"
@@ -51,7 +51,7 @@ func (d *docService) AddIngoingDoc(reqDoc models.Document) (models.Document, err
 		doc.Resolutions[i] = &res
 
 		if res.Result != "" {
-			doc.Result = doc.Result
+			doc.Result = res.Result
 		}
 	}
 
