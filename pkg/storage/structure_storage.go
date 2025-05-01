@@ -2,13 +2,15 @@ package storage
 
 import (
 	"documentum/pkg/models"
+	"errors"
 )
 
-func (p *SQLStorage) GetUnits(function string) ([]models.Unit, error) {
+func (s *SQLStorage) GetUnits(function string) ([]models.Unit, error) {
 
-	rows, err := p.db.Query("SELECT units_id, units.name FROM `funcs_units` JOIN `units` ON units_id = units.id WHERE `funcs_id` = ?", function)
+	rows, err := s.db.Query("SELECT units_id, units.name FROM `funcs_units` JOIN `units` ON units_id = units.id WHERE `funcs_id` = ?", function)
 	if err != nil {
-		return nil, err
+		s.log.Error("ошибка при получении структурных подразделений в БД: %v", err)
+		return nil, errors.New("ошибка при получении структурных подразделений в БД")
 	}
 	defer rows.Close()
 
@@ -17,7 +19,8 @@ func (p *SQLStorage) GetUnits(function string) ([]models.Unit, error) {
 	for rows.Next() {
 		var unit models.Unit
 		if err := rows.Scan(&unit.ID, &unit.Name); err != nil {
-			return nil, err
+			s.log.Error("ошибка при получении структурных подразделений в БД: %v", err)
+			return nil, errors.New("ошибка при получении структурных подразделений в БД")
 		}
 		units = append(units, unit)
 	}
@@ -54,7 +57,7 @@ func (p *SQLStorage) GetGroups(function, unit string) ([]models.Unit, error) {
 }
 
 func (p *SQLStorage) GetFuncs() ([]models.Unit, error) {
-	
+
 	rows, err := p.db.Query("SELECT id, name FROM funcs")
 	if err != nil {
 		return nil, err

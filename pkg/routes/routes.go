@@ -21,21 +21,21 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	r := mux.NewRouter()
 
 	//Storage
-	stor := storage.NewSQLStorage(db)
-	
+	stor := storage.NewSQLStorage(db, log)
+
 	//Service
 	fileService := file.NewFilesService()
 	validService := valid.NewValidatService()
 	userService := user.NewUserService(stor, validService, fileService)
 	structService := structure.NewstructureService(stor)
 	docService := document.NewDocService(stor, validService, fileService)
-	authServise := auth.NewAuthService(stor, validService, secretKey)
+	authServise := auth.NewAuthService(log, stor, validService, secretKey)
 
 	//Handlers
-	authHandler := handler.NewAuthHandler(authServise, userService, structService)
+	authHandler := handler.NewAuthHandler(log, authServise, userService, structService)
 	userHandler := handler.NewUserHandler(userService)
 	docHandler := handler.NewDocHandler(docService)
-	structHandler:= handler.NewStructureHandler(structService)
+	structHandler := handler.NewStructureHandler(structService)
 
 	r.HandleFunc("/", authHandler.GetHandler)
 

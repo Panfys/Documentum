@@ -2,15 +2,20 @@ package storage
 
 import (
 	"database/sql"
+	"documentum/pkg/logger"
 	"documentum/pkg/models"
 )
 
 type SQLStorage struct {
-	db *sql.DB
+	db  *sql.DB
+	log logger.Logger
 }
 
-func NewSQLStorage(db *sql.DB) *SQLStorage {
-	return &SQLStorage{db: db}
+func NewSQLStorage(db *sql.DB, log logger.Logger) *SQLStorage {
+	return &SQLStorage{
+		db: db,
+		log: log,
+	}
 }
 
 type AuthStorage interface {
@@ -23,7 +28,7 @@ type AuthStorage interface {
 type UserStorage interface {
 	GetUserPassword(login string) (string, error)
 	GetAccountData(login string) (models.AccountData, error)
-	UpdateUserPassword(login, pass string) error 
+	UpdateUserPassword(login, pass string) error
 	GetUserIcon(login string) (string, error)
 	UpdateUserIcon(icon string, login string) error
 }
@@ -40,6 +45,6 @@ type DocStorage interface {
 	AddLookDocument(id int, name string) error
 	GetUserName(login string) (string, error)
 	GetAutoIncrement(table string) (int, error)
-	AddDocumentWithResolutions(doc models.Document) error 
+	AddDocumentWithResolutions(doc models.Document) error
 	AddDocument(doc models.Document) error
 }

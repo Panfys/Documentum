@@ -33,9 +33,9 @@ func main() {
 	if db != nil {
 		if err := db.Ping(); err != nil {
 			logf.Error("Ошибка проверки соединения с БД: %v", err)
-			db = nil
+			db = nil 
 		} else {
-			logf.Info("Успешно подключено к БД")
+			//logf.Info("Успешно подключено к БД")
 		}
 	}
 
