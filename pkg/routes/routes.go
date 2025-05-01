@@ -3,12 +3,13 @@ package routes
 import (
 	"database/sql"
 	"documentum/pkg/handler"
+	"documentum/pkg/logger"
 	"documentum/pkg/service/auth"
 	"documentum/pkg/service/document"
+	"documentum/pkg/service/file"
 	"documentum/pkg/service/structure"
 	"documentum/pkg/service/user"
 	"documentum/pkg/service/valid"
-	"documentum/pkg/service/file"
 	"documentum/pkg/storage"
 
 	"net/http"
@@ -16,7 +17,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
+func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	r := mux.NewRouter()
 
 	//Storage
