@@ -2,8 +2,6 @@ package document
 
 import (
 	"documentum/pkg/models"
-	"errors"
-	"fmt"
 	"path/filepath"
 )
 
@@ -17,7 +15,7 @@ func (d *docService) AddLookDocument(id int, login string) error {
 	err = d.stor.AddLookDocument(id, name)
 
 	if err != nil {
-		return fmt.Errorf("ошибка записи просмотра документа в БД")
+		return err
 	}
 
 	return nil
@@ -28,10 +26,6 @@ func (d *docService) AddIngoingDoc(reqDoc models.Document) (models.Document, err
 	doc, err := d.validSrv.ValidIngoingDoc(reqDoc)
 	if err != nil {
 		return models.Document{}, err
-	}
-
-	if err != nil {
-		return models.Document{}, errors.New("ошибка получения автоинкремента")
 	}
 
 	for i := range doc.Resolutions {
