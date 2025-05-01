@@ -9,7 +9,7 @@ import (
 
 type Logger interface {
     Info(msg string)
-    Error(format string, args ...any) 
+    Error(format string, args ...any) string 
 }
 
 type FileLogger struct {
@@ -33,9 +33,11 @@ func (l *FileLogger) Info(msg string) {
     l.logger.Printf("%s [INFO] %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
 }
 
-func (l *FileLogger) Error(format string, args ...any) {
-    msg := fmt.Sprintf(format, args...)
+func (l *FileLogger) Error(format string, args ...any) string {
+    msg := fmt.Sprintf(format + ": ", args...)
     l.logger.Printf("%s [ERROR] %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
+
+    return format
 }
 
 func (l *FileLogger) Close() error {

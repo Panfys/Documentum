@@ -2,8 +2,8 @@ package valid
 
 import (
 	"documentum/pkg/models"
-	"regexp"
 	"errors"
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -14,11 +14,11 @@ func (v *validatService) ValidResolution(reqRes *models.Resolution) (models.Reso
 
 	if res.Ispolnitel != "NULL" && !v.validResIspolnitel(res.Ispolnitel) {
 		return models.Resolution{}, errors.New(`исполнитель документа в резолюции указан неверно, пример: "Панфилов А.П." или "Панфилов А.П., Якель Е.В."`)
-	} else {
+	} else if res.Ispolnitel == "NULL" {
 		res.Ispolnitel = ""
 	}
 
-	err := v.validResText(res.Text) 
+	err := v.validResText(res.Text)
 	if err != nil {
 		return models.Resolution{}, err
 	}
@@ -39,7 +39,7 @@ func (v *validatService) ValidResolution(reqRes *models.Resolution) (models.Reso
 	if !v.validResUser(res.User) {
 		return models.Resolution{}, errors.New(`автор резолюции указан неверно, пример: "Е.Лыков"`)
 	}
-	
+
 	return res, nil
 }
 
@@ -47,7 +47,7 @@ func (v *validatService) ValidResolution(reqRes *models.Resolution) (models.Reso
 func (v *validatService) validResIspolnitel(ispolnitel string) bool {
 
 	if ispolnitel == "" {
-		return  false
+		return false
 	}
 
 	// Основной паттерн для одного исполнителя: Фамилия И.О.
@@ -56,7 +56,7 @@ func (v *validatService) validResIspolnitel(ispolnitel string) bool {
 	fullPattern := `^(` + singlePattern + `)(, ` + singlePattern + `)*$`
 
 	re := regexp.MustCompile(fullPattern)
-	return  re.MatchString(ispolnitel)
+	return re.MatchString(ispolnitel)
 }
 
 // Text
@@ -64,26 +64,26 @@ func (v *validatService) validResText(text string) error {
 	trimText := strings.TrimSpace(text)
 
 	if trimText == "" {
-		return  errors.New("текст резолюции не указано")
+		return errors.New("текст резолюции не указано")
 	}
 
 	firstChar := []rune(trimText)[0]
 	if !unicode.IsUpper(firstChar) && !unicode.IsDigit(firstChar) {
-		return  errors.New("текст резолюции должен начинаться с заглавной буквы")
+		return errors.New("текст резолюции должен начинаться с заглавной буквы")
 	}
 
 	if len(trimText) > 200 {
-		return  errors.New(`текст резолюции не должен превышать 200 символов`)
+		return errors.New(`текст резолюции не должен превышать 200 символов`)
 	}
 
-	return  nil
+	return nil
 }
 
 // User
 func (v *validatService) validResUser(user string) bool {
-    pattern := `^[А-ЯЁ]\.[А-ЯЁ][а-яё]+$`
-    re := regexp.MustCompile(pattern)
-    return  re.MatchString(user)
+	pattern := `^[А-ЯЁ]\.[А-ЯЁ][а-яё]+$`
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(user)
 }
 
 func (v *validatService) sanitizeResolution(res *models.Resolution) models.Resolution {
@@ -94,5 +94,5 @@ func (v *validatService) sanitizeResolution(res *models.Resolution) models.Resol
 	res.User = v.policy.Sanitize(res.User)
 	res.Creator = v.policy.Sanitize(res.Creator)
 
-	return  *res 
+	return *res
 }
