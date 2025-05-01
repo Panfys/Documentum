@@ -1,26 +1,27 @@
 package storage
 
 import (
-	"errors"
+	"documentum/pkg/models"
 )
 
-func (d *SQLStorage) DeleteDocumentByID(id int) error {
+func (s *SQLStorage) DeleteDocumentByID(id int) error {
+	
 	query := "DELETE FROM doc WHERE id = ?"
 
-	_, err := d.db.Exec(query, id)
+	_, err := s.db.Exec(query, id)
 	if err != nil {
-		return errors.New("ошибка удаления документа из БД")
+		return s.log.Error(models.ErrGetDataInDB, err)
 	}
 	
 	return nil
 }
 
-func (d *SQLStorage) DeleteResolutionByDocID(id int) error {
+func (s *SQLStorage) DeleteResolutionByDocID(id int) error {
 	query := "DELETE FROM res WHERE doc_id = ?"
 
-	_, err := d.db.Exec(query, id)
+	_, err := s.db.Exec(query, id)
 	if err != nil {
-		return errors.New("ошибка удаления резольции документа из БД")
+		return s.log.Error(models.ErrGetDataInDB, err)
 	}
 	
 	return nil

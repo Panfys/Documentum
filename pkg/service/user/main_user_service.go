@@ -1,10 +1,11 @@
 package user
 
 import (
-	"documentum/pkg/service/valid"
-	"documentum/pkg/service/file"
-	"documentum/pkg/storage"
+	"documentum/pkg/logger"
 	"documentum/pkg/models"
+	"documentum/pkg/service/file"
+	"documentum/pkg/service/valid"
+	"documentum/pkg/storage"
 	"mime/multipart"
 )
 
@@ -15,15 +16,17 @@ type UserService interface {
 }
 
 type userService struct {
-	stor  storage.UserStorage
+	log      logger.Logger
+	stor     storage.UserStorage
 	validSrv valid.UserValidatService
-	fileSrv file.FileServece
+	fileSrv  file.FileServece
 }
 
-func NewUserService(stor storage.UserStorage, validSrv valid.UserValidatService, fileSrv file.FileServece) UserService {
+func NewUserService(log logger.Logger, stor storage.UserStorage, validSrv valid.UserValidatService, fileSrv file.FileServece) UserService {
 	return &userService{
-		stor:  stor,
+		log: log,
+		stor:     stor,
 		validSrv: validSrv,
-		fileSrv: fileSrv,
+		fileSrv:  fileSrv,
 	}
 }

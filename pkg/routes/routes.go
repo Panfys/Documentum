@@ -26,7 +26,7 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	//Service
 	fileService := file.NewFilesService()
 	validService := valid.NewValidatService()
-	userService := user.NewUserService(stor, validService, fileService)
+	userService := user.NewUserService(log, stor, validService, fileService)
 	structService := structure.NewstructureService(stor)
 	docService := document.NewDocService(stor, validService, fileService)
 	authServise := auth.NewAuthService(log, stor, validService, secretKey)
