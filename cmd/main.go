@@ -3,33 +3,47 @@ package main
 import (
 	"database/sql"
 	"log"
+	"documentum/pkg/logger"
 	"documentum/pkg/config"
 	"documentum/pkg/server"
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" 
+	
 )
 
 func main() {
+	logf, err := logger.NewFileLogger("documentum.log")
+	if err != nil {
+		log.Fatalf("Ошибка создания логгера: %v", err)
+	}
+	defer logf.Close()
+
 	// Загрузка конфигурации
-	cfg := config.LoadConfig()
+	cfg := config.LoadConfig() 
 
 	// Подключение к MySQL
 	db, err := sql.Open("mysql", cfg.DBConnectionString)
 	if err != nil {
-		log.Fatalf("Ошибка подключения к БД: %v", err)
+		logf.Error("Ошибка подключения к БД: %v", err)
+		db = nil
+	} else {
+		defer db.Close()  
 	}
-	defer db.Close()
 
 	// Проверка соединения
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Ошибка проверки соединения с БД: %v", err)
+	if db != nil {
+		if err := db.Ping(); err != nil {
+			logf.Error("Ошибка проверки соединения с БД: %v", err)
+			db = nil
+		} else {
+			logf.Info("Успешно подключено к БД")
+		}
 	}
-
 
 	secretKey := cfg.JWTSecretKey
 
 	// Инициализация и запуск сервера
-	srv := server.NewServer(db, secretKey)
+	srv := server.NewServer(db, secretKey, logf)
 	if err := srv.Run(); err != nil {
-		log.Fatalf("Ошибка запуска сервера: %v", err)  
+		logf.Error("Ошибка запуска сервера: %v", err)   
 	}
 }

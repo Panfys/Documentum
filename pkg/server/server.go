@@ -1,22 +1,24 @@
 package server
 
 import (
-	"log"
-	"net/http"
-	"documentum/pkg/routes"
 	"database/sql"
+	"documentum/pkg/logger"
+	"documentum/pkg/routes"
+	"net/http"
+	"os"
 
 	"github.com/gorilla/handlers"
-	"os"
 )
 
 type Server struct {
 	httpServer *http.Server
+	log        logger.Logger // Используем интерфейс вместо конкретного типа
 }
 
-func NewServer(db *sql.DB, secretKey string) *Server {
-	router := routes.SetupRoutes(db, secretKey)
-	
+// NewServer создает новый экземпляр сервера с заданной конфигурацией.
+func NewServer(db *sql.DB, secretKey string, log logger.Logger) *Server {
+	router := routes.SetupRoutes(db, secretKey, log)
+
 	// Создаем цепочку middleware
 	handler := handlers.CompressHandler(router) // Gzip сжатие
 	handler = handlers.RecoveryHandler()(handler) // Обработка паник
@@ -29,13 +31,19 @@ func NewServer(db *sql.DB, secretKey string) *Server {
 
 	return &Server{
 		httpServer: &http.Server{ 
-			Addr:    ":80",
+			Addr:    ":80", // Можно заменить на переменную окружения или конфигурацию
 			Handler: handler,
 		},
+		log: log,
 	}
 }
 
+// Run запускает HTTP сервер и логирует ошибки.
 func (s *Server) Run() error {
-	log.Println("Запуск сервера на http://localhost:80") 
-	return s.httpServer.ListenAndServe()
+	s.log.Info("Запуск сервера на http://localhost:80")
+	if err := s.httpServer.ListenAndServe(); err != nil {
+		s.log.Error("Ошибка при запуске сервера: %v", err)
+		return err
+	}
+	return nil
 }
