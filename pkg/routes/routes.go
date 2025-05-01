@@ -3,11 +3,13 @@ package routes
 import (
 	"database/sql"
 	"documentum/pkg/handler"
+	"documentum/pkg/service/auth"
+	"documentum/pkg/service/document"
+	"documentum/pkg/service/structure"
 	"documentum/pkg/service/user"
 	"documentum/pkg/service/valid"
-	"documentum/pkg/service"
 	"documentum/pkg/storage"
-	
+
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -17,24 +19,26 @@ func SetupRoutes(db *sql.DB, secretKey string) http.Handler {
 	r := mux.NewRouter()
 
 	//Storage
-	storage := storage.NewSQLStorage(db)
+	stor := storage.NewSQLStorage(db)
 	
 	//Service
-	var valid valid.Validator
-	//userService := 
-	//docService := service.NewDocService(docStorage)
-	authServise := service.NewAuthService(storage, valid, secretKey)
+	validService := valid.NewValidator()
+	userService := user.NewUserService(stor, validService)
+	structService := structure.NewstructureService(stor)
+	docService := document.NewDocService(stor, validService)
+	authServise := auth.NewAuthService(stor, validService, secretKey)
 
 	//Handlers
-	authHandler := handler.NewAuthHandler(authServise)
-	userHandler := handler.NewUserHandler(&getUserService, &updateUserService)
+	authHandler := handler.NewAuthHandler(authServise, userService, structService)
+	userHandler := handler.NewUserHandler(userService)
 	docHandler := handler.NewDocHandler(docService)
+	structHandler:= handler.NewStructureHandler(structService)
 
 	r.HandleFunc("/", authHandler.GetHandler)
 
 	// OPEN
-	r.HandleFunc("/users/units", userHandler.GetUnits).Methods("POST")
-	r.HandleFunc("/users/groups", userHandler.GetGroups).Methods("POST")
+	r.HandleFunc("/users/units", structHandler.GetUnits).Methods("POST")
+	r.HandleFunc("/users/groups", structHandler.GetGroups).Methods("POST")
 	r.HandleFunc("/users/add", authHandler.RegistrationHandler).Methods("POST")
 	r.HandleFunc("/users/auth", authHandler.AuthorizationHandler).Methods("POST")
 

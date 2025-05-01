@@ -2,7 +2,7 @@ package handler
 
 import (
 	"documentum/pkg/models"
-	"documentum/pkg/service"
+	"documentum/pkg/service/document"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -13,11 +13,11 @@ import (
 )
 
 type DocHandler struct {
-	docService service.DocService
+	service document.DocService
 }
 
-func NewDocHandler(docService service.DocService) *DocHandler {
-	return &DocHandler{docService: docService}
+func NewDocHandler(service document.DocService) *DocHandler {
+	return &DocHandler{service: service}
 }
 
 func (d *DocHandler) GetIngoingDoc(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func (d *DocHandler) GetIngoingDoc(w http.ResponseWriter, r *http.Request) {
 	settings.DocDatain = r.FormValue("datain")
 	settings.DocDatato = r.FormValue("datato")
 
-	responceDocs, err := d.docService.GetIngoingDoc(settings)
+	responceDocs, err := d.service.GetIngoingDoc(settings)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -110,7 +110,7 @@ func (d *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = d.docService.AddLookDocument(id, login)
+	err = d.service.AddLookDocument(id, login)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -167,7 +167,7 @@ func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	doc, err := d.docService.AddIngoingDoc(document)
+	doc, err := d.service.AddIngoingDoc(document)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
