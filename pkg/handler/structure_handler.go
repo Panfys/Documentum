@@ -2,7 +2,6 @@ package handler
 
 import (
 	"documentum/pkg/service/structure"
-	"fmt"
 	"net/http"
 )
 
@@ -21,7 +20,7 @@ func (h *StructureHandler) GetUnits(w http.ResponseWriter, r *http.Request) {
 
 	units, err := h.service.GetUnits(function)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("ошибка получения данных: %s", err), 500)
+		http.Error(w, err.Error(), 500)
 		return
 	}
 
@@ -35,7 +34,7 @@ func (h *StructureHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
 
 	groups, err := h.service.GetGroups(function, unit)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("ошибка получения данных: %s", err), 500)
+		http.Error(w, err.Error(), 500)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"documentum/pkg/logger"
 	"documentum/pkg/models"
 	"documentum/pkg/service/document"
 	"encoding/json"
@@ -13,14 +14,18 @@ import (
 )
 
 type DocHandler struct {
+	log     logger.Logger
 	service document.DocService
 }
 
-func NewDocHandler(service document.DocService) *DocHandler {
-	return &DocHandler{service: service}
+func NewDocHandler(log logger.Logger, service document.DocService) *DocHandler {
+	return &DocHandler{
+		log:     log,
+		service: service,
+	}
 }
 
-func (d *DocHandler) GetIngoingDoc(w http.ResponseWriter, r *http.Request) {
+func (h *DocHandler) GetIngoingDoc(w http.ResponseWriter, r *http.Request) {
 
 	var settings models.DocSettings
 	settings.DocType = "Входящий"
@@ -29,7 +34,7 @@ func (d *DocHandler) GetIngoingDoc(w http.ResponseWriter, r *http.Request) {
 	settings.DocDatain = r.FormValue("datain")
 	settings.DocDatato = r.FormValue("datato")
 
-	responceDocs, err := d.service.GetIngoingDoc(settings)
+	responceDocs, err := h.service.GetIngoingDoc(settings)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -39,13 +44,13 @@ func (d *DocHandler) GetIngoingDoc(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(responceDocs))
 }
 
-func (d *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
+func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Документ"))
 }
 
-func (d *DocHandler) WievDocument(w http.ResponseWriter, r *http.Request) {
+func (h *DocHandler) WievDocument(w http.ResponseWriter, r *http.Request) {
 	file := r.URL.Query().Get("file")
 
 	// Безопасная проверка пути к файлу
@@ -60,17 +65,17 @@ func (d *DocHandler) WievDocument(w http.ResponseWriter, r *http.Request) {
 			SRC = template.HTML(fmt.Sprintf("<img src='%s'>", file))
 		}
 	} else if os.IsNotExist(err) {
-		SRC = template.HTML("Файл не найден.")
+		SRC = template.HTML("Файл не найден!")
 	} else {
-		SRC = template.HTML("Ошибка при доступе к файлу: " + err.Error())
+		SRC = template.HTML("Файл недоступен!")
 	}
 
 	data := models.PageData{SRC: SRC}
 
-	d.renderTemplates(w, data)
+	h.renderTemplates(w, data)
 }
 
-func (d *DocHandler) WievNewDocument(w http.ResponseWriter, r *http.Request) {
+func (h *DocHandler) WievNewDocument(w http.ResponseWriter, r *http.Request) {
 	file := r.URL.Query().Get("file")
 
 	var SRC template.HTML
@@ -83,34 +88,35 @@ func (d *DocHandler) WievNewDocument(w http.ResponseWriter, r *http.Request) {
 
 	data := models.PageData{SRC: SRC}
 
-	d.renderTemplates(w, data)
+	h.renderTemplates(w, data)
 }
 
-func (d *DocHandler) renderTemplates(w http.ResponseWriter, data models.PageData) error {
+func (h *DocHandler) renderTemplates(w http.ResponseWriter, data models.PageData) error {
 	ts, err := template.ParseFiles("web/static/pages/main_open_doc.html")
 	if err != nil {
-		return fmt.Errorf("ошибка парсинга шаблонов: %w", err)
+		return h.log.Error(models.ErrParseTMP, err)
 	}
 	err = ts.Execute(w, data)
 
 	if err != nil {
-		return fmt.Errorf("ошибка выполнения шаблона: %w", err)
+		return h.log.Error(models.ErrParseTMP, err)
 	}
 	return nil
 }
 
-func (d *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
+func (h *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
 
 	login := r.Context().Value(models.LoginKey).(string)
 	idStr := r.FormValue("id")
 	id, err := strconv.Atoi(idStr)
 
 	if err != nil {
-		http.Error(w, "Ошибка обработки данных!:", http.StatusBadRequest)
+		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+		h.log.Error(models.ErrRequest, err)
 		return
 	}
 
-	err = d.service.AddLookDocument(id, login)
+	err = h.service.AddLookDocument(id, login)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -120,9 +126,7 @@ func (d *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
-
-	reqError := "ошибка обработки данных"
+func (h *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 
 	login := r.Context().Value(models.LoginKey).(string)
 
@@ -130,13 +134,15 @@ func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 
 	count, err := strconv.Atoi(countStr)
 	if err != nil {
-		http.Error(w, reqError + err.Error(), http.StatusBadRequest)
+		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+		h.log.Error(models.ErrRequest, err)
 		return
 	}
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, reqError + err.Error(), http.StatusBadRequest)
+		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+		h.log.Error(models.ErrRequest, err)
 		return
 	}
 	defer file.Close()
@@ -146,7 +152,7 @@ func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 		FNum:       r.FormValue("fnum"),
 		FDate:      r.FormValue("fdate"),
 		LNum:       r.FormValue("lnum"),
-		LDateStr:      r.FormValue("ldate"),
+		LDateStr:   r.FormValue("ldate"),
 		Name:       r.FormValue("name"),
 		Sender:     r.FormValue("sender"),
 		Ispolnitel: r.FormValue("ispolnitel"),
@@ -163,11 +169,12 @@ func (d *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 
 	resolutionsJSON := r.FormValue("resolutions")
 	if err := json.Unmarshal([]byte(resolutionsJSON), &document.Resolutions); err != nil {
-		http.Error(w, reqError + err.Error(), http.StatusBadRequest)
+		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+		h.log.Error(models.ErrRequest, err)
 		return
 	}
 
-	doc, err := d.service.AddIngoingDoc(document)
+	doc, err := h.service.AddIngoingDoc(document)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

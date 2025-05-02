@@ -8,7 +8,6 @@ import (
 	"documentum/pkg/service/structure"
 	"documentum/pkg/service/user"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"net/http"
 	"time"
@@ -48,8 +47,8 @@ func (h AuthHandler) RegistrationHandler(w http.ResponseWriter, r *http.Request)
 	var user models.User
 
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		h.log.Error("ошибка обработки данных пользователя: %v", err)
-		http.Error(w, "ошибка обработки данных пользователя", 400)
+		h.log.Error(models.ErrRequest, err)
+		http.Error(w, models.ErrRequest, 400)
 		return
 	}
 
@@ -79,8 +78,7 @@ func (h *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 
 	// Генерация и установка токена
 	if err := h.authSrv.GenerateToken(w, login, remember); err != nil {
-		h.log.Error("ошибка генерации токена: %v", err)
-		http.Error(w, "ошибка генерации токена", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -91,15 +89,13 @@ func (h *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 	// Получение данных аккаунта
 	responseData.AccountData, err = h.userSrv.GetUserAccountData(login)
 	if err != nil {
-		h.log.Error("ошибка получения данных пользователя %s: %v", login, err)
-		http.Error(w, "ошибка получения данных о пользователе", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Рендеринг страницы
 	if err := h.renderTemplates(w, "main", responseData); err != nil {
-		h.log.Error("ошибка рендеринга для пользователя %s: %v", login, err)
-		http.Error(w, "ошибка на сервере", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -117,8 +113,7 @@ func (h *AuthHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 		responseData.UserIsValid = err == nil
 		responseData.AccountData, err = h.userSrv.GetUserAccountData(login)
 		if err != nil {
-			h.log.Error("ошибка получения данных пользователя %s: %v", login, err)
-			http.Error(w, "ошибка получения данных о пользователе", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -126,14 +121,13 @@ func (h *AuthHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 	// Получение функций
 	funcs, err := h.structSrv.GetFuncs()
 	if err != nil {
-		h.log.Error("ошибка получения должности: %v", err)
+		funcs = []models.Unit{models.Unit{ID: 1, Name: err.Error()}}
 	}
 	responseData.Funcs = funcs
 
 	// Рендеринг страницы
 	if err := h.renderTemplates(w, "", responseData); err != nil {
-		h.log.Error("ошибка рендеринга: %v", err)
-		http.Error(w, "ошибка на сервере", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -147,7 +141,6 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 				http.Redirect(w, r, "/", http.StatusSeeOther)
 				return
 			} else {
-				h.log.Error("Пользователь не авторизован: %v", err)
 				http.Error(w, "Пользователь не авторизован", http.StatusUnauthorized)
 				return
 			}
@@ -169,7 +162,6 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 				http.Redirect(w, r, "/", http.StatusSeeOther)
 				return
 			} else {
-				h.log.Error("пользователь не авторизован: %v", err)
 				http.Error(w, "пользователь не авторизован", http.StatusUnauthorized)
 				return
 			}
@@ -205,22 +197,20 @@ func (h *AuthHandler) ExitHandler(w http.ResponseWriter, r *http.Request) {
 	// Получение функций
 	funcs, err := h.structSrv.GetFuncs()
 	if err != nil {
-		h.log.Error("ошибка получения должности: %v", err)
+		funcs = []models.Unit{models.Unit{ID: 1, Name: err.Error()}}
 	}
 	responseData.Funcs = funcs
 
 	// Рендеринг страницы
 	if err := h.renderTemplates(w, "", responseData); err != nil {
-		h.log.Error("ошибка рендеринга: %v", err)
-		http.Error(w, "ошибка на сервере", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func (h *AuthHandler) renderTemplates(w http.ResponseWriter, tmpl string, data any) error {
 	ts, err := template.ParseFiles(pages...)
 	if err != nil {
-		h.log.Error("ошибка парсинга шаблонов: %w", err)
-		return fmt.Errorf("ошибка парсинга шаблонов")
+		return h.log.Error(models.ErrParseTMP, err)
 	}
 
 	if tmpl != "" {
@@ -230,8 +220,7 @@ func (h *AuthHandler) renderTemplates(w http.ResponseWriter, tmpl string, data a
 	}
 
 	if err != nil {
-		h.log.Error("ошибка выполнения шаблона: %w", err)
-		return fmt.Errorf("ошибка выполнения шаблона")
+		return h.log.Error(models.ErrParseTMP, err)
 	}
 	return nil
 }

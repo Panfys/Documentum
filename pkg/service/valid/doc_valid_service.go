@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"time"
 )
 
 type DocValidatService interface {
@@ -32,7 +33,7 @@ func (v *validatService) ValidIngoingDoc(reqDoc models.Document) (models.Documen
 		return models.Document{}, err
 	}
 
-	docFDate, err := models.StringToDateNullString(doc.FDate)
+	docFDate, err := v.stringToDateNullString(doc.FDate)
 	if err != nil {
 		return models.Document{}, errors.New("дата документа указана неверно")
 	}
@@ -41,7 +42,7 @@ func (v *validatService) ValidIngoingDoc(reqDoc models.Document) (models.Documen
 		return models.Document{}, errors.New("дата документа не указана")
 	}
 
-	doc.LDate, err = models.StringToDateNullString(doc.LDateStr)
+	doc.LDate, err = v.stringToDateNullString(doc.LDateStr)
 	if err != nil {
 		return models.Document{}, errors.New("дата поступившего документа указана неверно")
 	}
@@ -350,4 +351,31 @@ func (v *validatService) sanitizeDocument(doc *models.Document) models.Document 
 	doc.Creator = v.policy.Sanitize(doc.Creator)
 
 	return *doc
+}
+
+func (v *validatService) stringToDateNullString(dateStr string) (sql.NullString, error) {
+	if dateStr == "" {
+		return sql.NullString{Valid: false}, nil
+	}
+
+	// Пробуем распарсить дату в разных форматах
+	formats := []string{
+		"2006-01-02",
+		time.RFC3339,
+	}
+
+	var parsedTime time.Time
+	var err error
+
+	for _, format := range formats {
+		parsedTime, err = time.Parse(format, dateStr)
+		if err == nil {
+			return sql.NullString{
+				String: parsedTime.Format("2006-01-02"),
+				Valid:  true,
+			}, nil
+		}
+	}
+
+	return sql.NullString{}, errors.New("неверный формат даты")
 }
