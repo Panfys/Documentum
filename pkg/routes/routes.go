@@ -24,7 +24,7 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	stor := storage.NewSQLStorage(db, log)
 
 	//Service
-	fileService := file.NewFilesService()
+	fileService := file.NewFilesService(log)
 	validService := valid.NewValidatService()
 	userService := user.NewUserService(log, stor, validService, fileService)
 	structService := structure.NewstructureService(stor)
@@ -34,7 +34,7 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	//Handlers
 	authHandler := handler.NewAuthHandler(log, authServise, userService, structService)
 	userHandler := handler.NewUserHandler(userService)
-	docHandler := handler.NewDocHandler(docService)
+	docHandler := handler.NewDocHandler(log, docService)
 	structHandler := handler.NewStructureHandler(structService)
 
 	r.HandleFunc("/", authHandler.GetHandler)

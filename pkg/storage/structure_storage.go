@@ -57,7 +57,7 @@ func (s *SQLStorage) GetGroups(function, unit string) ([]models.Unit, error) {
 
 func (s *SQLStorage) GetFuncs() ([]models.Unit, error) {
 
-	rows, err := s.db.Query("SELECT id, name FROM funcs")
+	rows, err := s.db.Query("SE LECT id, name FROM funcs")
 	if err != nil {
 		return nil, s.log.Error(models.ErrGetDataInDB, err)
 	}

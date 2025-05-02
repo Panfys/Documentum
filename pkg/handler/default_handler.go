@@ -58,7 +58,7 @@ func StaticHandler() http.Handler {
         // Проверяем существование файла
         info, err := os.Stat(reqPath)
         if err != nil {
-            log.Printf("File not found: %s, error: %v", reqPath, err)
+            log.Printf("Файл не найден: %s, error: %v", reqPath, err)
             NotFoundHandler(w, r)
             return
         }

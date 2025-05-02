@@ -29,7 +29,6 @@ func (h *UserHandler) UpdateUserPassword(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("ok"))
 }
 
 func (h *UserHandler) UpdateUserIcon(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +36,7 @@ func (h *UserHandler) UpdateUserIcon(w http.ResponseWriter, r *http.Request) {
 	login := r.Context().Value(models.LoginKey).(string)
 	icon, header, err := r.FormFile("icon") 
 	if err != nil {
-		http.Error(w, "Ошибка получения файла иконки", http.StatusBadRequest)
+		http.Error(w, "Ошибка обработки файла", http.StatusBadRequest)
 		return
 	}
 	defer icon.Close()

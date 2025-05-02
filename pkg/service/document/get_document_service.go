@@ -4,12 +4,13 @@ import (
 	"documentum/pkg/models"
 	"fmt"
 	"strconv"
+	"time"
 )
 
-func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) {
+func (s *docService) GetIngoingDoc(settings models.DocSettings) (string, error) {
 	var documents []models.Document
 
-	documents, err := d.stor.GetDocuments(settings)
+	documents, err := s.stor.GetDocuments(settings)
 
 	if err != nil {
 		return "", err
@@ -22,22 +23,22 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 		// Обработка даты
 		var newFDate, newLDate string
 
-		newFDate, err = models.ParseDate(document.FDate)
+		newFDate, err = s.parseDate(document.FDate)
 
 		if err != nil {
-			return "", fmt.Errorf("ошибка валидации даты: %s", err)
+			return "", err
 		}
 
 		if document.LDate.Valid{
-			newLDate, err = models.ParseDate(document.LDate.String)
+			newLDate, err = s.parseDate(document.LDate.String)
 			if err != nil {
-				return "", fmt.Errorf("ошибка валидации даты документа: %s", err)
+				return "", err
 			}
 		}
 
 		// Обработка резолюции
 
-		resolutions, err := d.stor.GetResolutoins(document.ID)
+		resolutions, err := s.stor.GetResolutoins(document.ID)
 
 		if err != nil {
 			return "", err
@@ -58,15 +59,15 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 			for _, resolution := range resolutions {
 
 				if resolution.Time.Valid {
-					newTime, err = models.ParseTime(resolution.Time.String)
+					newTime, err = s.parseTime(resolution.Time.String)
 					if err != nil {
-						return "", fmt.Errorf("ошибка валидации даты: %s", err)
+						return "", err
 					}
 				}
 
-				newDate, err = models.ParseResolutionDate(resolution.Date)
+				newDate, err = s.parseResolutionDate(resolution.Date)
 				if err != nil {
-					return "", fmt.Errorf("ошибка валидации даты: %s", err)
+					return "", err
 				}
 
 				docResolution += fmt.Sprintf("<div class='table__resolution' id='ingoing-resolution'> "+
@@ -120,4 +121,46 @@ func (d *docService) GetIngoingDoc(settings models.DocSettings) (string, error) 
 	}
 
 	return response, nil
+}
+
+func (s *docService) parseDate(date string) (string, error) {
+	newdate, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		newdate, err = time.Parse("2006-01-02", date)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	formattedDate := "<br>от " + newdate.Format("02.01.2006") + " г."
+	return formattedDate, nil
+}
+
+func (s *docService) parseResolutionDate(date string) (string, error) {
+
+	newdate, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		newdate, err = time.Parse("2006-01-02", date)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	formateDate := newdate.Format("02.01.2006") + " г."
+	return formateDate, nil
+}
+
+func (s *docService) parseTime(restime string) (string, error) {
+
+	newtime, err := time.Parse(time.RFC3339, restime)
+	if err != nil {
+		newtime, err = time.Parse("2006-01-02", restime)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// Форматируем дату в нужный формат
+	formateTime := "Исполнить до " + newtime.Format("02.01.2006") + " г."
+	return formateTime, nil
 }

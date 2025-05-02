@@ -23,12 +23,12 @@ func (v *validatService) ValidResolution(reqRes *models.Resolution) (models.Reso
 		return models.Resolution{}, err
 	}
 
-	res.Time, err = models.StringToDateNullString(res.TimeStr)
+	res.Time, err = v.stringToDateNullString(res.TimeStr)
 	if err != nil {
 		return models.Resolution{}, errors.New("срок исполнения документа указан неверно")
 	}
 
-	resDate, err := models.StringToDateNullString(res.Date)
+	resDate, err := v.stringToDateNullString(res.Date)
 	if err != nil {
 		return models.Resolution{}, errors.New("дата документа указана неверно")
 	}

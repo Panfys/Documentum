@@ -1,14 +1,14 @@
 package file
 
 import (
-	"errors"
+	"documentum/pkg/logger"
+	"documentum/pkg/models"
 	"io"
+	"math/rand"
 	"mime/multipart"
 	"os"
 	"path/filepath"
-	"math/rand"
 	"time"
-	//"documentum/pkg/models"
 )
 
 type FileServece interface {
@@ -17,13 +17,15 @@ type FileServece interface {
 }
 
 type filesService struct {
+	log     logger.Logger
 	Letters string
 }
 
-func NewFilesService() *filesService {
-    return &filesService{
-        Letters: "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
-    }
+func NewFilesService(log logger.Logger) *filesService {
+	return &filesService{
+		log: log,
+		Letters: "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",
+	}
 }
 
 func (s *filesService) AddFile(path, name string, file multipart.File) (string, error) {
@@ -42,7 +44,6 @@ func (s *filesService) AddFile(path, name string, file multipart.File) (string, 
 	return fileName, nil
 }
 
-
 func (s *filesService) generateUniqueFilename(path, originalFilename string) (string, error) {
 	// Получаем расширение файла
 	ext := filepath.Ext(originalFilename)
@@ -60,7 +61,7 @@ func (s *filesService) generateUniqueFilename(path, originalFilename string) (st
 			return newFilename, nil
 		}
 	}
-	return "", errors.New("не удалось сгенерировать уникальное имя файла")
+	return "", nil
 }
 
 func (s *filesService) generateRandomName(length int) string {
@@ -72,16 +73,15 @@ func (s *filesService) generateRandomName(length int) string {
 	return string(b)
 }
 
-
 func (s *filesService) saveFile(file multipart.File, filePath string) error {
 	path, err := os.Create(filePath)
 	if err != nil {
-		return errors.New("не удалось записать файл")
+		return s.log.Error(models.ErrGetDataInDB, err)
 	}
 	defer path.Close()
 
 	if _, err := io.Copy(path, file); err != nil {
-		return errors.New("не удалось сохранить файл")
+		return s.log.Error(models.ErrGetDataInDB, err)
 	}
 	return nil
 }
@@ -89,6 +89,6 @@ func (s *filesService) saveFile(file multipart.File, filePath string) error {
 func (s *filesService) DeleteFileIfExists(path string) error {
 	if _, err := os.Stat(path); err == nil {
 		return os.Remove(path)
-	} 
+	}
 	return nil
 }
