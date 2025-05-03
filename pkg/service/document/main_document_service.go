@@ -8,9 +8,10 @@ import (
 )
 
 type DocService interface {
-	GetIngoingDoc(settings models.DocSettings) (string, error)
+	GetDocuments(settings models.DocSettings) (string, error)
 	AddLookDocument(id string, name string) error
 	AddIngoingDoc(doc models.Document) (models.Document, error)
+	AddOutgoingDoc(reqDoc models.Document) (models.Document, error)
 }
 
 type docService struct {

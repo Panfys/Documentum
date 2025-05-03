@@ -72,67 +72,6 @@ body {
   background-size: cover;
 }
 
-/* Прелоадер */
-
-.main__preloader--panel {
-  background-color: var(--bgr-color);
-  display: flex;
-  align-items: center;
-  z-index: 1000;
-  position: fixed;
-  margin-left: auto;
-  margin-right: auto;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.preloader {
-  display: block;
-  position: relative;
-  width: 150px;
-  height: 150px;
-  margin: 30px auto;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  border-top-color: var(--main-color);
-  animation: preloader-5-spin 2s linear infinite;
-}
-.preloader:before {
-  content: "";
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  right: 5px;
-  bottom: 5px;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  border-top-color: var(--low-color);
-  animation: preloader-5-spin 3s linear infinite;
-}
-.preloader:after {
-  content: "";
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  right: 15px;
-  bottom: 15px;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  border-top-color: var(--mid-color);
-  animation: preloader-5-spin 1.5s linear infinite;
-}
-@keyframes preloader-5-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 /*Кнопка изменения темы*/
 .btn-toggle--theme {
   position: absolute;

@@ -4,6 +4,7 @@ import (
 	"documentum/pkg/service/structure"
 	"net/http"
 	"github.com/gorilla/mux"
+	"encoding/json"
 )
 
 type StructureHandler struct {
@@ -26,8 +27,10 @@ func (h *StructureHandler) GetUnits(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(units))
+	w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+
+    json.NewEncoder(w).Encode(units)
 }
 
 func (h *StructureHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +45,8 @@ func (h *StructureHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(groups))
+	w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+
+    json.NewEncoder(w).Encode(groups)
 }

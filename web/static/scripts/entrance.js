@@ -64,35 +64,13 @@ funcInput.addEventListener("input", writeFunc);
 funcInput.addEventListener("input", writeGroups);
 
 // Проверка ввода должности
-function writeFunc() {
+async function writeFunc() {
   const func = funcInput.value;
   if (func === "0") {
     alertMessages("regist-func", "Укажите должность!");
   } else {
     reAlertMessages("regist-func");
-    fetchUnits(func);
-  }
-}
-
-// Получение подразделений
-async function fetchUnits(func) {
-  try {
-    const response = await fetch(`/funcs/${encodeURIComponent(func)}/units`, {
-      method: "GET",
-      headers: {
-        "Accept": "text/html",
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Ошибка сервера");
-    }
-
-    const units = await response.text();
-    document.getElementById("regist-unit-input").innerHTML = units;
-  } catch (error) {
-    serverMessage("show", error.message || "Возникла ошибка на сервере, попробуйте позже!");
+    document.getElementById("regist-unit-input").innerHTML = await fetchUnits(func);
   }
 }
 
@@ -102,39 +80,21 @@ unitInput.addEventListener("input", writeGroups);
 async function writeGroups() {
   const func = funcInput.value;
   const unit = unitInput.value;
+  const groupBox = document.getElementById("regist-group-box");
 
-  try {
-    // Формируем URL с параметрами
-    const url = `/funcs/${encodeURIComponent(func)}/${encodeURIComponent(unit)}/groups`;
+  if (unit === "0") {
+    alertMessages("regist-unit", "Укажите структурное подразделение!");
+    groupBox.style.display = "none";
+  } else {
+    reAlertMessages("regist-unit");
+    groups = await fetchGroups(func, unit);
 
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Accept": "text/html", // Указываем ожидаемый тип ответа
-      },
-    });
-
-    if (!response.ok) {
-      // Пытаемся получить текст ошибки от сервера
-      const errorText = await response.text();
-      throw new Error(errorText || "Ошибка сервера");
-    }
-
-    const groups = await response.text();
-    const groupBox = document.getElementById("regist-group-box");
-
-    if (groups.length > 0) {
+    if (groups != "<option value=0></option>") {
+      document.getElementById("regist-group-input").innerHTML = groups
       groupBox.style.display = "block";
-      document.getElementById("regist-group-input").innerHTML = groups;
     } else {
       groupBox.style.display = "none";
     }
-  } catch (error) {
-    // Выводим конкретное сообщение об ошибке
-    serverMessage("show", error.message || "Возникла ошибка на сервере, попробуйте позже!");
-
-    // Скрываем блок групп при ошибке
-    document.getElementById("regist-group-box").style.display = "none";
   }
 }
 
@@ -182,6 +142,10 @@ async function validateRegistration() {
 
   if (user.func === "0") {
     alertMessages("regist-func", "Укажите должность!");
+  }
+
+  if (user.unit === "0") {
+    alertMessages("regist-unit", "Укажите структурное подразделение!");
   }
 
   writePass();
@@ -253,9 +217,15 @@ async function authorize() {
 
     // Динамическая загрузка скриптов
     await loadScripts([
+      "/static/scripts/main_get_data.js",
       "/static/scripts/main.js",
       "/static/scripts/main_account.js",
-      "/static/scripts/main_settings.js"
+      "/static/scripts/main_settings.js",
+      "/static/scripts/main_tabs.js",
+      "/static/scripts/main_validator.js",
+      "/static/scripts/main_open_files.js",
+      "/static/scripts/main_doc_buttons.js",
+      "/static/scripts/main_res_buttons.js"
     ]);
 
   } catch (error) {
@@ -303,20 +273,6 @@ function reAlertMessages(input) {
   const messageElement = document.getElementById(`${input}-message`);
   messageElement.innerHTML = "";
   messageElement.classList.remove("error");
-}
-
-// Показать сообщение сервера
-function serverMessage(action, message) {
-  // Реализация этой функции зависит от вашего UI
-  console.log(message);
-  // Пример реализации:
-  const serverMessageElement = document.getElementById("server-message");
-  if (action === "show") {
-    serverMessageElement.textContent = message;
-    serverMessageElement.style.display = "block";
-  } else {
-    serverMessageElement.style.display = "none";
-  }
 }
 
 // Функция для загрузки скриптов

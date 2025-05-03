@@ -18,6 +18,7 @@ import (
 type DocValidatService interface {
 	ValidIngoingDoc(reqDoc models.Document) (models.Document, error)
 	ValidResolution(res *models.Resolution) (models.Resolution, error)
+	ValidOutgoingDoc(reqDoc models.Document) (models.Document, error)
 }
 
 func (v *validatService) ValidIngoingDoc(reqDoc models.Document) (models.Document, error) {
@@ -29,6 +30,75 @@ func (v *validatService) ValidIngoingDoc(reqDoc models.Document) (models.Documen
 	}
 
 	err := v.validDocFNum(doc.FNum)
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	docFDate, err := v.stringToDateNullString(doc.FDate)
+	if err != nil {
+		return models.Document{}, errors.New("дата документа указана неверно")
+	}
+
+	if !v.validDocDate(docFDate) {
+		return models.Document{}, errors.New("дата документа не указана")
+	}
+
+	doc.LDate, err = v.stringToDateNullString(doc.LDateStr)
+	if err != nil {
+		return models.Document{}, errors.New("дата поступившего документа указана неверно")
+	}
+
+	err = v.validDocLdate(doc.LDate, doc.LNum)
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	err = v.validDocName(doc.Name)
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	err = v.validDocSender(doc.Sender)
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	err = v.validDocIspolnitel(doc.Ispolnitel, doc.Resolutions)
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	err = v.validDocCount(doc.Count)
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	err = v.validDocWidth(doc.Width)
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	if doc.Location != "" && !v.validDocLocation(doc.Location) {
+		return models.Document{}, errors.New(`отметка о подшивке указана неверно, примеры: "Дело 12, стр. 12", "Дело 1, стр. 12-19"`)
+	}
+
+	err = v.validDocFile(doc.FileHeader)
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	return doc, nil
+}
+
+func (v *validatService) ValidOutgoingDoc(reqDoc models.Document) (models.Document, error) {
+
+	doc := v.sanitizeDocument(&reqDoc)
+
+	if !v.validDocType(doc.Type) {
+		return models.Document{}, errors.New("тип документа указан некорректно")
+	}
+
+	err := v.validDocLNum(doc.FNum)
 	if err != nil {
 		return models.Document{}, err
 	}
