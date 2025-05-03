@@ -23,3 +23,7 @@ type AccountData struct {
 	ToDay  string
 }
 
+type UpdatePassRequest struct {
+	Pass    string `json:"pass"`
+	NewPass string `json:"newpass"`
+}

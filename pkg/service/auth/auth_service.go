@@ -132,13 +132,20 @@ func (s *authService) UserRegistration(user models.User) error {
 }
 
 func (s *authService) UserAuthorization(login, pass string) (int, error) {
+	
+	if exists, err := s.stor.GetUserExists(login); err != nil {
+		return 500, err
+	} else if !exists {
+		return 401, errors.New("authError")
+	}
+	
 	userPass, err := s.stor.GetUserPassByLogin(login)
 	if err != nil {
 		return 500, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userPass), []byte(pass)); err != nil {
-		return 401, errors.New("неверный логин или пароль")
+		return 401, errors.New("authError")
 	}
 
 	return 0, nil 

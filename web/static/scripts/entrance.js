@@ -5,241 +5,332 @@ window.onload = function() {
   document.querySelector('.main__preloader--panel').style.display = 'none';
 }; */
 
-//var
-btn_show_password = document.querySelector(".password__checkbox");
-login_input = document.querySelector("#regist-login-input");
-name_input = document.querySelector("#regist-name-input");
-func_input = document.querySelector("#regist-func-input");
-unit_input = document.querySelector("#regist-unit-input");
-group_input = document.querySelector("#regist-group-input");
-pass_input = document.querySelector("#regist-pass-input");
-repass_input = document.querySelector("#regist-repass-input");
-regist_button = document.querySelector("#regist-button");
-author_button = document.querySelector("#author-button");
-error_registration = false;
+// Variables
+const btnShowPassword = document.querySelector(".password__checkbox");
+const loginInput = document.querySelector("#regist-login-input");
+const nameInput = document.querySelector("#regist-name-input");
+const funcInput = document.querySelector("#regist-func-input");
+const unitInput = document.querySelector("#regist-unit-input");
+const groupInput = document.querySelector("#regist-group-input");
+const passInput = document.querySelector("#regist-pass-input");
+const repassInput = document.querySelector("#regist-repass-input");
+const registButton = document.querySelector("#regist-button");
+const authorButton = document.querySelector("#author-button");
+let errorRegistration = false;
+let currentPass = "";
 
 //-------Показать пароль
-btn_show_password.addEventListener("click", ShowPassword);
+btnShowPassword.addEventListener("click", showPassword);
 
-function ShowPassword() {
-  password_status = document.querySelector("#auth-password-input");
-  if (btn_show_password.checked) password_status.type = "text";
-  else password_status.type = "password";
+function showPassword() {
+  const passwordStatus = document.querySelector("#auth-password-input");
+  passwordStatus.type = btnShowPassword.checked ? "text" : "password";
 }
 
-//Проверка ввода логина
-login_input.addEventListener("blur", WriteLogin);
+// Проверка ввода логина
+loginInput.addEventListener("blur", writeLogin);
 
-function WriteLogin() {
-  login = login_input.value.trim();
-  if (login === "") AlertMessages("regist-login", "Введите логин!");
-  else if (login.length < 3)
-    AlertMessages("regist-login", "Минимальная длина логина - 3 символа!");
-  else if (login.length > 12)
-    AlertMessages("regist-login", "Максимальная длина логина - 12 символов!");
-  else if (!IsValidLogin(login))
-    AlertMessages(
-      "regist-login",
-      "Используйте только латинские буквы и цифры!"
-    );
-  else ReAlertMessages("regist-login");
-}
-
-//Проверка ввода имени
-name_input.addEventListener("blur", WriteName);
-
-function WriteName() {
-  name = name_input.value.trim();
-  if (name === "") AlertMessages("regist-name", "Введите фамилию и инициалы!");
-  else if (!IsValidName(name))
-    AlertMessages("regist-name", "Введенные данные некорректны!");
-  else ReAlertMessages("regist-name");
-}
-
-func_input.addEventListener("blur", WriteFunc);
-func_input.addEventListener("input", WriteFunc);
-func_input.addEventListener("input", WriteGroups);
-
-//Проверка ввода должности
-function WriteFunc() {
-  func = func_input.value;
-  if (func === "0") AlertMessages("regist-func", "Укажите должность!");
-  else {
-    ReAlertMessages("regist-func");
-
-    $.ajax({
-      method: "POST",
-      url: "/users/units",
-      data: { func: func },
-      success: function (units) {
-        document.getElementById("regist-unit-input").innerHTML = units;
-      },
-      error: () =>
-        ServerMessage("show", "Возникла ошибка на сервере, попробуйте позже!"),
-    });
+function writeLogin() {
+  const login = loginInput.value.trim();
+  if (login === "") {
+    alertMessages("regist-login", "Введите логин!");
+  } else if (login.length < 3) {
+    alertMessages("regist-login", "Минимальная длина логина - 3 символа!");
+  } else if (login.length > 12) {
+    alertMessages("regist-login", "Максимальная длина логина - 12 символов!");
+  } else if (!isValidLogin(login)) {
+    alertMessages("regist-login", "Используйте только латинские буквы и цифры!");
+  } else {
+    reAlertMessages("regist-login");
   }
 }
 
-//Изменение групп
-unit_input.addEventListener("input", WriteGroups);
-function WriteGroups() {
-  func = func_input.value;
-  unit = unit_input.value;
+// Проверка ввода имени
+nameInput.addEventListener("blur", writeName);
 
-  $.ajax({
-    method: "POST",
-    url: "/users/groups",
-    data: { unit: unit, func: func },
-    success: function (groups) {
-      if (groups.length > 0) {
-        document.getElementById("regist-group-box").style.display = "block";
-        document.getElementById("regist-group-input").innerHTML = groups;
-      } else {
-        document.getElementById("regist-group-box").style.display = "none";
-      }
-    },
-    error: () =>
-      ServerMessage("show", "Возникла ошибка на сервере, попробуйте позже!"),
-  });
+function writeName() {
+  const name = nameInput.value.trim();
+  if (name === "") {
+    alertMessages("regist-name", "Введите фамилию и инициалы!");
+  } else if (!isValidName(name)) {
+    alertMessages("regist-name", "Введенные данные некорректны!");
+  } else {
+    reAlertMessages("regist-name");
+  }
 }
 
-//Проверка ввода пароля
-pass_input.addEventListener("blur", WritePass);
+funcInput.addEventListener("blur", writeFunc);
+funcInput.addEventListener("input", writeFunc);
+funcInput.addEventListener("input", writeGroups);
 
-function WritePass() {
-  pass = pass_input.value.trim();
-  if (!IsValidPass(pass))
-    AlertMessages("regist-pass", "Пароль недостаточно надежный!");
-  else ReAlertMessages("regist-pass");
+// Проверка ввода должности
+function writeFunc() {
+  const func = funcInput.value;
+  if (func === "0") {
+    alertMessages("regist-func", "Укажите должность!");
+  } else {
+    reAlertMessages("regist-func");
+    fetchUnits(func);
+  }
 }
 
-//Проверка подтверждения пароля
-repass_input.addEventListener("input", WriteRePass);
+// Получение подразделений
+async function fetchUnits(func) {
+  try {
+    const response = await fetch(`/units?func=${encodeURIComponent(func)}`, {
+      method: "GET",
+      headers: {
+        "Accept": "text/html",
+      },
+    });
 
-function WriteRePass() {
-  repass = repass_input.value.trim();
-  if (repass !== pass) AlertMessages("regist-repass", "Пароли не совпадают!");
-  else ReAlertMessages("regist-repass");
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Ошибка сервера");
+    }
+
+    const units = await response.text();
+    document.getElementById("regist-unit-input").innerHTML = units;
+  } catch (error) {
+    serverMessage("show", error.message || "Возникла ошибка на сервере, попробуйте позже!");
+  }
+}
+
+// Получение групп
+unitInput.addEventListener("input", writeGroups);
+
+async function writeGroups() {
+  const func = funcInput.value;
+  const unit = unitInput.value;
+
+  try {
+    // Формируем URL с параметрами
+    const url = `/groups?unit=${encodeURIComponent(unit)}&func=${encodeURIComponent(func)}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Accept": "text/html", // Указываем ожидаемый тип ответа
+      },
+    });
+
+    if (!response.ok) {
+      // Пытаемся получить текст ошибки от сервера
+      const errorText = await response.text();
+      throw new Error(errorText || "Ошибка сервера");
+    }
+
+    const groups = await response.text();
+    const groupBox = document.getElementById("regist-group-box");
+
+    if (groups.length > 0) {
+      groupBox.style.display = "block";
+      document.getElementById("regist-group-input").innerHTML = groups;
+    } else {
+      groupBox.style.display = "none";
+    }
+  } catch (error) {
+    // Выводим конкретное сообщение об ошибке
+    serverMessage("show", error.message || "Возникла ошибка на сервере, попробуйте позже!");
+
+    // Скрываем блок групп при ошибке
+    document.getElementById("regist-group-box").style.display = "none";
+  }
+}
+
+// Проверка ввода пароля
+passInput.addEventListener("blur", writePass);
+
+function writePass() {
+  currentPass = passInput.value.trim();
+  if (!isValidPass(currentPass)) {
+    alertMessages("regist-pass", "Пароль недостаточно надежный!");
+  } else {
+    reAlertMessages("regist-pass");
+  }
+}
+
+// Проверка подтверждения пароля
+repassInput.addEventListener("input", writeRePass);
+
+function writeRePass() {
+  const repass = repassInput.value.trim();
+  if (repass !== currentPass) {
+    alertMessages("regist-repass", "Пароли не совпадают!");
+  } else {
+    reAlertMessages("regist-repass");
+  }
 }
 
 // Проверка регистрации
-regist_button.addEventListener("click", Walid);
+registButton.addEventListener("click", validateRegistration);
 
-function Walid() {
-  user = {
-    login: login_input.value.trim(),
-    name: name_input.value.trim(),
-    func: func_input.value.trim(),
-    unit: unit_input.value.trim(),
-    group: group_input.value.trim(),
-    pass: pass_input.value.trim(),
-    repass: repass_input.value.trim(),
+async function validateRegistration() {
+  const user = {
+    login: loginInput.value.trim(),
+    name: nameInput.value.trim(),
+    func: funcInput.value.trim(),
+    unit: unitInput.value.trim(),
+    group: groupInput.value.trim(),
+    pass: passInput.value.trim(),
+    repass: repassInput.value.trim(),
   };
-  error_registration = false;
-  WriteLogin();
-  WriteName();
-  if (user["func"] === "0") AlertMessages("regist-func", "Укажите должность!");
-  WritePass();
-  WriteRePass();
-  if (error_registration == true) return;
 
-  $.ajax({
-    method: "POST",
-    url: "users/add",
-    contentType: "application/json",
-    data: JSON.stringify(user),
-    success: function (check) {
-      if (check == "ok") {
-        document.getElementById("auth-link").click();
-        document.getElementById("auth-message").innerHTML =
-          "Аккаунт зарегистрирован, входите!";
-        document.getElementById("auth-message").classList.add("message");
-      } else ServerMessage("show", check);
-    },
-    error: function (jqXHR, exception) {
-      ServerMessage("show", jqXHR.responseText);
-    },
-  });
+  errorRegistration = false;
+  writeLogin();
+  writeName();
+
+  if (user.func === "0") {
+    alertMessages("regist-func", "Укажите должность!");
+  }
+
+  writePass();
+  writeRePass();
+
+  if (errorRegistration) return;
+
+  try {
+    const response = await fetch("/reg", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(user),
+    });
+
+    if (!response.ok) {
+      throw new Error(await response.text());
+    }
+
+    document.getElementById("auth-link").click();
+    const authMessage = document.getElementById("auth-message");
+    authMessage.innerHTML = "Аккаунт зарегистрирован, входите!";
+    authMessage.classList.add("message");
+
+  } catch (error) {
+    serverMessage("show", error.message || "Возникла ошибка на сервере, попробуйте позже!");
+  }
 }
+
 // Авторизация
-author_button.addEventListener("click", Authorization);
+authorButton.addEventListener("click", authorize);
 
-function Authorization() {
-  auth_message = document.querySelector("#auth-message");
-  auth_message.innerHTML = "";
-  auth_message.classList.remove("error");
-  auth_message.classList.remove("message");
-  login = document.getElementById("auth-login-input").value;
-  pass = document.getElementById("auth-password-input").value;
-  remember = document.getElementById("remember").checked;
+async function authorize() {
+  const authMessage = document.querySelector("#auth-message");
+  authMessage.textContent = "";
+  authMessage.classList.remove("error", "message");
 
-  $.ajax({
-    method: "POST",
-    url: "/users/auth",
-    data: {
-      login: login,
-      pass: pass,
-      remember: remember,
-    },
-    success: function (check) {
-      if ((document.querySelector(".container").innerHTML = check)) {
-        const scripts = [
-          "/static/scripts/main.js",
-          "/static/scripts/main_account.js",
-          "/static/scripts/main_settings.js"
-        ];
-        
-        scripts.forEach(src => {
-          const script = document.createElement("script");
-          script.src = src;
-          script.async = true;
-          document.head.appendChild(script);
-        });
-      }
-    },
-    error: function (jqXHR) {
-      if (jqXHR.status == 401) {
-        document.getElementById("auth-message").innerHTML =
-          "Неверный логин или пароль!";
-        document.getElementById("auth-message").classList.add("error");
-      } else ServerMessage("show", jqXHR.responseText);
-    },
-  });
+  const login = document.getElementById("auth-login-input").value;
+  const pass = document.getElementById("auth-password-input").value;
+  const remember = document.getElementById("remember").checked;
+
+  try {
+    const response = await fetch("/auth", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: new URLSearchParams({
+        login: login,
+        pass: pass,
+        remember: remember
+      }),
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(
+        response.status === 401
+          ? "authError"
+          : error || "Ошибка сервера"
+      );
+    }
+
+    const html = await response.text();
+    document.querySelector(".container").innerHTML = html;
+
+    // Динамическая загрузка скриптов
+    await loadScripts([
+      "/static/scripts/main.js",
+      "/static/scripts/main_account.js",
+      "/static/scripts/main_settings.js"
+    ]);
+
+  } catch (error) {
+    if (error.message === "authError") {
+      authMessage.textContent = "Неверный логин или пароль!";
+      authMessage.classList.add("error");
+    } else {
+      serverMessage("show", error.message || "Возникла ошибка на сервере, попробуйте позже!");
+    }
+  }
 }
 
 // Проверка логина регулярным выражением
-function IsValidLogin(login) {
+function isValidLogin(login) {
   const pattern = /^[a-zA-Z0-9-_]+$/;
   return pattern.test(login);
 }
 
 // Проверка имени регулярным выражением
-function IsValidName(name) {
+function isValidName(name) {
   const pattern = /^[А-ЯЁ][а-яё]+[ ][А-ЯЁ][.][А-ЯЁ][.]$/;
   return pattern.test(name);
 }
 
 // Проверка пароля регулярным выражением
-function IsValidPass(pass) {
+function isValidPass(pass) {
   const pattern = /^.*(?=.{6,})(?=.*[a-zA-ZА-ЯЁа-яё]).*$/;
   return pattern.test(pass);
 }
 
-//Сообщение при ошибке
-function AlertMessages(input, mess) {
-  document.getElementById(input.concat("-input")).style.borderColor =
-    "--error-color";
-  document.getElementById(input.concat("-lable")).style.color = "--error-color";
-  document.getElementById(input.concat("-message")).innerHTML = mess;
-  document.getElementById(input.concat("-message")).classList.add("error");
-  error_registration = true;
+// Сообщение при ошибке
+function alertMessages(input, mess) {
+  document.getElementById(`${input}-input`).style.borderColor = "var(--error-color)";
+  document.getElementById(`${input}-lable`).style.color = "var(--error-color)";
+  const messageElement = document.getElementById(`${input}-message`);
+  messageElement.innerHTML = mess;
+  messageElement.classList.add("error");
+  errorRegistration = true;
 }
 
-//очистка сообщения
-function ReAlertMessages(input) {
-  document.getElementById(input.concat("-input")).style.borderColor =
-    "--low-color";
-  document.getElementById(input.concat("-lable")).style.color = "--low-color";
-  document.getElementById(input.concat("-message")).innerHTML = "";
-  document.getElementById(input.concat("-message")).classList.remove("error");
+// Очистка сообщения
+function reAlertMessages(input) {
+  document.getElementById(`${input}-input`).style.borderColor = "var(--low-color)";
+  document.getElementById(`${input}-lable`).style.color = "var(--low-color)";
+  const messageElement = document.getElementById(`${input}-message`);
+  messageElement.innerHTML = "";
+  messageElement.classList.remove("error");
+}
+
+// Показать сообщение сервера
+function serverMessage(action, message) {
+  // Реализация этой функции зависит от вашего UI
+  console.log(message);
+  // Пример реализации:
+  const serverMessageElement = document.getElementById("server-message");
+  if (action === "show") {
+    serverMessageElement.textContent = message;
+    serverMessageElement.style.display = "block";
+  } else {
+    serverMessageElement.style.display = "none";
+  }
+}
+
+// Функция для загрузки скриптов
+function loadScripts(urls) {
+  return Promise.all(
+    urls.map(url => {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    })
+  );
 }

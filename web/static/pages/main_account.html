@@ -4,7 +4,7 @@
   {{if .AccountData.Icon}}
     <label class="account__img">
       <p>Изменить фотографию</p>
-      <input class="account__icon--intut" name="icon" type="file" accept=".jpeg, .png, .jpg, .ico">
+      <input class="account__icon--input" name="icon" type="file" accept=".jpeg, .png, .jpg, .ico">
     </label>
 
     <style>
@@ -15,7 +15,7 @@
 
     {{else}}
     <label class="account__icon"><p>Загрузить фотографию</p>
-      <input class="account__icon--intut" name="icon" type="file" accept=".jpeg, .png, .jpg, .ico">
+      <input class="account__icon--input" name="icon" type="file" accept=".jpeg, .png, .jpg, .ico">
     </label>
     {{end}}
 
@@ -37,7 +37,7 @@
   <div class="account__password--panel">
 
     <div class="account__password--input-box">
-      <label id="account-pass-lable">Старый пароль</label>
+      <label id="account-pass-lable">Текущий пароль</label>
       <input type="password" id="account-pass-input" name="pass" placeholder="password">
     </div>
 

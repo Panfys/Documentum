@@ -25,29 +25,32 @@ func NewDocHandler(log logger.Logger, service document.DocService) *DocHandler {
 	}
 }
 
-func (h *DocHandler) GetIngoingDoc(w http.ResponseWriter, r *http.Request) {
+func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 
 	var settings models.DocSettings
-	settings.DocType = "Входящий"
+	settings.DocType = r.FormValue("type")
 	settings.DocCol = r.FormValue("col")
 	settings.DocSet = r.FormValue("set")
 	settings.DocDatain = r.FormValue("datain")
 	settings.DocDatato = r.FormValue("datato")
 
-	responceDocs, err := h.service.GetIngoingDoc(settings)
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+	switch settings.DocType {
+
+	case "Входящий":
+		responceDocs, err := h.service.GetIngoingDoc(settings)
+
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(responceDocs))
+
+	default:
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(settings.DocType))
 	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(responceDocs))
-}
-
-func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Документ"))
 }
 
 func (h *DocHandler) WievDocument(w http.ResponseWriter, r *http.Request) {
