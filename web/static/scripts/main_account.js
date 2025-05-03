@@ -6,7 +6,7 @@ iconInput.onchange = async function () {
   userIcon.append("icon", iconInput.files[0]);
 
   try {
-    const response = await fetch("/protect/icon", {
+    const response = await fetch("/user/me/icon", {
       method: "PATCH",
       body: userIcon,
       credentials: "include"
@@ -137,7 +137,7 @@ changePassBtn.addEventListener("click", async function () {
   if (changePassBtn.disabled) return;
 
   try {
-    const response = await fetch("/protect/pass", {
+    const response = await fetch("/user/me/pass", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -187,7 +187,7 @@ function reAlertAccountMessages() {
 document.querySelector("#account-btn-exit").addEventListener("click", async function () {
   if (confirm("Вы действительно хотите выйти?")) {
     try {
-      const response = await fetch("/protect/exit", {
+      const response = await fetch("/auth/logout", {
         method: "DELETE",
         credentials: "include"
       });

@@ -3,6 +3,7 @@ package handler
 import (
 	"documentum/pkg/service/structure"
 	"net/http"
+	"github.com/gorilla/mux"
 )
 
 type StructureHandler struct {
@@ -16,7 +17,8 @@ func NewStructureHandler(service structure.StructureService) *StructureHandler{
 }
 
 func (h *StructureHandler) GetUnits(w http.ResponseWriter, r *http.Request) {
-	function := r.FormValue("func")
+	vars := mux.Vars(r)
+    function := vars["id"]
 
 	units, err := h.service.GetUnits(function)
 	if err != nil {
@@ -29,8 +31,10 @@ func (h *StructureHandler) GetUnits(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *StructureHandler) GetGroups(w http.ResponseWriter, r *http.Request) {
-	function := r.FormValue("func")
-	unit := r.FormValue("unit")
+	vars := mux.Vars(r)
+
+	function := vars["funcId"]
+	unit := vars["unitId"]
 
 	groups, err := h.service.GetGroups(function, unit)
 	if err != nil {

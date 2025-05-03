@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func (s *SQLStorage) AddLookDocument(id int, name string) error {
+func (s *SQLStorage) AddLookDocument(id string, name string) error {
 	username := "<br>" + name
 
 	_, err := s.db.Exec("UPDATE `doc` SET `familiar` = IF(`familiar` LIKE ?, `familiar`, CONCAT(`familiar`, ?)) WHERE `id` = ?", "%"+name+"%", username, id)

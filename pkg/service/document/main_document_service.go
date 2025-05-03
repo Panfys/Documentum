@@ -9,7 +9,7 @@ import (
 
 type DocService interface {
 	GetIngoingDoc(settings models.DocSettings) (string, error)
-	AddLookDocument(id int, name string) error
+	AddLookDocument(id string, name string) error
 	AddIngoingDoc(doc models.Document) (models.Document, error)
 }
 

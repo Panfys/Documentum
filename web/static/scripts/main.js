@@ -449,7 +449,7 @@ btn_addnewdoc.forEach((btn) => {
 
     $.ajax({
       method: "POST",
-      url: "/protect/documents/add",
+      url: "/document",
       data: newdoc_data,
       cache: false,
       contentType: false,
@@ -709,8 +709,8 @@ function WalidResolutionReError(resolution_id, input) {
 //------Вывод документов---------
 function ViewDocuments(set, type, col, datain, datato) {
   $.ajax({
-    method: "POST",
-    url: "/protect/documents/getdoc",
+    method: "GET",
+    url: "/documents",
     data: {
       type: type,
       col: col,
@@ -737,26 +737,6 @@ function ViewDocuments(set, type, col, datain, datato) {
             documents;
           break;
       }
-      CheckDocumentTable();
-    },
-    error: () =>
-      ServerMessage("show", "Возникла ошибка на сервере, попробуйте позже!"),
-  });
-}
-
-function ViewIngoingDocuments(set, col, datain, datato) {
-  $.ajax({
-    method: "POST",
-    url: "/protect/documents/ingoing",
-    data: {
-      col: col,
-      set: set,
-      datain: datain,
-      datato: datato,
-    },
-    success: function (documents) {
-      document.getElementById("ingoing-documents-container").innerHTML =
-        documents;
       CheckDocumentTable();
     },
     error: () =>
@@ -894,7 +874,7 @@ function OpenDocument(ask, id) {
   } else {
     document.body.style.overflow = "hidden";
     panel_opendoc.style = "display: flex";
-    iframe_opendoc.setAttribute("src", "/protect/documents/wievdoc?file=" + ask);
+    iframe_opendoc.setAttribute("src", "/document/file?file=" + ask);
     familiars_opendoc = document
       .getElementById("document-table-" + id)
       .querySelector(".table__column--familiar");
@@ -914,9 +894,8 @@ function OpenDocument(ask, id) {
 
     if (familiar_opendoc.match(account_name.trim()) == null) {
       $.ajax({
-        method: "POST",
-        url: "/protect/documents/look",
-        data: { id: id },
+        method: "PATCH",
+        url: `/document/${encodeURIComponent(id)}/view`,
         error: function (jqXHR, exception) {
           ServerMessage("show", jqXHR.responseText);
         },
@@ -944,7 +923,7 @@ btn_opennewdoc.forEach((btn) => {
       file_url = URL.createObjectURL(file);
       iframe_opendoc.setAttribute(
         "src",
-        "/protect/documents/wievnewdoc?file=" + DefineFile(file_url, file.type)
+        "/document/new/file?file=" + DefineFile(file_url, file.type)
       );
     }
 

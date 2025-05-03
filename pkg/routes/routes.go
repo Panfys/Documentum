@@ -39,37 +39,34 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 
 	r.HandleFunc("/", authHandler.GetHandler)
 
-	// OPEN
-	r.HandleFunc("/units", structHandler.GetUnits).Methods("GET")
-	r.HandleFunc("/groups", structHandler.GetGroups).Methods("GET")
-	r.HandleFunc("/reg", authHandler.RegistrationHandler).Methods("POST")
-	r.HandleFunc("/auth", authHandler.AuthorizationHandler).Methods("POST")
-
-	// PROTECTED
-	protect := r.PathPrefix("/protect/").Subrouter()
-	protect.Use(authHandler.AuthMiddleware)
-	//GET
-	
-	//POST
-	protect.HandleFunc("/documents/getdoc", docHandler.GetDocuments).Methods("POST")
-	protect.HandleFunc("/documents/wievdoc", docHandler.WievDocument)
-	protect.HandleFunc("/documents/wievnewdoc", docHandler.WievNewDocument)
-	protect.HandleFunc("/documents/look", docHandler.AddLookDocument).Methods("POST")
-	protect.HandleFunc("/documents/add", docHandler.AddIngoingDoc).Methods("POST")
-
-	//PATCH
-	protect.HandleFunc("/icon", userHandler.UpdateUserIcon).Methods("PATCH")
-	protect.HandleFunc("/pass", userHandler.UpdateUserPassword).Methods("PATCH")
-
-	//DELETE
-	protect.HandleFunc("/exit", authHandler.ExitHandler).Methods("DELETE")
-
-	// ERROR 404
-	r.NotFoundHandler = http.HandlerFunc(handler.NotFoundHandler)
-
 	// STATIC
 	r.PathPrefix("/static/").Handler(handler.StaticHandler())
 	r.PathPrefix("/source/").Handler(authHandler.AuthMiddleware(handler.StaticHandler()))
+
+	// OPEN
+	r.HandleFunc("/funcs/{id:[0-9]+}/units", structHandler.GetUnits).Methods("GET")
+	r.HandleFunc("/funcs/{funcId:[0-9]+}/{unitId:[0-9]+}/groups", structHandler.GetGroups).Methods("GET")
+	r.HandleFunc("/auth/register", authHandler.RegistrationHandler).Methods("POST")
+	r.HandleFunc("/auth/login", authHandler.AuthorizationHandler).Methods("POST")
+
+	// PROTECTED
+	protect := r.PathPrefix("/").Subrouter()
+	protect.Use(authHandler.AuthMiddleware)
+	//GET
+	protect.HandleFunc("/documents", docHandler.GetDocuments).Methods("GET")
+	protect.HandleFunc("/document/file", docHandler.WievDocument).Methods("GET")
+	protect.HandleFunc("/document/new/file", docHandler.WievNewDocument).Methods("GET")
+	//POST
+	protect.HandleFunc("/document", docHandler.AddIngoingDoc).Methods("POST")
+	//PATCH
+	protect.HandleFunc("/user/me/icon", userHandler.UpdateUserIcon).Methods("PATCH")
+	protect.HandleFunc("/user/me/pass", userHandler.UpdateUserPassword).Methods("PATCH")
+	protect.HandleFunc("/document/{id:[0-9]+}/view", docHandler.AddLookDocument).Methods("PATCH")
+	//DELETE
+	protect.HandleFunc("/auth/logout", authHandler.ExitHandler).Methods("DELETE")
+
+	// ERROR 404
+	r.NotFoundHandler = http.HandlerFunc(handler.NotFoundHandler)
 
 	return r
 }
