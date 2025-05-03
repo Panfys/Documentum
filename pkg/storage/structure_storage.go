@@ -31,7 +31,7 @@ func (s *SQLStorage) GetUnits(function string) ([]models.Unit, error) {
 }
 
 func (s *SQLStorage) GetGroups(function, unit string) ([]models.Unit, error) {
-	rows, err := s.db.Query("SELE CT groups.id, groups.name FROM `funcs_groups` JOIN `groups` ON groups_id = groups.id WHERE `funcs_id` = ? AND `units_id` = ?", function, unit)
+	rows, err := s.db.Query("SELECT groups.id, groups.name FROM `funcs_groups` JOIN `groups` ON groups_id = groups.id WHERE `funcs_id` = ? AND `units_id` = ?", function, unit)
 
 	if err != nil {
 		return nil, s.log.Error(models.ErrGetDataInDB, err)

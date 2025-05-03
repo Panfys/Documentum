@@ -6,6 +6,7 @@ import (
 	"documentum/pkg/service/document"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"html/template"
 	"net/http"
 	"os"
@@ -108,18 +109,11 @@ func (h *DocHandler) renderTemplates(w http.ResponseWriter, data models.PageData
 }
 
 func (h *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
-
+	vars := mux.Vars(r)
 	login := r.Context().Value(models.LoginKey).(string)
-	idStr := r.FormValue("id")
-	id, err := strconv.Atoi(idStr)
+	id := vars["id"]
 
-	if err != nil {
-		http.Error(w, models.ErrRequest, http.StatusBadRequest)
-		h.log.Error(models.ErrRequest, err)
-		return
-	}
-
-	err = h.service.AddLookDocument(id, login)
+	err := h.service.AddLookDocument(id, login)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)

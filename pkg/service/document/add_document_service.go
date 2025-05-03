@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 )
 
-func (d *docService) AddLookDocument(id int, login string) error {
+func (d *docService) AddLookDocument(id string, login string) error {
 
 	name, err := d.stor.GetUserName(login)
 	if err != nil {

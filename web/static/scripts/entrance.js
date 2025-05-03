@@ -77,7 +77,7 @@ function writeFunc() {
 // Получение подразделений
 async function fetchUnits(func) {
   try {
-    const response = await fetch(`/units?func=${encodeURIComponent(func)}`, {
+    const response = await fetch(`/funcs/${encodeURIComponent(func)}/units`, {
       method: "GET",
       headers: {
         "Accept": "text/html",
@@ -105,7 +105,7 @@ async function writeGroups() {
 
   try {
     // Формируем URL с параметрами
-    const url = `/groups?unit=${encodeURIComponent(unit)}&func=${encodeURIComponent(func)}`;
+    const url = `/funcs/${encodeURIComponent(func)}/${encodeURIComponent(unit)}/groups`;
 
     const response = await fetch(url, {
       method: "GET",
@@ -190,7 +190,7 @@ async function validateRegistration() {
   if (errorRegistration) return;
 
   try {
-    const response = await fetch("/reg", {
+    const response = await fetch("/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -225,7 +225,7 @@ async function authorize() {
   const remember = document.getElementById("remember").checked;
 
   try {
-    const response = await fetch("/auth", {
+    const response = await fetch("/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

@@ -42,7 +42,7 @@ type StructureStorage interface {
 type DocStorage interface {
 	GetDocuments(settings models.DocSettings) ([]models.Document, error)
 	GetResolutoins(id int) ([]models.Resolution, error)
-	AddLookDocument(id int, name string) error
+	AddLookDocument(id string, name string) error
 	GetUserName(login string) (string, error)
 	AddDocumentWithResolutions(doc models.Document) error
 	AddDocument(doc models.Document) error
