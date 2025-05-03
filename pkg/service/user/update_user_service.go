@@ -18,12 +18,12 @@ func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, erro
 
 	// Проверяем валидность текущего пароля
 	if err := bcrypt.CompareHashAndPassword([]byte(userPass), []byte(pass)); err != nil {
-		return 400, errors.New("Текущий пароль неверный!")
+		return 400, errors.New("текущий пароль неверный")
 	}
 
 	// Валидация пароля
 	if !s.validSrv.ValidUserPass(newPass) || pass == newPass {
-		return 400, errors.New("Неверный формат нового пароля!")
+		return 400, errors.New("неверный формат нового пароля")
 	}
 
 	// Хешируем новый пароль

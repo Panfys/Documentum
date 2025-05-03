@@ -1,74 +1,66 @@
-//сообщения от сервера
-server_message_btn = document.querySelector(".server__messages--btn");
-server_message_btn.onclick = () => ServerMessage("clouse", "");
+// Серверные сообщения
+const serverMessageBtn = document.querySelector(".server__messages--btn");
+serverMessageBtn.addEventListener("click", () => serverMessage("close", ""));
 
-function ServerMessage(action, message) {
-  div = document.querySelector(".server__messages");
-  text = document.querySelector(".server__messages--text");
+function serverMessage(action, message) {
+  const messageDiv = document.querySelector(".server__messages");
+  const messageText = document.querySelector(".server__messages--text");
+
   switch (action) {
     case "show":
       {
-        new_date = new Date();
-        now_date = new_date.toLocaleString();
-        div.style.display = "flex";
-        text.innerHTML =
-          "(" + now_date + ") " + "Сообщение от сервера: " + message + "</br>";
-        setTimeout(ServerMessage, 10000, "clouse", "");
+        const now = new Date().toLocaleString();
+        messageDiv.style.display = "flex";
+        messageText.innerHTML = `(${now}) Сообщение от сервера: ${message}<br>`;
+        setTimeout(() => serverMessage("close", ""), 10000);
       }
       break;
-    case "clouse":
+    case "close":
       {
-        div.style.display = "none";
-        setTimeout(ServerMessage, 600000, "clear", "");
+        messageDiv.style.display = "none";
+        setTimeout(() => serverMessage("clear", ""), 600000);
       }
       break;
     case "clear":
       {
-        text.innerHTML = "";
+        messageText.innerHTML = "";
       }
       break;
   }
 }
 
-//Определение темы
-// Вывод страницы входа
-if (localStorage.getItem("theme")) {
-  if (localStorage.getItem("theme") == "light") {
-    document.body.classList.add("light-theme");
-    document.body.classList.remove("dark-theme");
-  } else if (localStorage.getItem("theme") == "dark") {
-    document.body.classList.remove("light-theme");
-    document.body.classList.add("dark-theme");
-  }
-} else {
-  localStorage.setItem("theme", "dark");
-  document.body.classList.remove("light-theme");
-  document.body.classList.add("dark-theme");
+// Управление темой и цветом
+function applyThemeSettings() {
+  // Применение темы
+  const savedTheme = localStorage.getItem("theme") || "dark";
+  
+  document.body.classList.toggle("light-theme", savedTheme === "light");
+  document.body.classList.toggle("dark-theme", savedTheme === "dark");
+
+  // Применение цвета
+  const savedColor = localStorage.getItem("color") || "blue";
+  const colorValues = {
+    blue: "45, 104, 248",
+    orange: "255, 104, 0",
+    purple: "116, 66, 200",
+    green: "3, 108, 86"
+  };
+
+  document.body.style.setProperty("--main-rgb", colorValues[savedColor]);
 }
-if (localStorage.getItem("color")) {
-  switch (localStorage.getItem("color")) {
-    case "blue":
-      {
-        document.body.style.setProperty("--main-rgb", "45, 104, 248");
-      }
-      break;
-    case "orange":
-      {
-        document.body.style.setProperty("--main-rgb", "255, 104, 0");
-      }
-      break;
-    case "purple":
-      {
-        document.body.style.setProperty("--main-rgb", "116, 66, 200");
-      }
-      break;
-    case "green":
-      {
-        document.body.style.setProperty("--main-rgb", "3, 108, 86");
-      }
-      break;
+
+// Инициализация темы при загрузке
+function initializeTheme() {
+  if (!localStorage.getItem("theme")) {
+    localStorage.setItem("theme", "dark");
   }
-} else {
-  localStorage.setItem("color", "blue");
-  document.body.style.setProperty("--main-rgb", "45, 104, 248");
+  
+  if (!localStorage.getItem("color")) {
+    localStorage.setItem("color", "blue");
+  }
+
+  applyThemeSettings();
 }
+
+// Вызываем инициализацию при загрузке
+initializeTheme();

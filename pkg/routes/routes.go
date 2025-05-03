@@ -33,31 +33,36 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 
 	//Handlers
 	authHandler := handler.NewAuthHandler(log, authServise, userService, structService)
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(log, userService)
 	docHandler := handler.NewDocHandler(log, docService)
 	structHandler := handler.NewStructureHandler(structService)
 
 	r.HandleFunc("/", authHandler.GetHandler)
 
 	// OPEN
-	r.HandleFunc("/users/units", structHandler.GetUnits).Methods("POST")
-	r.HandleFunc("/users/groups", structHandler.GetGroups).Methods("POST")
-	r.HandleFunc("/users/add", authHandler.RegistrationHandler).Methods("POST")
-	r.HandleFunc("/users/auth", authHandler.AuthorizationHandler).Methods("POST")
+	r.HandleFunc("/units", structHandler.GetUnits).Methods("GET")
+	r.HandleFunc("/groups", structHandler.GetGroups).Methods("GET")
+	r.HandleFunc("/reg", authHandler.RegistrationHandler).Methods("POST")
+	r.HandleFunc("/auth", authHandler.AuthorizationHandler).Methods("POST")
 
 	// PROTECTED
 	protect := r.PathPrefix("/protect/").Subrouter()
 	protect.Use(authHandler.AuthMiddleware)
-
-	protect.HandleFunc("/users/exit", authHandler.ExitHandler).Methods("POST")
-	protect.HandleFunc("/users/updatepass", userHandler.UpdateUserPassword).Methods("POST")
-	protect.HandleFunc("/users/updateicon", userHandler.UpdateUserIcon).Methods("POST")
+	//GET
+	
+	//POST
 	protect.HandleFunc("/documents/getdoc", docHandler.GetDocuments).Methods("POST")
-	protect.HandleFunc("/documents/ingoing", docHandler.GetIngoingDoc).Methods("POST")
 	protect.HandleFunc("/documents/wievdoc", docHandler.WievDocument)
 	protect.HandleFunc("/documents/wievnewdoc", docHandler.WievNewDocument)
 	protect.HandleFunc("/documents/look", docHandler.AddLookDocument).Methods("POST")
 	protect.HandleFunc("/documents/add", docHandler.AddIngoingDoc).Methods("POST")
+
+	//PATCH
+	protect.HandleFunc("/icon", userHandler.UpdateUserIcon).Methods("PATCH")
+	protect.HandleFunc("/pass", userHandler.UpdateUserPassword).Methods("PATCH")
+
+	//DELETE
+	protect.HandleFunc("/exit", authHandler.ExitHandler).Methods("DELETE")
 
 	// ERROR 404
 	r.NotFoundHandler = http.HandlerFunc(handler.NotFoundHandler)

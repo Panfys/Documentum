@@ -67,7 +67,7 @@ function ChengeActiveTab(btn) {
   switch (active_tub_id) {
     case "#main-tab-ingoing":
       {
-        ViewIngoingDocuments("ASC", "id", "2000-01-01", "3000-01-01");
+        ViewDocuments("ASC", "Входящий", "id", "2000-01-01", "3000-01-01");
       }
       break;
 

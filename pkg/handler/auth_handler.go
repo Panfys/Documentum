@@ -60,7 +60,6 @@ func (h AuthHandler) RegistrationHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("ok"))
 }
 
 func (h *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Request) {
