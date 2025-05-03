@@ -60,3 +60,28 @@ func (d *docService) AddIngoingDoc(reqDoc models.Document) (models.Document, err
 	
 	return doc, nil
 }
+
+func (d *docService) AddOutgoingDoc(reqDoc models.Document) (models.Document, error) {
+
+	doc, err := d.validSrv.ValidOutgoingDoc(reqDoc)
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	path := "/app/web/source/documents/"
+
+	newFileName, err := d.fileSrv.AddFile(path, doc.FileHeader.Filename, doc.File)
+
+	if err != nil {
+		return models.Document{}, err
+	}
+
+	doc.FileURL = filepath.Join("/source/documents/", newFileName)
+
+	if err := d.stor.AddDocument(doc); err != nil {
+		d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName)) 
+		return models.Document{}, err
+	}
+	
+	return doc, nil
+}

@@ -35,23 +35,15 @@ func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 	settings.DocDatain = r.FormValue("datain")
 	settings.DocDatato = r.FormValue("datato")
 
-	switch settings.DocType {
+	responceDocs, err := h.service.GetDocuments(settings)
 
-	case "Входящий":
-		responceDocs, err := h.service.GetIngoingDoc(settings)
-
-		if err != nil {
-			http.Error(w, err.Error(), 500)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(responceDocs))
-
-	default:
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(settings.DocType))
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
 	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(responceDocs))
 }
 
 func (h *DocHandler) WievDocument(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +115,7 @@ func (h *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
+func (h *DocHandler) AddDocument(w http.ResponseWriter, r *http.Request) {
 
 	login := r.Context().Value(models.LoginKey).(string)
 
@@ -164,24 +156,40 @@ func (h *DocHandler) AddIngoingDoc(w http.ResponseWriter, r *http.Request) {
 		FileHeader: header,
 	}
 
-	resolutionsJSON := r.FormValue("resolutions")
-	if err := json.Unmarshal([]byte(resolutionsJSON), &document.Resolutions); err != nil {
-		http.Error(w, models.ErrRequest, http.StatusBadRequest)
-		h.log.Error(models.ErrRequest, err)
-		return
-	}
+	switch document.Type {
+	case "Входящий":
+		resolutionsJSON := r.FormValue("resolutions")
+		if err := json.Unmarshal([]byte(resolutionsJSON), &document.Resolutions); err != nil {
+			http.Error(w, models.ErrRequest, http.StatusBadRequest)
+			h.log.Error(models.ErrRequest, err)
+			return
+		}
+		doc, err := h.service.AddIngoingDoc(document)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
 
-	doc, err := h.service.AddIngoingDoc(document)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+		// Кодируем данные в JSON и отправляем
+		if err := json.NewEncoder(w).Encode(doc); err != nil {
+			http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
+			return
+		}
+	case "Исходящий":
+		doc, err := h.service.AddOutgoingDoc(document)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
 
-	w.Header().Set("Content-Type", "application/json")
-
-	// Кодируем данные в JSON и отправляем
-	if err := json.NewEncoder(w).Encode(doc); err != nil {
-		http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
-		return
+		// Кодируем данные в JSON и отправляем
+		if err := json.NewEncoder(w).Encode(doc); err != nil {
+			http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
+			return
+		}
+	default:
 	}
+	
 }

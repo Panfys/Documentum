@@ -1,82 +1,61 @@
-//-------Переключение темы
-table_theme = document.querySelectorAll(".settings__theme--table");
+// Константы для цветовых тем
+const COLOR_VALUES = {
+  blue: "45, 104, 248",
+  orange: "255, 104, 0",
+  purple: "116, 66, 200",
+  green: "3, 108, 86"
+};
 
-table_theme.forEach((table) => {
-  // вешаем на каждую кнопку обработчик события клик
-  table.addEventListener("click", () => ChengeTheme(table));
+// Переключение темы
+function setupThemeSwitcher() {
+  const themeButtons = document.querySelectorAll(".settings__theme--table");
+  
+  themeButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const theme = button.getAttribute("theme");
+      const color = button.getAttribute("color");
+      
+      // Сохраняем настройки
+      localStorage.setItem("theme", theme);
+      localStorage.setItem("color", color);
+      
+      // Применяем изменения
+      applyThemeSettings();
+    });
+  });
+}
 
-  function ChengeTheme(table) {
-    theme = table.getAttribute("theme");
-    color = table.getAttribute("color");
-    localStorage.setItem("theme", theme);
-    localStorage.setItem("color", color);
+// Переключение панелей настроек
+function setupSettingsPanels() {
+  const settingButtons = document.querySelectorAll(".main__settings--btn");
+  
+  settingButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const panelId = button.getAttribute("panel-id");
+      console.log("TAB")
+      toggleActivePanel(button, panelId);
+    });
+  });
+}
 
-    if (theme == "light") {
-      document.body.classList.add("light-theme");
-      document.body.classList.remove("dark-theme");
-    } else if (theme == "dark") {
-      document.body.classList.remove("light-theme");
-      document.body.classList.add("dark-theme");
-    }
-
-    switch (color) {
-      case "blue":
-        {
-          document.body.style.setProperty("--main-rgb", "45, 104, 248");
-        }
-        break;
-      case "orange":
-        {
-          document.body.style.setProperty("--main-rgb", "255, 104, 0");
-        }
-        break;
-      case "purple":
-        {
-          document.body.style.setProperty("--main-rgb", "116, 66, 200");
-        }
-        break;
-      case "green":
-        {
-          document.body.style.setProperty("--main-rgb", "3, 108, 86");
-        }
-        break;
-    }
-  }
-});
-
-//- переключение и открытие настроек в боковых панелях
-
-btn_settings = document.querySelectorAll(".main__settings--btn");
-// Проходимся по всем кнопкам
-btn_settings.forEach((btn) => {
-  // вешаем на каждую кнопку обработчик события клик
-  btn.addEventListener("click", () => ChengeActivePanel(btn));
-
-  function ChengeActivePanel(btn) {
-    // Получаем предыдущую активную вкладку
-    pre_active_btn = document.querySelector(".main__settings-active-btn");
-    // Получаем предыдущую активную вкладку
-    pre_active_panel = document.querySelector(".main__settings--active-panel");
-
-    // Проверяем есть или нет предыдущая активная кнопка
-    if (pre_active_btn) {
-      //Удаляем класс _active у предыдущей кнопки если она есть
-      pre_active_btn.classList.remove("main__settings-active-btn");
-    }
-    // Проверяем есть или нет предыдущая активная вкладка
-    if (pre_active_panel) {
-      // Удаляем класс _active у предыдущей вкладки если она есть
-      pre_active_panel.classList.remove("main__settings--active-panel");
-    }
-    // получаем id новой активной вкладки, который мы перем из атрибута data-tab у кнопки
-    const active_panel_id = "#" + btn.getAttribute("panel-id");
-    const active_panel = document.querySelector(active_panel_id);
-
-    if (active_panel !== pre_active_panel) {
-      // добавляем класс _active кнопке на которую нажали
-      btn.classList.add("main__settings-active-btn");
-      // добавляем класс _active новой выбранной вкладке
-      active_panel.classList.add("main__settings--active-panel");
+// Управление активной панелью
+function toggleActivePanel(activeButton, panelId) {
+  // Проверяем, является ли кнопка уже активной
+  const isAlreadyActive = activeButton.classList.contains("main__settings-active-btn");
+  
+  // Удаляем активные классы у всех элементов
+  document.querySelector(".main__settings-active-btn")?.classList.remove("main__settings-active-btn");
+  document.querySelector(".main__settings--active-panel")?.classList.remove("main__settings--active-panel");
+  
+  // Если кнопка не была активной и panelId существует - активируем
+  if (!isAlreadyActive && panelId) {
+    const targetPanel = document.getElementById(panelId);
+    if (targetPanel) {
+      activeButton.classList.add("main__settings-active-btn");
+      targetPanel.classList.add("main__settings--active-panel");
     }
   }
-});
+}
+
+setupThemeSwitcher();
+setupSettingsPanels();

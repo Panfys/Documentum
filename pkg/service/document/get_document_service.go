@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func (s *docService) GetIngoingDoc(settings models.DocSettings) (string, error) {
+func (s *docService) GetDocuments(settings models.DocSettings) (string, error) {
 	var documents []models.Document
 
 	documents, err := s.stor.GetDocuments(settings)
