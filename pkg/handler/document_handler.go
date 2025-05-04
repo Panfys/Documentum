@@ -5,12 +5,8 @@ import (
 	"documentum/pkg/models"
 	"documentum/pkg/service/document"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
-	"html/template"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 )
 
@@ -54,60 +50,6 @@ func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(documents)
-}
-
-func (h *DocHandler) WievDocument(w http.ResponseWriter, r *http.Request) {
-	file := r.URL.Query().Get("file")
-
-	// Безопасная проверка пути к файлу
-	filePath := filepath.Join("/app/web", filepath.Clean(file))
-
-	var SRC template.HTML
-	if _, err := os.Stat(filePath); err == nil {
-		// Проверяем расширение файла
-		if filepath.Ext(file) == ".pdf" {
-			SRC = template.HTML(fmt.Sprintf("<object><embed src='%s'></embed></object>", file))
-		} else {
-			SRC = template.HTML(fmt.Sprintf("<img src='%s'>", file))
-		}
-	} else if os.IsNotExist(err) {
-		SRC = template.HTML("Файл не найден!")
-	} else {
-		SRC = template.HTML("Файл недоступен!")
-	}
-
-	data := models.PageData{SRC: SRC}
-
-	h.renderTemplates(w, data)
-}
-
-func (h *DocHandler) WievNewDocument(w http.ResponseWriter, r *http.Request) {
-	file := r.URL.Query().Get("file")
-
-	var SRC template.HTML
-
-	if filepath.Ext(file) == ".pdf" {
-		SRC = template.HTML(fmt.Sprintf("<object><embed src='%s'></embed></object>", file))
-	} else {
-		SRC = template.HTML(file)
-	}
-
-	data := models.PageData{SRC: SRC}
-
-	h.renderTemplates(w, data)
-}
-
-func (h *DocHandler) renderTemplates(w http.ResponseWriter, data models.PageData) error {
-	ts, err := template.ParseFiles("web/static/pages/main_open_doc.html")
-	if err != nil {
-		return h.log.Error(models.ErrParseTMP, err)
-	}
-	err = ts.Execute(w, data)
-
-	if err != nil {
-		return h.log.Error(models.ErrParseTMP, err)
-	}
-	return nil
 }
 
 func (h *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
@@ -201,5 +143,4 @@ func (h *DocHandler) AddDocument(w http.ResponseWriter, r *http.Request) {
 		}
 	default:
 	}
-	
 }

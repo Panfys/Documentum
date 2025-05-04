@@ -1753,9 +1753,23 @@ th {
   min-height: 700px;
   height: auto;
   padding: 20px 10px;
-  margin-bottom: 30px;
   border: none;
   resize: both;
+}
+
+.panel__opendoc--iframe img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 20px;
+}
+
+.panel__opendoc--iframe embed {
+  width: 100%;
+  height: 100%;
+  min-height: 600px;
+  border: none;
+  border-radius: 20px;
 }
 
 .panel__opendoc--resolutions {

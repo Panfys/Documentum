@@ -171,6 +171,7 @@ async function FetchLogoutUser() {
   }
 }
 
+// Получение документов
 async function FetchGetDocuments(settings) {
   try {
     const url = new URL('/documents', window.location.origin);
@@ -196,5 +197,21 @@ async function FetchGetDocuments(settings) {
 
   } catch (error) {
     serverMessage("show", error.message);
+  }
+}
+
+// Запись просмотра докумнтов
+async function FetchViewDocument(id) {
+  try {
+      const response = await fetch(`/document/${encodeURIComponent(id)}/view`, {
+          method: 'PATCH',
+      });
+
+      if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText);
+      }
+  } catch (error) {
+      serverMessage("show", error.message);
   }
 }

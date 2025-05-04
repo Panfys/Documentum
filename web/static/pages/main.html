@@ -2,125 +2,100 @@
 
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/static/style/css/style_global.css" />
-    <link rel="stylesheet" href="/static/style/css/fontello.css" />
-    <link rel="stylesheet" href="/static/style/css/mfglabs.css" />
-    <link rel="icon" href="/static/style/images/icon.png" type="image/x-icon" />
-    <title>Documentum</title>
-  </head>
 
-  <body>
-    <div class="container">
-      <div class="header" id="header">
-        <!--Шапка----------->
-        <div class="main__header">
-          <div class="main__header--panel">
-            <button class="main__header--settings" tabindex="1">
-              Настройки
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/style/css/style_global.css" />
+  <link rel="stylesheet" href="/static/style/css/fontello.css" />
+  <link rel="stylesheet" href="/static/style/css/mfglabs.css" />
+  <link rel="icon" href="/static/style/images/icon.png" type="image/x-icon" />
+  <title>Documentum</title>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header" id="header">
+      <!--Шапка----------->
+      <div class="main__header">
+        <div class="main__header--panel">
+          <button class="main__header--settings" tabindex="1">
+            Настройки
+          </button>
+          <!--Меню----------->
+          <div class="header__menu">
+            <!-- <button class="header__menu--btn" id="menu-btn-personal" data-tab="main-tab-personal">Личные</button>-->
+            <button class="header__menu--btn" id="menu-btn-ingoing" data-tab="main-tab-ingoing">
+              Входящие
             </button>
-            <!--Меню----------->
-            <div class="header__menu">
-              <!-- <button class="header__menu--btn" id="menu-btn-personal" data-tab="main-tab-personal">Личные</button>-->
-              <button
-                class="header__menu--btn"
-                id="menu-btn-ingoing"
-                data-tab="main-tab-ingoing"
-              >
-                Входящие
-              </button>
-              <button
-                class="header__menu--btn"
-                id="menu-btn-outgoing"
-                data-tab="main-tab-outgoing"
-              >
-                Исходящие
-              </button>
-              <button
-                class="header__menu--btn"
-                id="menu-btn-directive"
-                data-tab="main-tab-directive"
-              >
-                Приказы
-              </button>
-              <button
-                class="header__menu--btn"
-                id="menu-btn-inventory"
-                data-tab="main-tab-inventory"
-              >
-                Издания
-              </button>
-            </div>
-          </div>
-
-          <div class="main__header--panel">
-            <button
-              class="main__header--account"
-              tabindex="8"
-              id="header-btn-userlogin"
-            >{{.AccountData.Login}}</button>
+            <button class="header__menu--btn" id="menu-btn-outgoing" data-tab="main-tab-outgoing">
+              Исходящие
+            </button>
+            <button class="header__menu--btn" id="menu-btn-directive" data-tab="main-tab-directive">
+              Приказы
+            </button>
+            <button class="header__menu--btn" id="menu-btn-inventory" data-tab="main-tab-inventory">
+              Издания
+            </button>
           </div>
         </div>
-      </div>
-      <!--Левая панель (настройки)-----------> 
-      <div class="main__settings" id="settings-panel">{{template "settings" .}}</div>
 
-      <!--Правая панель (аккаунт)----------->
-      <div class="main__account" id="account-panel">{{template "account" .}}</div>
-
-      <!--Центральный блок----------->
-      <div class="main">
-        <!--ЛИЧНЫЕ--------------------->
-        <div class="main__tabs" id="main-tab-personal">Личные</div>
-
-        <!--ВХОДЯЩИЕ--------------------->
-        <div class="main__tabs" id="main-tab-ingoing">{{template "ingoing_doc" .}}</div>
-          
-        <!--ИСХОДЯЩИЕ--------------------->
-        <div class="main__tabs" id="main-tab-outgoing">{{template "outgoing_doc" .}}</div>
-
-        <!--ПРИКАЗЫ--------------------->
-        <div class="main__tabs" id="main-tab-directive">{{template "directive_doc" .}}</div>
-
-        <!--ИНВЕНТАРЬ--------------------->
-        <div class="main__tabs" id="main-tab-inventory">{{template "inventory_doc" .}}</div>
-      </div>
-
-      <!--Окно просмотра нового документа--------------------->
-      <div class="main__open-document--panel" id="panel-opendoc">
-        <div class="panel__opendoc--resolutions">
-          <div
-            class="opendoc__resolutions--panel"
-            id="resolutions-opendoc"
-          ></div>
+        <div class="main__header--panel">
+          <button class="main__header--account" tabindex="8" id="header-btn-userlogin">{{.AccountData.Login}}</button>
         </div>
-        <iframe
-          src=""
-          class="panel__opendoc--iframe"
-          id="iframe-opendoc"
-        ></iframe>
-        <button class="panel__opendoc--btn"></button>
       </div>
     </div>
+    <!--Левая панель (настройки)----------->
+    <div class="main__settings" id="settings-panel">{{template "settings" .}}</div>
 
-    <div class="server__messages">
-      <p class="server__messages--text"></p>
-      <button class="server__messages--btn"></button>
+    <!--Правая панель (аккаунт)----------->
+    <div class="main__account" id="account-panel">{{template "account" .}}</div>
+
+    <!--Центральный блок----------->
+    <div class="main">
+      <!--ЛИЧНЫЕ--------------------->
+      <div class="main__tabs" id="main-tab-personal">Личные</div>
+
+      <!--ВХОДЯЩИЕ--------------------->
+      <div class="main__tabs" id="main-tab-ingoing">{{template "ingoing_doc" .}}</div>
+
+      <!--ИСХОДЯЩИЕ--------------------->
+      <div class="main__tabs" id="main-tab-outgoing">{{template "outgoing_doc" .}}</div>
+
+      <!--ПРИКАЗЫ--------------------->
+      <div class="main__tabs" id="main-tab-directive">{{template "directive_doc" .}}</div>
+
+      <!--ИНВЕНТАРЬ--------------------->
+      <div class="main__tabs" id="main-tab-inventory">{{template "inventory_doc" .}}</div>
     </div>
-  </body>
+
+    <!--Окно просмотра нового документа--------------------->
+    <div class="main__open-document--panel" id="panel-opendoc">
+      <div class="panel__opendoc--resolutions">
+        <div class="opendoc__resolutions--panel" id="resolutions-opendoc"></div>
+      </div>
+     <div class="panel__opendoc--iframe" id="iframe-opendoc"></div>
+      <button class="panel__opendoc--btn"></button>
+    </div>
+  </div>
+
+  <div class="server__messages">
+    <p class="server__messages--text"></p>
+    <button class="server__messages--btn"></button>
+  </div>
+</body>
+
 </html>
 
 <script src="/static/scripts/main_doc_tables.js"></script>
 <script src="/static/scripts/main_get_data.js"></script>
 <script src="/static/scripts/jquery-3.7.0.js"></script>
-<script src="/static/scripts/main.js"></script>
 <script src="/static/scripts/main_header_panel.js"></script>
 <script src="/static/scripts/main_validator.js"></script>
 <script src="/static/scripts/main_open_files.js"></script>
 <script src="/static/scripts/main_panel_buttons.js"></script>
 <script src="/static/scripts/main_res_buttons.js"></script>
+<script src="/static/scripts/main.js"></script>
 <!--<script src="/scripts/websocket_main.js"></script>-->
 {{end}}
