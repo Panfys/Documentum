@@ -15,205 +15,89 @@ const groupInput = document.querySelector("#regist-group-input");
 const passInput = document.querySelector("#regist-pass-input");
 const repassInput = document.querySelector("#regist-repass-input");
 const registButton = document.querySelector("#regist-button");
-const authorButton = document.querySelector("#author-button");
-let errorRegistration = false;
-let currentPass = "";
+const authButton = document.querySelector("#author-button");
+const authMessage = document.querySelector("#auth-message");
+const groupBox = document.getElementById("regist-group-box");
+const groupMess = document.getElementById("regist-group-message");
 
-//-------Показать пароль
-btnShowPassword.addEventListener("click", showPassword);
+// Проверка логина
+loginInput.addEventListener("blur", () => ValidLogin(loginInput.value.trim(), "regist-login"));
 
-function showPassword() {
-  const passwordStatus = document.querySelector("#auth-password-input");
-  passwordStatus.type = btnShowPassword.checked ? "text" : "password";
-}
+// Проверка имени
+nameInput.addEventListener("blur", () => ValidName(nameInput.value.trim(), "regist-name"));
 
-// Проверка ввода логина
-loginInput.addEventListener("blur", writeLogin);
+// Получение структурных подразделений
+funcInput.addEventListener("input", () => {
+  GetUnits(funcInput.value)
+  GetGroups(funcInput.value, unitInput.value)
+});
 
-function writeLogin() {
-  const login = loginInput.value.trim();
-  if (login === "") {
-    alertMessages("regist-login", "Введите логин!");
-  } else if (login.length < 3) {
-    alertMessages("regist-login", "Минимальная длина логина - 3 символа!");
-  } else if (login.length > 12) {
-    alertMessages("regist-login", "Максимальная длина логина - 12 символов!");
-  } else if (!isValidLogin(login)) {
-    alertMessages("regist-login", "Используйте только латинские буквы и цифры!");
-  } else {
-    reAlertMessages("regist-login");
+async function GetUnits(func) {
+  if (ValidFunc(func, "regist-func")) {
+    unitInput.innerHTML = await FetchUnits(func);
   }
 }
 
-// Проверка ввода имени
-nameInput.addEventListener("blur", writeName);
+// Получение подразделений
+unitInput.addEventListener("input", () => GetGroups(funcInput.value, unitInput.value));
 
-function writeName() {
-  const name = nameInput.value.trim();
-  if (name === "") {
-    alertMessages("regist-name", "Введите фамилию и инициалы!");
-  } else if (!isValidName(name)) {
-    alertMessages("regist-name", "Введенные данные некорректны!");
-  } else {
-    reAlertMessages("regist-name");
+async function GetGroups(func, unit) {
+  if (ValidUnit(unit, "regist-unit")) {
+    groupInput.innerHTML = await FetchGroups(func, unit);
+    ValidGroups(groupInput.innerHTML, groupBox, groupMess)
   }
 }
 
-funcInput.addEventListener("blur", writeFunc);
-funcInput.addEventListener("input", writeFunc);
-funcInput.addEventListener("input", writeGroups);
-
-// Проверка ввода должности
-async function writeFunc() {
-  const func = funcInput.value;
-  if (func === "0") {
-    alertMessages("regist-func", "Укажите должность!");
-  } else {
-    reAlertMessages("regist-func");
-    document.getElementById("regist-unit-input").innerHTML = await fetchUnits(func);
-  }
-}
-
-// Получение групп
-unitInput.addEventListener("input", writeGroups);
-
-async function writeGroups() {
-  const func = funcInput.value;
-  const unit = unitInput.value;
-  const groupBox = document.getElementById("regist-group-box");
-
-  if (unit === "0") {
-    alertMessages("regist-unit", "Укажите структурное подразделение!");
-    groupBox.style.display = "none";
-  } else {
-    reAlertMessages("regist-unit");
-    groups = await fetchGroups(func, unit);
-
-    if (groups != "<option value=0></option>") {
-      document.getElementById("regist-group-input").innerHTML = groups
-      groupBox.style.display = "block";
-    } else {
-      groupBox.style.display = "none";
-    }
-  }
-}
-
-// Проверка ввода пароля
-passInput.addEventListener("blur", writePass);
-
-function writePass() {
-  currentPass = passInput.value.trim();
-  if (!isValidPass(currentPass)) {
-    alertMessages("regist-pass", "Пароль недостаточно надежный!");
-  } else {
-    reAlertMessages("regist-pass");
-  }
-}
+// Проверка пароля
+passInput.addEventListener("blur", () => ValidPass(passInput.value, "regist-pass"));
 
 // Проверка подтверждения пароля
-repassInput.addEventListener("input", writeRePass);
+repassInput.addEventListener("input", () => ValidRepass(passInput.value, repassInput.value, "regist-repass"));
 
-function writeRePass() {
-  const repass = repassInput.value.trim();
-  if (repass !== currentPass) {
-    alertMessages("regist-repass", "Пароли не совпадают!");
-  } else {
-    reAlertMessages("regist-repass");
-  }
-}
+// Регистрации
+registButton.addEventListener("click", Registration);
 
-// Проверка регистрации
-registButton.addEventListener("click", validateRegistration);
-
-async function validateRegistration() {
+async function Registration() {
   const user = {
     login: loginInput.value.trim(),
     name: nameInput.value.trim(),
     func: funcInput.value.trim(),
     unit: unitInput.value.trim(),
     group: groupInput.value.trim(),
-    pass: passInput.value.trim(),
-    repass: repassInput.value.trim(),
+    pass: passInput.value,
+    repass: repassInput.value,
   };
 
-  errorRegistration = false;
-  writeLogin();
-  writeName();
+  if (ValidRegistration(user, groupBox, groupMess)) return;
 
-  if (user.func === "0") {
-    alertMessages("regist-func", "Укажите должность!");
-  }
-
-  if (user.unit === "0") {
-    alertMessages("regist-unit", "Укажите структурное подразделение!");
-  }
-
-  writePass();
-  writeRePass();
-
-  if (errorRegistration) return;
-
-  try {
-    const response = await fetch("/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(user),
-    });
-
-    if (!response.ok) {
-      throw new Error(await response.text());
-    }
-
+  const successReg = await FetchRegistration(user);
+  if (successReg) {
     document.getElementById("auth-link").click();
     const authMessage = document.getElementById("auth-message");
     authMessage.innerHTML = "Аккаунт зарегистрирован, входите!";
     authMessage.classList.add("message");
-
-  } catch (error) {
-    serverMessage("show", error.message || "Возникла ошибка на сервере, попробуйте позже!");
   }
 }
 
 // Авторизация
-authorButton.addEventListener("click", authorize);
+authButton.addEventListener("click", authorize);
 
 async function authorize() {
-  const authMessage = document.querySelector("#auth-message");
   authMessage.textContent = "";
   authMessage.classList.remove("error", "message");
 
-  const login = document.getElementById("auth-login-input").value;
-  const pass = document.getElementById("auth-password-input").value;
-  const remember = document.getElementById("remember").checked;
+  const authData = {
+    login: document.getElementById("auth-login-input").value.trim(),
+    pass: document.getElementById("auth-password-input").value,
+    remember: document.getElementById("remember").checked,
+  };
 
-  try {
-    const response = await fetch("/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-Requested-With": "XMLHttpRequest"
-      },
-      body: new URLSearchParams({
-        login: login,
-        pass: pass,
-        remember: remember
-      }),
-      credentials: "include"
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(
-        response.status === 401
-          ? "authError"
-          : error || "Ошибка сервера"
-      );
-    }
-
-    const html = await response.text();
-    document.querySelector(".container").innerHTML = html;
+  const successAuth = await FetchAuthorize(authData);
+  if (successAuth === "authError") {
+    authMessage.textContent = "Неверный логин или пароль!";
+    authMessage.classList.add("error");
+  } else if (successAuth != "error") {
+    document.querySelector(".container").innerHTML = successAuth;
 
     // Динамическая загрузка скриптов
     await loadScripts([
@@ -227,52 +111,7 @@ async function authorize() {
       "/static/scripts/main_doc_buttons.js",
       "/static/scripts/main_res_buttons.js"
     ]);
-
-  } catch (error) {
-    if (error.message === "authError") {
-      authMessage.textContent = "Неверный логин или пароль!";
-      authMessage.classList.add("error");
-    } else {
-      serverMessage("show", error.message || "Возникла ошибка на сервере, попробуйте позже!");
-    }
   }
-}
-
-// Проверка логина регулярным выражением
-function isValidLogin(login) {
-  const pattern = /^[a-zA-Z0-9-_]+$/;
-  return pattern.test(login);
-}
-
-// Проверка имени регулярным выражением
-function isValidName(name) {
-  const pattern = /^[А-ЯЁ][а-яё]+[ ][А-ЯЁ][.][А-ЯЁ][.]$/;
-  return pattern.test(name);
-}
-
-// Проверка пароля регулярным выражением
-function isValidPass(pass) {
-  const pattern = /^.*(?=.{6,})(?=.*[a-zA-ZА-ЯЁа-яё]).*$/;
-  return pattern.test(pass);
-}
-
-// Сообщение при ошибке
-function alertMessages(input, mess) {
-  document.getElementById(`${input}-input`).style.borderColor = "var(--error-color)";
-  document.getElementById(`${input}-lable`).style.color = "var(--error-color)";
-  const messageElement = document.getElementById(`${input}-message`);
-  messageElement.innerHTML = mess;
-  messageElement.classList.add("error");
-  errorRegistration = true;
-}
-
-// Очистка сообщения
-function reAlertMessages(input) {
-  document.getElementById(`${input}-input`).style.borderColor = "var(--low-color)";
-  document.getElementById(`${input}-lable`).style.color = "var(--low-color)";
-  const messageElement = document.getElementById(`${input}-message`);
-  messageElement.innerHTML = "";
-  messageElement.classList.remove("error");
 }
 
 // Функция для загрузки скриптов
@@ -289,4 +128,12 @@ function loadScripts(urls) {
       });
     })
   );
+}
+
+//-------Показать пароль
+btnShowPassword.addEventListener("click", showPassword);
+
+function showPassword() {
+  const passwordStatus = document.querySelector("#auth-password-input");
+  passwordStatus.type = btnShowPassword.checked ? "text" : "password";
 }

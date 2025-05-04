@@ -32,7 +32,6 @@ function setupSettingsPanels() {
   settingButtons.forEach(button => {
     button.addEventListener("click", () => {
       const panelId = button.getAttribute("panel-id");
-      console.log("TAB")
       toggleActivePanel(button, panelId);
     });
   });

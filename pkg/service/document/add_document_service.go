@@ -29,15 +29,18 @@ func (d *docService) AddIngoingDoc(reqDoc models.Document) (models.Document, err
 	}
 
 	for i := range doc.Resolutions {
-
-		res, err := d.validSrv.ValidResolution(doc.Resolutions[i])
+		// Получаем указатель на текущий элемент
+		resPtr := &doc.Resolutions[i]
+		
+		// Передаём указатель в функцию валидации
+		res, err := d.validSrv.ValidResolution(resPtr)
 		if err != nil {
 			return models.Document{}, err
 		}
-
+	
 		res.Creator = doc.Creator
-		doc.Resolutions[i] = &res
-
+		doc.Resolutions[i] = res
+	
 		if res.Result != "" {
 			doc.Result = res.Result
 		}

@@ -64,19 +64,23 @@ func (h AuthHandler) RegistrationHandler(w http.ResponseWriter, r *http.Request)
 
 func (h *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Request) {
 	// Получение данных формы
-	login := r.FormValue("login")
-	pass := r.FormValue("pass")
-	remember := r.FormValue("remember")
+	var authData models.AuthData
+
+	if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
+		h.log.Error(models.ErrRequest, err)
+		http.Error(w, models.ErrRequest, 400)
+		return
+	}
 
 	// Авторизация пользователя
-	status, err := h.authSrv.UserAuthorization(login, pass)
+	status, err := h.authSrv.UserAuthorization(authData.Login, authData.Pass)
 	if err != nil {
 		http.Error(w, err.Error(), status)
 		return
 	}
 
 	// Генерация и установка токена
-	if err := h.authSrv.GenerateToken(w, login, remember); err != nil {
+	if err := h.authSrv.GenerateToken(w, authData.Login, authData.Remember); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -86,7 +90,7 @@ func (h *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 	}{}
 
 	// Получение данных аккаунта
-	responseData.AccountData, err = h.userSrv.GetUserAccountData(login)
+	responseData.AccountData, err = h.userSrv.GetUserAccountData(authData.Login)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -155,7 +159,7 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 				Path:     "/",
 				Expires:  time.Now().Add(-1 * time.Hour),
 				HttpOnly: true,
-				Secure:   false, // В продакшене должно быть true
+				Secure:   false,
 			})
 			if r.Method == http.MethodGet {
 				http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -176,34 +180,14 @@ func (h *AuthHandler) ExitHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
-		Value:    "",                             // очищаем значение
-		Path:     "/",                            // действует для всех путей
-		HttpOnly: true,                           // защита от XSS
-		Secure:   false,                          // только HTTPS (false для localhost)
-		Expires:  time.Now().Add(-1 * time.Hour), // срок истёк
-		MaxAge:   -1,                             // удалить cookie немедленно
-		SameSite: http.SameSiteStrictMode,        // защита от CSRF
+		Value:    "",                             
+		Path:     "/",                            
+		HttpOnly: true,                          
+		Secure:   false,                          
+		Expires:  time.Now().Add(-1 * time.Hour), 
+		MaxAge:   -1,                             
+		SameSite: http.SameSiteStrictMode,
 	})
-
-	responseData := struct {
-		UserIsValid bool
-		AccountData models.AccountData
-		Funcs       []models.Unit
-	}{
-		UserIsValid: false,
-	}
-
-	// Получение функций
-	funcs, err := h.structSrv.GetFuncs()
-	if err != nil {
-		funcs = []models.Unit{models.Unit{ID: 1, Name: err.Error()}}
-	}
-	responseData.Funcs = funcs
-
-	// Рендеринг страницы
-	if err := h.renderTemplates(w, "", responseData); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 }
 
 func (h *AuthHandler) renderTemplates(w http.ResponseWriter, tmpl string, data any) error {

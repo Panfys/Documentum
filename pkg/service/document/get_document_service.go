@@ -3,10 +3,130 @@ package document
 import (
 	"documentum/pkg/models"
 	"fmt"
-	"strconv"
 	"time"
 )
 
+func (s *docService) GetDocuments(settings models.DocSettings) ([]models.Document, error) {
+	var documents []models.Document
+
+	if settings.DocSet == "" {
+		settings.DocSet = "ASC"
+	}
+
+	if settings.DocCol == "" {
+		settings.DocCol = "id"
+	}
+
+	if settings.DocDatain == "" {
+		settings.DocDatain = "2000-01-01"
+	}
+
+	if settings.DocDatato == "" {
+		settings.DocDatato = "3000-01-01"
+	}
+	
+	documents, err := s.stor.GetDocuments(settings)
+
+	if err != nil {
+		return []models.Document{}, err
+	}
+
+	for i := range documents {
+
+		documents[i].FDate, err = s.parseDate(documents[i].FDate)
+
+		if err != nil {
+			return []models.Document{}, err
+		}
+
+		if documents[i].LDate.Valid{
+			documents[i].LDateStr, err = s.parseDate(documents[i].LDate.String)
+			if err != nil {
+				return []models.Document{}, err
+			}
+		}
+
+		// Обработка резолюции
+
+		documents[i].Resolutions, err = s.stor.GetResolutoins(documents[i].ID)
+
+		if err != nil {
+			return []models.Document{}, err
+		}
+
+		if len(documents[i].Resolutions) > 0 {
+			resolution := documents[i].Resolutions[len(documents[i].Resolutions)-1]
+
+			// Сборка исполнителя
+			documents[i].Ispolnitel = fmt.Sprintf("<div class='table__ispolnitel--ispolnitel'>%s</div>"+
+				"<div class='table__ispolnitel--text'>&#171%s&#187</div>"+
+				"<div class='table__ispolnitel--user'>%s</div>",
+				resolution.Ispolnitel, resolution.Text, resolution.User)
+
+			// Сборка резолюций
+			for j := range documents[i].Resolutions {
+
+				if documents[i].Resolutions[j].Time.Valid {
+					documents[i].Resolutions[j].TimeStr, err = s.parseTime(documents[i].Resolutions[j].Time.String)
+					if err != nil {
+						return []models.Document{}, err
+					}
+				}
+
+				documents[i].Resolutions[j].Date, err = s.parseResolutionDate(documents[i].Resolutions[j].Date)
+				if err != nil {
+					return []models.Document{}, err
+				}
+			}
+		}
+	}
+
+	return documents, nil
+}
+
+func (s *docService) parseDate(date string) (string, error) {
+	newdate, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		newdate, err = time.Parse("2006-01-02", date)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	formattedDate := "от " + newdate.Format("02.01.2006") + " г."
+	return formattedDate, nil
+}
+
+func (s *docService) parseResolutionDate(date string) (string, error) {
+
+	newdate, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		newdate, err = time.Parse("2006-01-02", date)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	formateDate := newdate.Format("02.01.2006") + " г."
+	return formateDate, nil
+}
+
+func (s *docService) parseTime(restime string) (string, error) {
+
+	newtime, err := time.Parse(time.RFC3339, restime)
+	if err != nil {
+		newtime, err = time.Parse("2006-01-02", restime)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	// Форматируем дату в нужный формат
+	formateTime := "Исполнить до " + newtime.Format("02.01.2006") + " г."
+	return formateTime, nil
+}
+
+/*
 func (s *docService) GetDocuments(settings models.DocSettings) (string, error) {
 	var documents []models.Document
 
@@ -121,46 +241,4 @@ func (s *docService) GetDocuments(settings models.DocSettings) (string, error) {
 	}
 
 	return response, nil
-}
-
-func (s *docService) parseDate(date string) (string, error) {
-	newdate, err := time.Parse(time.RFC3339, date)
-	if err != nil {
-		newdate, err = time.Parse("2006-01-02", date)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	formattedDate := "<br>от " + newdate.Format("02.01.2006") + " г."
-	return formattedDate, nil
-}
-
-func (s *docService) parseResolutionDate(date string) (string, error) {
-
-	newdate, err := time.Parse(time.RFC3339, date)
-	if err != nil {
-		newdate, err = time.Parse("2006-01-02", date)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	formateDate := newdate.Format("02.01.2006") + " г."
-	return formateDate, nil
-}
-
-func (s *docService) parseTime(restime string) (string, error) {
-
-	newtime, err := time.Parse(time.RFC3339, restime)
-	if err != nil {
-		newtime, err = time.Parse("2006-01-02", restime)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	// Форматируем дату в нужный формат
-	formateTime := "Исполнить до " + newtime.Format("02.01.2006") + " г."
-	return formateTime, nil
-}
+} */

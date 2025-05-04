@@ -251,7 +251,10 @@ body {
 
 #regist-group-box {
   display: none;
-  margin-bottom: 32px;
+}
+
+#regist-group-message {
+  display: none;
 }
 
 .error {

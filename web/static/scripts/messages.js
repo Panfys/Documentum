@@ -1,3 +1,6 @@
+// Переменные
+let ErrorAuthMessages = false;
+
 // Серверные сообщения
 const serverMessageBtn = document.querySelector(".server__messages--btn");
 serverMessageBtn.addEventListener("click", () => serverMessage("close", ""));
@@ -27,4 +30,23 @@ function serverMessage(action, message) {
       }
       break;
   }
+}
+
+// Сообщение при ошибке в форму регистрации и авторизации
+function AlertAuthMessages(input, mess) {
+  document.getElementById(`${input}-input`).style.borderColor = "var(--error-color)";
+  document.getElementById(`${input}-lable`).style.color = "var(--error-color)";
+  const messageElement = document.getElementById(`${input}-message`);
+  messageElement.innerHTML = mess;
+  messageElement.classList.add("error");
+  ErrorAuthMessages = true;
+}
+
+// Очистка сообщения в форме регистрации и авторизации
+function ReAlertAuthMessages(input) {
+  document.getElementById(`${input}-input`).style.borderColor = "var(--low-color)";
+  document.getElementById(`${input}-lable`).style.color = "var(--low-color)";
+  const messageElement = document.getElementById(`${input}-message`);
+  messageElement.innerHTML = "";
+  messageElement.classList.remove("error");
 }
