@@ -1,76 +1,118 @@
+// Константы для селекторов и классов
+const SELECTORS = {
+  PANEL_OPEN_DOC: '#panel-opendoc',
+  IFRAME_OPEN_DOC: '#iframe-opendoc',
+  RESOLUTIONS_OPEN_DOC: '#resolutions-opendoc',
+  ACCOUNT_NAME: '#account-name',
+  OPEN_DOC_BTN: '.panel__opendoc--btn',
+  OPEN_NEW_DOC_BTN: '#btn-newdoc-open'
+};
 
-document.querySelector(".panel__opendoc--btn").onclick = () =>
-  OpenDocument("close", "id");
+// Инициализация обработчиков событий
+function initDocumentViewHandlers() {
+  // Обработчик для кнопки просмотра документа
+  document.querySelector(SELECTORS.OPEN_DOC_BTN).addEventListener('click', () => {
+    openDocument('close', 'id');
+  });
 
-//------Функция отрытия вкладки просмотра документа
-function OpenDocument(ask, id) {
-  panel_opendoc = document.querySelector("#panel-opendoc");
-  iframe_opendoc = document.querySelector("#iframe-opendoc");
-  resolutions_opendoc = document.querySelector("#resolutions-opendoc");
+  // Обработчики для кнопок просмотра нового документа
+  document.querySelectorAll(SELECTORS.OPEN_NEW_DOC_BTN).forEach(btn => {
+    btn.addEventListener('click', openNewDocument);
+  });
+}
 
-  if (ask == "close") {
-    panel_opendoc.style = "display: none";
-    iframe_opendoc.setAttribute("src", "");
-    iframe_opendoc.style.width = "70%";
-    iframe_opendoc.style.height = "auto";
-    resolutions_opendoc.innerHTML = "";
-    resolutions_opendoc.style = "min-width: 80px;";
-    document.body.style.overflow = "auto";
-  } else {
-    document.body.style.overflow = "hidden";
-    panel_opendoc.style = "display: flex";
-    iframe_opendoc.setAttribute("src", "/document/file?file=" + ask);
-    familiars_opendoc = document
-      .getElementById("document-table-" + id)
-      .querySelector(".table__column--familiar");
+// Функция открытия/закрытия просмотра документа
+async function openDocument(action, docId) {
+  const panel = document.querySelector(SELECTORS.PANEL_OPEN_DOC);
+  const iframe = document.querySelector(SELECTORS.IFRAME_OPEN_DOC);
+  const resolutionsPanel = document.querySelector(SELECTORS.RESOLUTIONS_OPEN_DOC);
 
-    if (document.getElementById("resolution-panel-" + id)) {
-      if (document.getElementById("resolution-panel-" + id).innerHTML !== "") {
-        resolutions_opendoc.style = "min-width: 294px;";
-      }
-      resolutions_opendoc.innerHTML = document.getElementById(
-        "resolution-panel-" + id
-      ).innerHTML;
+  if (action === 'close') {
+    closeDocumentView(panel, iframe, resolutionsPanel);
+    return;
+  }
+
+  // Открытие документа
+  document.body.style.overflow = 'hidden';
+  panel.style.display = 'flex';
+
+  iframe.innerHTML = getFileViewUrl(action)
+
+  // Обработка резолюций
+  const docTable = document.getElementById(`document-table-${docId}`);
+  if (docTable) {
+    const familiarCell = docTable.querySelector('.table__column--familiar');
+    const resolutionPanel = document.getElementById(`resolution-panel-${docId}`);
+
+    if (resolutionPanel && resolutionPanel.innerHTML !== '') {
+      resolutionsPanel.style.minWidth = '294px';
+      resolutionsPanel.innerHTML = resolutionPanel.innerHTML;
     }
 
-    //------ Запись просмотра документа------------
-    account_name = document.getElementById("account-name").innerHTML;
-    familiar_opendoc = familiars_opendoc.innerHTML;
+    // Запись просмотра документа
+    const accountName = document.querySelector(SELECTORS.ACCOUNT_NAME)?.textContent.trim();
+    const familiarText = familiarCell?.textContent || '';
 
-    if (familiar_opendoc.match(account_name.trim()) == null) {
-      AddViewDocument(id)
+    if (accountName && !familiarText.includes(accountName)) {
+        await fetchViewDocument(docId);
     }
   }
 }
 
-//------Функция отрытия вкладки просмотра нового документа
-btn_opennewdoc = document.querySelectorAll("#btn-newdoc-open");
-// Проходимся по всем кнопкам
-btn_opennewdoc.forEach((btn) => {
-  // вешаем на каждую кнопку обработчик события клик
-  btn.addEventListener("click", function () {
-    active_tub = document.querySelector(".main__tabs--active");
-    newdoc_resolutions = active_tub.querySelector("#newdoc-resolution-panel");
-    panel_opendoc = document.querySelector("#panel-opendoc");
-    resolutions_opendoc = document.querySelector("#resolutions-opendoc");
-    iframe_opendoc = document.querySelector("#iframe-opendoc");
-    file_input = active_tub.querySelector("#input-newdoc-file");
-    file = file_input.files[0];
-    document.body.style.overflow = "hidden";
+// Функция открытия нового документа
+function openNewDocument() {
+  const activeTab = document.querySelector('.main__tabs--active');
+  const newDocResolutions = activeTab.querySelector('#newdoc-resolution-panel');
+  const panel = document.querySelector(SELECTORS.PANEL_OPEN_DOC);
+  const resolutionsPanel = document.querySelector(SELECTORS.RESOLUTIONS_OPEN_DOC);
+  const iframe = document.querySelector(SELECTORS.IFRAME_OPEN_DOC);
+  const fileInput = activeTab.querySelector('#input-newdoc-file');
+  const file = fileInput.files[0];
 
-    if (file) {
-      file_url = URL.createObjectURL(file);
-      iframe_opendoc.setAttribute(
-        "src",
-        "/document/new/file?file=" + DefineFile(file_url, file.type)
-      );
-    }
+  document.body.style.overflow = 'hidden';
+  panel.style.display = 'flex';
 
-    panel_opendoc.style.display = "flex";
-    if (newdoc_resolutions.innerHTML !== "") {
-      resolutions_opendoc.style = "min-width: 280px;";
-      resolutions_opendoc.innerHTML = newdoc_resolutions.innerHTML;
-    }
-  });
-});
+  if (file && (file.type === "application/pdf" || file.type.startsWith("image"))) {
+    const fileUrl = URL.createObjectURL(file);
+    iframe.innerHTML = getFilePreview(fileUrl, file.type);
+  }
 
+  if (newDocResolutions && newDocResolutions.innerHTML !== '') {
+    resolutionsPanel.style.minWidth = '280px';
+    resolutionsPanel.innerHTML = newDocResolutions.innerHTML;
+  }
+}
+
+// Закрытие просмотра документа
+function closeDocumentView(panel, iframe, resolutionsPanel) {
+  panel.style.display = 'none';
+  iframe.innerHTML = ""
+  iframe.style.width = '70%';
+  iframe.style.height = 'auto';
+  resolutionsPanel.innerHTML = '';
+  resolutionsPanel.style.minWidth = '80px';
+  document.body.style.overflow = 'auto';
+}
+
+// Функция для получения URL превью файла
+function getFilePreviewUrl(url, type) {
+  if (type.startsWith('image')) {
+    return url;
+  } else if (type === 'application/pdf') {
+    return url;
+  }
+  return '';
+}
+// Функция для получения URL файла только па названию
+function getFileViewUrl(file) {
+  const extension = file.split('.').pop().toLowerCase();
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+  const pdfExtensions = ['pdf'];
+
+  if (imageExtensions.includes(extension)) {
+    return `<img src="${file}" class="file-content">`
+  }
+  if (pdfExtensions.includes(extension)) {
+    return `<embed src="${file}" type="application/pdf" class="file-content">`
+  }
+}

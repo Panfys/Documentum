@@ -54,8 +54,6 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	protect.Use(authHandler.AuthMiddleware)
 	//GET
 	protect.HandleFunc("/documents", docHandler.GetDocuments).Methods("GET")
-	protect.HandleFunc("/document/file", docHandler.WievDocument).Methods("GET")
-	protect.HandleFunc("/document/new/file", docHandler.WievNewDocument).Methods("GET")
 	//POST
 	protect.HandleFunc("/document", docHandler.AddDocument).Methods("POST")
 	//PATCH

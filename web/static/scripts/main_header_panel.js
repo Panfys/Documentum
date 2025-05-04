@@ -37,11 +37,6 @@ function togglePanel(panelId) {
   panel.style.display = panel.style.display === "flex" ? "none" : "flex";
 }
 
-// Инициализация табов
-menuButtons.forEach(btn => {
-  btn.addEventListener("click", () => changeActiveTab(btn));
-});
-
 // Установка начального активного таба
 function initializeActiveTab() {
   const savedButtonId = sessionStorage.getItem("active_btn_id");
@@ -49,6 +44,11 @@ function initializeActiveTab() {
   const initialButton = document.getElementById(savedButtonId || defaultButtonId);
   changeActiveTab(initialButton);
 }
+
+// Инициализация табов
+menuButtons.forEach(btn => {
+  btn.addEventListener("click", () => changeActiveTab(btn));
+});
 
 initializeActiveTab();
 
@@ -73,33 +73,18 @@ function changeActiveTab(btn) {
   updateDocumentsForTab(activeTabId);
 }
 
+// Получает документы и отображает их
 async function updateDocumentsForTab(tabId) {
   // Находим соответствующий тип документа
   const docTypeConfig = Object.values(DOCUMENT_TYPES).find(
     type => type.tabId === tabId
   );
 
-  if (!docTypeConfig) {
-    console.error(`Не найден тип документа для tabId: ${tabId}`);
-    return;
-  }
-
   // Получаем документы
   const documents = await FetchGetDocuments({ type: docTypeConfig.type });
 
   // Обновляем соответствующий контейнер
   const container = document.getElementById(docTypeConfig.documentTableId);
-  WriteDocuments(documents, container)
-  setupDocumentTables()
+  WriteDocumentsInTable(documents, container)
 }
 
-// Обработка кликов по таблицам документов
-function setupDocumentTables() {
-  const documentTables = document.querySelectorAll(".tubs__table--document");
-
-  documentTables.forEach(table => {
-    table.addEventListener("click", (event) => {
-      ViewDocumentTable(table, event);
-    });
-  });
-}

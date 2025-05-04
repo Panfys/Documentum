@@ -15,17 +15,7 @@ async function AddDocument(data) {
     });
 }
 
-function AddViewDocument(id) {
-    $.ajax({
-        method: "PATCH",
-        url: `/document/${encodeURIComponent(id)}/view`,
-        error: function (jqXHR, exception) {
-            serverMessage("show", jqXHR.responseText);
-        },
-    });
-}
-
-function ChangeDocument (data) {
+function ChangeDocument(data) {
     $.ajax({
         method: "POST",
         url: "../router.php",
@@ -34,11 +24,11 @@ function ChangeDocument (data) {
         contentType: false,
         processData: false,
         success: function (check) {
-          if (check == "OK") {
-            alert(check);
-          } else serverMessage("show", check);
+            if (check == "OK") {
+                alert(check);
+            } else serverMessage("show", check);
         },
         error: () =>
-          serverMessage("show", "Возникла ошибка на сервере, попробуйте позже!"),
-      });
+            serverMessage("show", "Возникла ошибка на сервере, попробуйте позже!"),
+    });
 }
