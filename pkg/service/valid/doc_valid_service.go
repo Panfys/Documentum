@@ -282,7 +282,7 @@ func (v *validatService) validDocSender(sender string) error {
 	return nil
 }
 
-func (v *validatService) validDocIspolnitel(ispolnitel string, resolutions []*models.Resolution) error {
+func (v *validatService) validDocIspolnitel(ispolnitel string, resolutions []models.Resolution) error {
 	trimIspolnitel := strings.TrimSpace(ispolnitel)
 
 	if len(resolutions) == 0 {

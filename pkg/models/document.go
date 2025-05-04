@@ -25,11 +25,11 @@ type Document struct {
 	Copy        string `json:"copy"`
 	Width       string `json:"width"`
 	Location    string `json:"location"`
-	FileURL     string
+	FileURL     string `json:"file"`
 	File        multipart.File
 	FileHeader  *multipart.FileHeader
-	Creator     string `json:"creator"`
-	Resolutions []*Resolution
+	Creator     string
+	Resolutions []Resolution `json:"resolutions"`
 }
 
 type Resolution struct {
@@ -46,11 +46,11 @@ type Resolution struct {
 }
 
 type DocSettings struct {
-	DocType   string
-	DocCol    string
-	DocSet    string
-	DocDatain string
-	DocDatato string
+	DocType   string `json:"type"`
+	DocCol    string `json:"col"`
+	DocSet    string `json:"set"`
+	DocDatain string `json:"datain"`
+	DocDatato string `json:"datato"`
 }
 
 type PageData struct {

@@ -1,10 +1,10 @@
 package auth
 
 import (
+	"documentum/pkg/logger"
 	"documentum/pkg/models"
 	"documentum/pkg/service/valid"
 	"documentum/pkg/storage"
-	"documentum/pkg/logger"
 	"errors"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -20,54 +20,54 @@ type AuthService interface {
 	UserRegistration(user models.User) error
 	UserAuthorization(login, pass string) (int, error)
 	CheckUserTokenToValid(token string) (string, error)
-	GenerateToken(w http.ResponseWriter, login, remember string) error
+	GenerateToken(w http.ResponseWriter, login string, remember bool) error
 }
 
 type authService struct {
-	log  logger.Logger
-	stor storage.AuthStorage 
-	valid valid.UserValidatService 
+	log       logger.Logger
+	stor      storage.AuthStorage
+	valid     valid.UserValidatService
 	secretKey []byte
 }
 
-func NewAuthService(log  logger.Logger, stor storage.AuthStorage, valid valid.UserValidatService , secretKey string) AuthService {
+func NewAuthService(log logger.Logger, stor storage.AuthStorage, valid valid.UserValidatService, secretKey string) AuthService {
 	return &authService{
-		log: log,
-		stor: stor,
-		valid: valid,
+		log:       log,
+		stor:      stor,
+		valid:     valid,
 		secretKey: []byte(secretKey),
 	}
 }
 
-func (s *authService) GenerateToken(w http.ResponseWriter, login, remember string)  error {
+func (s *authService) GenerateToken(w http.ResponseWriter, login string, remember bool) error {
 
 	claims := jwt.RegisteredClaims{
-		Subject:   login,
+		Subject: login,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	responceToken, err := token.SignedString(s.secretKey) 
+	responceToken, err := token.SignedString(s.secretKey)
 	if err != nil {
 		return s.log.Error(models.ErrTokenAuth, err)
 	}
 
-	if remember == "true"{
+	if remember {
 		http.SetCookie(w, &http.Cookie{
-			Name:     "token", // Имя куки
-			Value:    responceToken,   // Значение (наш JWT-токен)
+			Name:     "token",       // Имя куки
+			Value:    responceToken, // Значение (наш JWT-токен)
 			Expires:  time.Now().Add(72 * time.Hour),
-			Path:     "/",     // Доступно для всех путей на сайте
-			HttpOnly: true,    // Защита от XSS (недоступно через JavaScript)
-			Secure:   false,    // Только через HTTPS (в production)
+			Path:     "/",                  // Доступно для всех путей на сайте
+			HttpOnly: true,                 // Защита от XSS (недоступно через JavaScript)
+			Secure:   false,                // Только через HTTPS (в production)
 			SameSite: http.SameSiteLaxMode, // Защита от CSRF
 		})
 	} else {
 		http.SetCookie(w, &http.Cookie{
-			Name:     "token", // Имя куки
-			Value:    responceToken,   // Значение (наш JWT-токен)
-			Path:     "/",     // Доступно для всех путей на сайте
-			HttpOnly: true,    // Защита от XSS (недоступно через JavaScript)
-			Secure:   false,    // Только через HTTPS (в production)
+			Name:     "token",              // Имя куки
+			Value:    responceToken,        // Значение (наш JWT-токен)
+			Path:     "/",                  // Доступно для всех путей на сайте
+			HttpOnly: true,                 // Защита от XSS (недоступно через JavaScript)
+			Secure:   false,                // Только через HTTPS (в production)
 			SameSite: http.SameSiteLaxMode, // Защита от CSRF
 		})
 	}
@@ -132,13 +132,13 @@ func (s *authService) UserRegistration(user models.User) error {
 }
 
 func (s *authService) UserAuthorization(login, pass string) (int, error) {
-	
+
 	if exists, err := s.stor.GetUserExists(login); err != nil {
 		return 500, err
 	} else if !exists {
 		return 401, errors.New("authError")
 	}
-	
+
 	userPass, err := s.stor.GetUserPassByLogin(login)
 	if err != nil {
 		return 500, err
@@ -148,5 +148,5 @@ func (s *authService) UserAuthorization(login, pass string) (int, error) {
 		return 401, errors.New("authError")
 	}
 
-	return 0, nil 
+	return 0, nil
 }

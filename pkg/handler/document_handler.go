@@ -28,22 +28,32 @@ func NewDocHandler(log logger.Logger, service document.DocService) *DocHandler {
 
 func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 
-	var settings models.DocSettings
-	settings.DocType = r.FormValue("type")
-	settings.DocCol = r.FormValue("col")
-	settings.DocSet = r.FormValue("set")
-	settings.DocDatain = r.FormValue("datain")
-	settings.DocDatato = r.FormValue("datato")
+	query := r.URL.Query()
+    
+    settings := models.DocSettings{
+        DocType:   query.Get("type"),
+        DocCol:    query.Get("col"),
+        DocSet:    query.Get("set"),
+        DocDatain: query.Get("datain"),
+        DocDatato: query.Get("datato"),
+    }
+    
+    // Валидация хотя бы одного обязательного параметра
+    if settings.DocType == "" {
+		h.log.Error(models.ErrRequest)
+		http.Error(w, models.ErrRequest, 400)
+        return
+    }
 
-	responceDocs, err := h.service.GetDocuments(settings)
+	documents, err := h.service.GetDocuments(settings)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(responceDocs))
+	w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(documents)
 }
 
 func (h *DocHandler) WievDocument(w http.ResponseWriter, r *http.Request) {
