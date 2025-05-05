@@ -4,18 +4,6 @@ import (
 	"documentum/pkg/models"
 )
 
-func (s *SQLStorage) GetUserPassword(login string) (string, error) {
-	var pass string
-
-	err := s.db.QueryRow("SELECT `pass` FROM `users` WHERE `login` = ?", login).Scan(&pass)
-
-	if err != nil {
-		return "", s.log.Error(models.ErrGetDataInDB, err)
-	}
-
-	return pass, nil
-}
-
 func (s *SQLStorage) GetUserIcon(login string) (string, error) {
 
 	var icon string

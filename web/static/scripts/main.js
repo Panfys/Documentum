@@ -2,9 +2,6 @@
 
 //------------------------------MAIN-------------------------------------
 
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', initDocumentViewHandlers);
-
 //------Функция прокрутки и закрепления шапки таблицы-------
 window.addEventListener("scroll", function () {
   active_tub = document.querySelector(".main__tabs--active");

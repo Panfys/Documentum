@@ -116,3 +116,6 @@ function getFileViewUrl(file) {
     return `<embed src="${file}" type="application/pdf" class="file-content">`
   }
 }
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', initDocumentViewHandlers);

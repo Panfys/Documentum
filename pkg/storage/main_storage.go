@@ -26,7 +26,7 @@ type AuthStorage interface {
 }
 
 type UserStorage interface {
-	GetUserPassword(login string) (string, error)
+	GetUserPassByLogin(login string) (string, error)
 	GetAccountData(login string) (models.AccountData, error)
 	UpdateUserPassword(login, pass string) error
 	GetUserIcon(login string) (string, error)

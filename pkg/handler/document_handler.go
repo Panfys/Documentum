@@ -36,7 +36,7 @@ func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
     
     // Валидация хотя бы одного обязательного параметра
     if settings.DocType == "" {
-		h.log.Error(models.ErrRequest)
+		h.log.Error(models.ErrRequest, nil)
 		http.Error(w, models.ErrRequest, 400)
         return
     }

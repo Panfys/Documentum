@@ -105,10 +105,11 @@ async function authorize() {
       "/static/scripts/main.js",
       "/static/scripts/main_account.js",
       "/static/scripts/main_settings.js",
-      "/static/scripts/main_tabs.js",
+      "/static/scripts/main_doc_tables.js",
+      "/static/scripts/main_header_panel.js",
       "/static/scripts/main_validator.js",
       "/static/scripts/main_open_files.js",
-      "/static/scripts/main_doc_buttons.js",
+      "/static/scripts/main_panel_buttons.js",
       "/static/scripts/main_res_buttons.js"
     ]);
   }

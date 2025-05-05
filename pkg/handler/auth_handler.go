@@ -67,7 +67,7 @@ func (h *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 	var authData models.AuthData
 
 	if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
-		h.log.Error(models.ErrRequest, err)
+		h.log.Error(models.ErrRequest, err ) 
 		http.Error(w, models.ErrRequest, 400)
 		return
 	}
