@@ -10,7 +10,7 @@ import (
 
 func (s *userService) UpdateUserPassword(login, pass, newPass string) (int, error) {
 
-	userPass, err := s.stor.GetUserPassword(login)
+	userPass, err := s.stor.GetUserPassByLogin(login)
 
 	if err != nil {
 		return 500, err

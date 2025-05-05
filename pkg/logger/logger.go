@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -17,7 +16,7 @@ type FileLogger struct {
 	logger *log.Logger
 	file   *os.File
 }
-    
+
 func NewFileLogger(logFilePath string) (*FileLogger, error) {
 	file, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -25,7 +24,7 @@ func NewFileLogger(logFilePath string) (*FileLogger, error) {
 	}
 
 	return &FileLogger{
-		logger: log.New(file, "", 0),  
+		logger: log.New(file, "", 0),
 		file:   file,
 	}, nil
 }
@@ -35,10 +34,10 @@ func (l *FileLogger) Info(msg string) {
 }
 
 func (l *FileLogger) Error(format string, args ...any) error {
-	msg := fmt.Sprintf(format+ " ", args...)
-	l.logger.Printf("%s [ERROR] %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
+	msg := format + ": " + fmt.Sprint(args...)
 
-	return errors.New(format)
+	l.logger.Printf("%s [ERROR] %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
+	return fmt.Errorf("%s", format)
 }
 
 func (l *FileLogger) Close() error {

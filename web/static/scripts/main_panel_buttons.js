@@ -92,6 +92,7 @@ function clearNewDocumentForm() {
   clearResolutionPanel();
 }
 
+// Очистка панели добавления файла
 function clearFilePanel() {
   const activeTab = document.querySelector(".main__tabs--active");
   const btnFile = activeTab.querySelector("#btn-newdoc-addfile");
@@ -107,6 +108,7 @@ function clearFilePanel() {
   btnFile.textContent = "Файл";
 }
 
+// Очистка панели резолюций
 function clearResolutionPanel() {
   const activeTab = document.querySelector(".main__tabs--active");
   const resolutionPanel = activeTab.querySelector("#newdoc-resolution-panel");
@@ -116,6 +118,7 @@ function clearResolutionPanel() {
   inputIspolnitel.setAttribute("placeholder", "");
 }
 
+// Добавление файла новому документу
 function handleFileUpload() {
   const activeTab = document.querySelector(".main__tabs--active");
   const fileInput = activeTab.querySelector("#input-newdoc-file");
@@ -141,6 +144,7 @@ function handleFileUpload() {
   };
 }
 
+// показывает превью файла
 function getFilePreview(url, type) {
   if (type.startsWith("image")) {
     return `<img src="${url}" alt="File preview">`;
@@ -150,6 +154,7 @@ function getFilePreview(url, type) {
   return `<img src="/style/images/file error.png" alt="Invalid file">`;
 }
 
+// форматирует вывод размера файла
 function formatFileSize(bytes) {
   const units = ["Б", "КБ", "МБ", "ГБ", "ТБ"];
   let i = 0;

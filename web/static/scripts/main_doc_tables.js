@@ -3,10 +3,12 @@ function WriteDocumentsInTable(documents, container) {
     container.innerHTML = '';
     let documentsString = '';
 
-    documents.forEach(document => {
-        if (!document) return;
+    if (documents) {
 
-        documentsString += `
+        documents.forEach(document => {
+            if (!document) return;
+
+            documentsString += `
         <table class='tubs__table tubs__table--document' id='document-table-${document.id}' document-id='${document.id}'>
             <tr>
                 <td class='table__column--number'>${document.fnum}<br>${document.fdate}</td>
@@ -26,14 +28,14 @@ function WriteDocumentsInTable(documents, container) {
             </tr>
         </table>`;
 
-        // HTML для резолюций
-        if (document.resolutions && document.resolutions.length) {
-            documentsString += `<div class='table__resolution-panel' id='resolution-panel-${document.id}'>`;
+            // HTML для резолюций
+            if (document.resolutions && document.resolutions.length) {
+                documentsString += `<div class='table__resolution-panel' id='resolution-panel-${document.id}'>`;
 
-            document.resolutions.forEach(resolution => {
-                if (!resolution) return;
+                document.resolutions.forEach(resolution => {
+                    if (!resolution) return;
 
-                documentsString += `
+                    documentsString += `
                 <div class='table__resolution' id='ingoing-resolution'>
                     <div class='table__resolution--ispolnitel'>${resolution.ispolnitel}</div>
                     <div class='table__resolution--text'>&#171;${resolution.text}&#187;</div>
@@ -41,14 +43,15 @@ function WriteDocumentsInTable(documents, container) {
                     <div class='table__resolution--user'>${resolution.user}</div>
                     <div class='table__resolution--date'>${resolution.date}</div>
                 </div>`;
-            });
+                });
 
-            documentsString += '</div>';
-        }
-    });
+                documentsString += '</div>';
+            }
+        });
 
-    container.innerHTML = documentsString;
-    setupDocumentTables()
+        container.innerHTML = documentsString;
+        setupDocumentTables()
+    }
 }
 
 // Обработка кликов по таблицам документов

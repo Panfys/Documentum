@@ -7,7 +7,7 @@ const RESOLUTION_TYPES = {
 // Инициализация обработчиков резолюций
 function initResolutionHandlers() {
   document.querySelector("#btn-newdoc-resolution").onclick = () => 
-    handleResolutionAction(RESOLUTION_TYPES.NEW_DOC, "open");
+    handleActiveDocumentResolution("open");
 
   document.querySelector("#btn-resolution-add").onclick = () => 
     handleActiveDocumentResolution("add");
@@ -53,9 +53,9 @@ function AddNewdocResolution(action) {
       btnPanel.style.display = "flex";
       docBtn.style.display = "none";
       break;
-
+    
     case "add":
-      addNewResolution(resolutionPanel, resolutionCount + 1, false);
+      addNewResolution(resolutionPanel, false);
       inputIspolnitel.setAttribute("placeholder", "Заполняется автоматически");
       btnAdd.style.backgroundColor = "var(--low-color)";
       break;
@@ -64,7 +64,7 @@ function AddNewdocResolution(action) {
       if (resolutionCount === 0) {
         flashButton(btnAdd);
       } else {
-        addNewResolution(resolutionPanel, resolutionCount + 1, true);
+        addNewResolution(resolutionPanel, true);
       }
       break;
 
@@ -75,9 +75,9 @@ function AddNewdocResolution(action) {
       break;
 
     case "remove":
-      if (resolutionCount > 1) {
-        removeResolution(resolutionPanel, resolutionCount);
-        if (resolutionCount === 2) {
+      if (resolutionCount > 0) {
+        removeResolution(resolutionPanel);
+        if (resolutionCount === 1) {
           inputIspolnitel.setAttribute("placeholder", "");
         }
       }
@@ -86,11 +86,9 @@ function AddNewdocResolution(action) {
 }
 
 // Вспомогательные функции
-function addNewResolution(panel, id, isResult) {
+function addNewResolution(panel, isResult) {
   const resolution = document.createElement("div");
   resolution.className = "table__resolution";
-  resolution.id = `newdoc-resolution-${id}`;
-  resolution.setAttribute("res_id", id);
 
   resolution.innerHTML = isResult
     ? `
@@ -113,10 +111,11 @@ function addNewResolution(panel, id, isResult) {
   scrollPanel(panel);
 }
 
-function removeResolution(panel, id) {
-  const resolution = document.getElementById(`newdoc-resolution-${id - 1}`);
-  if (resolution) {
-    panel.removeChild(resolution);
+function removeResolution(panel) {
+  const resolutions = panel.querySelectorAll(".table__resolution");
+  if (resolutions.length > 0) {
+    const lastResolution = resolutions[resolutions.length - 1];
+    panel.removeChild(lastResolution);
   }
 }
 
@@ -128,6 +127,7 @@ function scrollPanel(panel) {
   });
 }
 
+// Подствечиваем красным кнопку, если валидация не пройдена
 function flashButton(button) {
   button.style.backgroundColor = "var(--error-color)";
   setTimeout(() => {
@@ -135,7 +135,7 @@ function flashButton(button) {
   }, 3000);
 }
 
-// Функция очистки панели резолюций (оставлена без изменений)
+// Функция очистки панели резолюций
 function ClearNewdocResolutionPanel() {
   const activeTab = document.querySelector(".main__tabs--active");
   const resolutionPanel = activeTab.querySelector("#newdoc-resolution-panel");
@@ -144,3 +144,6 @@ function ClearNewdocResolutionPanel() {
   resolutionPanel.innerHTML = "";
   inputIspolnitel.setAttribute("placeholder", "");
 }
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', initResolutionHandlers);
