@@ -28,10 +28,9 @@ function WriteDocumentsInTable(documents, container) {
             </tr>
         </table>`;
 
-            // HTML для резолюций
-            if (document.resolutions && document.resolutions.length) {
-                documentsString += `<div class='table__resolution-panel' id='resolution-panel-${document.id}'>`;
+            documentsString += `<div class='table__resolution-panel' id='resolution-panel-${document.id}'>`;
 
+            if (document.resolutions && document.resolutions.length) {
                 document.resolutions.forEach(resolution => {
                     if (!resolution) return;
 
@@ -44,9 +43,8 @@ function WriteDocumentsInTable(documents, container) {
                     <div class='table__resolution--date'>${resolution.date}</div>
                 </div>`;
                 });
-
-                documentsString += '</div>';
             }
+            documentsString += '</div>';
         });
 
         container.innerHTML = documentsString;
@@ -66,74 +64,87 @@ function setupDocumentTables() {
 }
 
 // При нажатии на документ выделяет и открывает панель документа
-function ViewDocumentTable(doc, event) {
-    // Получаем предыдущую активную таблицу
-    active_tub = document.querySelector(".main__tabs--active");
-    pre_active_doc = document.querySelector(".tubs__table--active-table");
-    docpanel = active_tub.querySelector("#title-docpanel");
-    btn_search = active_tub.querySelector("#btn-search");
-    btn_newdoc = active_tub.querySelector("#btn-newdoc");
-    tubs_folder = active_tub.querySelector(".tubs__folder");
-    tubs_title_span = active_tub.querySelector(".tubs__title--span");
-    // Проверяем есть или нет предыдущая активная таблица
 
+function ViewDocumentTable(doc, event) {
+    // Получаем элементы DOM
+    const active_tub = document.querySelector(".main__tabs--active");
+    const pre_active_doc = document.querySelector(".tubs__table--active-table");
+    const docpanel = active_tub.querySelector("#title-docpanel");
+    const btn_search = active_tub.querySelector("#btn-search");
+    const btn_newdoc = active_tub.querySelector("#btn-newdoc");
+    const tubs_folder = active_tub.querySelector(".tubs__folder");
+    const tubs_title_span = active_tub.querySelector(".tubs__title--span");
+
+    // Функция закрытия активного документа
     function CloseActiveDoc() {
-        if (pre_active_doc) {
-            //Удаляем класс _active у таблицы нового документа
-            if (pre_active_doc.getAttribute("id") == "table-newdoc") {
-                toggleNewDocumentForm();
+        if (!pre_active_doc) return;
+
+        // Обработка новой таблицы документа
+        if (pre_active_doc.getAttribute("id") === "table-newdoc") {
+            toggleNewDocumentForm();
+        }
+        // Обработка обычной таблицы документа
+        else {
+            if (docpanel.style.display === "none") {
+                AddDocResolution("back");
             }
-            //Удаляем класс _active у предыдущей активной таблицы
-            else {
-                if (docpanel.style.display == "none") {
-                    AddDocResolution("back");
-                }
-                pre_active_doc.classList.remove("tubs__table--active-table");
-                pre_active_doc_id = pre_active_doc.getAttribute("document-id");
-                pre_active_res = document.getElementById(
-                    "resolution-panel-" + pre_active_doc_id
-                );
-                tubs_folder.innerHTML = "";
-                tubs_title_span.style.display = "none";
-                btn_search.style.display = "flex";
-                btn_newdoc.style.display = "flex";
-                docpanel.style.display = "none";
-                // закрываем панель резолюций у предыдущего документа
-                if (resolution_panel) {
-                    resolution_panel.style.display = "none";
-                    if (resolution_id !== newresolution_id) {
-                        resolution_panel.removeChild(resolution_panel.lastChild);
-                        newresolution_id -= 1;
-                    }
+
+            resolutionStartCount = null;
+            pre_active_doc.classList.remove("tubs__table--active-table");
+            const pre_active_doc_id = pre_active_doc.getAttribute("document-id");
+            const pre_active_res = document.getElementById("resolution-panel-" + pre_active_doc_id);
+
+            // Сброс UI элементов
+            tubs_folder.innerHTML = "";
+            tubs_title_span.style.display = "none";
+            btn_search.style.display = "flex";
+            btn_newdoc.style.display = "flex";
+            docpanel.style.display = "none";
+
+            // Закрытие панели резолюций
+            if (resolution_panel) {
+                resolution_panel.style.display = "none";
+                if (resolution_id !== newresolution_id) {
+                    resolution_panel.removeChild(resolution_panel.lastChild);
+                    newresolution_id -= 1;
                 }
             }
         }
     }
 
-    if (event.target.classList == "table__btn--opendoc") {
+    // Обработка клика на кнопку открытия документа
+    if (event.target.classList.contains("table__btn--opendoc")) {
         openDocument(
             event.target.getAttribute("file"),
             doc.getAttribute("document-id")
         );
-        if (!(pre_active_doc == doc)) CloseActiveDoc();
+        if (pre_active_doc !== doc) CloseActiveDoc();
         return;
-    } else CloseActiveDoc();
-    // проверяем нажание на одну таблицу
-    if (pre_active_doc == doc) return;
-    // добавляем класс _active новой выбранной вкладке
-    doc.classList.add("tubs__table--active-table");
-    doc_id = doc.getAttribute("document-id");
-    resolution_panel = document.getElementById("resolution-panel-" + doc_id);
-    if (doc.querySelector(".table__column--name")) {
-        tubs_folder.innerHTML = doc.querySelector(".table__column--name").innerHTML;
-    } else if (doc.querySelector("#table__column--name")) {
-        tubs_folder.innerHTML = doc.querySelector("#table__column--name").innerHTML;
+    } else {
+        CloseActiveDoc();
     }
+
+    // Проверка повторного клика на тот же документ
+    if (pre_active_doc === doc) return;
+
+    // Активация нового документа
+    doc.classList.add("tubs__table--active-table");
+    const doc_id = doc.getAttribute("document-id");
+    resolution_panel = document.getElementById("resolution-panel-" + doc_id);
+
+    // Установка названия документа
+    const nameElement = doc.querySelector(".table__column--name") || doc.querySelector("#table__column--name");
+    if (nameElement) {
+        tubs_folder.innerHTML = nameElement.innerHTML;
+    }
+
+    // Обновление UI
     tubs_title_span.style.display = "flex";
     btn_search.style.display = "none";
     btn_newdoc.style.display = "none";
     docpanel.style.display = "flex";
-    // открываем панель резолюций
+
+    // Открытие панели резолюций
     if (resolution_panel) {
         resolution_panel.style.display = "flex";
         resolution_id = resolution_panel.childElementCount;

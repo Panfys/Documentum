@@ -4,22 +4,28 @@ function initDocumentHandlers() {
   document.querySelectorAll("#btn-newdoc").forEach(btn => {
     btn.addEventListener("click", toggleNewDocumentForm);
   });
-  
+
   // Кнопка очистки формы
   document.querySelectorAll("#btn-newdoc-clearnewdoc").forEach(btn => {
     btn.addEventListener("click", clearNewDocumentForm);
   });
-  
+
   // Кнопка прикрепления файла
   document.querySelectorAll("#btn-newdoc-addfile").forEach(btn => {
     btn.addEventListener("click", handleFileUpload);
   });
-  
+
   // Кнопка записи документа
   document.querySelectorAll("#btn-newdoc-addnewdoc").forEach(btn => {
-    btn.addEventListener("click", saveNewDocument);
+    btn.addEventListener("click", submitNewDocumentForm);
   });
-  
+
+  // Кнопка поиска
+  document.querySelectorAll("#btn-search").forEach(
+    btn => {
+      btn.addEventListener("click", () => { alert("Извините, поиск пока недоступен!") })
+    });
+
   // Кнопки работы с резолюциями
   initResolutionHandlers();
 }
@@ -45,7 +51,7 @@ function openNewDocumentForm(activeTab) {
   const panel = activeTab.querySelector("#title-newdocpanel");
   const span = activeTab.querySelector("#title-span");
   const searchBtn = activeTab.querySelector("#btn-search");
-  
+
   form.style.display = "flex";
   btn.textContent = "Отмена";
   span.style.display = "flex";
@@ -53,7 +59,7 @@ function openNewDocumentForm(activeTab) {
   panel.style.display = "flex";
   searchBtn.style.display = "none";
   table.classList.add("tubs__table--active-table");
-  
+
   window.scrollTo({
     top: 0,
     left: 0,
@@ -70,11 +76,11 @@ function closeNewDocumentForm(activeTab) {
   const panel = activeTab.querySelector("#title-newdocpanel");
   const span = activeTab.querySelector("#title-span");
   const searchBtn = activeTab.querySelector("#btn-search");
-  
+
   if (btn.style.display === "none") {
     AddNewdocResolution("back"); // Вызываем закрытие панели резолюций
   }
-  
+
   form.style.display = "none";
   btn.textContent = "Новый документ";
   span.style.display = "none";
@@ -129,12 +135,12 @@ function handleFileUpload() {
   const btnFile = activeTab.querySelector("#btn-newdoc-addfile");
 
   fileInput.click();
-  
-  fileInput.onchange = function() {
+
+  fileInput.onchange = function () {
     const file = fileInput.files[0];
     if (file && (file.type === "application/pdf" || file.type.startsWith("image"))) {
       const fileUrl = URL.createObjectURL(file);
-      
+
       fileName.textContent = file.name;
       fileImg.innerHTML = getFilePreview(fileUrl, file.type);
       fileSize.textContent = formatFileSize(file.size);
@@ -167,69 +173,116 @@ function formatFileSize(bytes) {
   return n.toFixed(n < 10 && i > 0 ? 1 : 0) + " " + units[i];
 }
 
-function saveNewDocument() {
+async function submitNewDocumentForm() {
   const activeTab = document.querySelector(".main__tabs--active");
   const form = activeTab.querySelector("#form-newdoc");
+  const tabId = `#${activeTab.id}`;
+  const docType = Object.values(DOCUMENT_TYPES).find(
+    type => type.tabId === tabId
+  );
+  const docData = {};
   const formData = new FormData(form);
-  
-  // Определение типа документа
-  const tabId = activeTab.id;
-  let docType;
-  
-  switch (tabId) {
-    case "main-tab-ingoing":
-      docType = DOCUMENT_TYPES.INGOING.type;
-      processResolutions(activeTab, formData);
-      break;
-    case "main-tab-outgoing":
-      docType = DOCUMENT_TYPES.OUTGOING.type;
-      break;
-    case "main-tab-directive":
-      docType = DOCUMENT_TYPES.DIRECTIVE.type;
-      break;
-    case "main-tab-inventory":
-      docType = DOCUMENT_TYPES.INVENTORY.type;
-      break;
+  docData.createdAt = new Date().toISOString();
+  docData.type = docType.type;
+
+  processResolutions(activeTab, docData);
+
+  // 1. Собираем данные формы в объект (без файла)
+  for (const [key, value] of formData.entries()) {
+    // Пропускаем файловые поля
+    if (!(value instanceof File)) {
+      docData[key] = value;
+    }
   }
-  
-  formData.append("type", docType);
-  
-  // Вызов сохраненной функции без изменений
-  const dataObj = Object.fromEntries(formData.entries());
-  if (WalidDocumentData(dataObj) === true) {
-    return;
+
+  console.log(docData)
+  return
+  // 2. Валидация данных
+  if (!validateFormData(formDataObj)) {
+    return false;
   }
-  
-  // Вызов сохраненной функции без изменений
-  AddDocument(formData);
+
+  // 3. Создаем новый FormData для отправки
+  const uploadFormData = new FormData();
+
+  // Добавляем текстовые данные как JSON
+  uploadFormData.append('data', JSON.stringify(formDataObj));
+
+  // Добавляем файл отдельно
+  const fileInput = form.querySelector('input[type="file"]');
+  if (fileInput && fileInput.files[0]) {
+    uploadFormData.append('file', fileInput.files[0]);
+  }
+
+  // 4. Отправка на сервер
+  try {
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: uploadFormData
+    });
+
+    if (!response.ok) throw new Error('Ошибка сервера');
+
+    const result = await response.json();
+    console.log('Успешно отправлено:', result);
+    return true;
+  } catch (error) {
+    console.error('Ошибка отправки:', error);
+    return false;
+  }
 }
 
-function processResolutions(activeTab, formData) {
+// Функция валидации
+function validateDocumentData(data) {
+  // Пример валидации - проверка обязательных полей
+  if (!data.name || data.name.trim() === '') {
+    alert('Поле "Имя" обязательно для заполнения');
+    return false;
+  }
+
+  // Добавьте другие проверки по необходимости
+  return true;
+}
+
+function processResolutions(activeTab, docData) {
   const resolutionPanel = activeTab.querySelector("#newdoc-resolution-panel");
-  const resolutions = resolutionPanel.querySelectorAll(".table__resolution");
+
+  if (!resolutionPanel) {
+    return;
+  }
+
+  // Массив для хранения резолюций
   const resolutionsData = [];
-  
-  resolutions.forEach(resolution => {
+
+  resolutionPanel.querySelectorAll(".table__resolution").forEach(resolution => {
+    // Определяем тип резолюции
+    const isTask = !!resolution.querySelector("#resolution-ispolnitel");
+
+    // Базовый объект резолюции
     const resolutionData = {
-      id: resolution.getAttribute("id"),
+      type: isTask ? "task" : "result",
+      createdAt: new Date().toISOString(),
       text: resolution.querySelector("#resolution-text")?.value || "",
       user: resolution.querySelector("#resolution-user")?.value || "",
       date: resolution.querySelector("#resolution-date")?.value || ""
     };
-    
-    const ispolnitelInput = resolution.querySelector("#resolution-ispolnitel");
-    if (ispolnnitelInput) {
-      resolutionData.ispolnitel = ispolnitelInput.value || "";
-      resolutionData.time = resolution.querySelector("#resolution-time")?.value || "";
+
+    // Добавляем специфичные поля
+    if (isTask) {
+      resolutionData.ispolnitel =
+        resolution.querySelector("#resolution-ispolnitel")?.value || "";
+      resolutionData.deadline =
+        resolution.querySelector("#resolution-time")?.value || "";
     } else {
-      resolutionData.ispolnitel = "NULL";
-      resolutionData.result = resolution.querySelector("#resolution-result")?.value || "";
+      resolutionData.result =
+        resolution.querySelector("#resolution-result")?.value || "";
     }
-    
+
     resolutionsData.push(resolutionData);
   });
-  
-  formData.append("resolutions", JSON.stringify(resolutionsData));
+
+  // Добавляем резолюции в основной объект формы
+  docData.resolutions = resolutionsData;
 }
 
 // Инициализация при загрузке страницы
