@@ -3,32 +3,36 @@ const RESOLUTION_TYPES = {
   NEW_DOC: 'newdoc',
   EXISTING_DOC: 'doc'
 };
+let resolutionStartCount = null;
 
 // Инициализация обработчиков резолюций
 function initResolutionHandlers() {
-  document.querySelector("#btn-newdoc-resolution").onclick = () => 
-    handleActiveDocumentResolution("open");
+  document.querySelector("#btn-newdoc-resolution").onclick = () =>
+    AddNewdocResolution("open");
 
-  document.querySelector("#btn-resolution-add").onclick = () => 
+  document.querySelector("#btn-doc-resolution").onclick = () =>
+    AddDocResolution("open");
+
+  document.querySelector("#btn-resolution-add").onclick = () =>
     handleActiveDocumentResolution("add");
 
-  document.querySelector("#btn-resolution-result").onclick = () => 
+  document.querySelector("#btn-resolution-result").onclick = () =>
     handleActiveDocumentResolution("result");
 
-  document.querySelector("#btn-resolution-remove").onclick = () => 
+  document.querySelector("#btn-resolution-remove").onclick = () =>
     handleActiveDocumentResolution("remove");
 
-  document.querySelector("#btn-resolution-back").onclick = () => 
+  document.querySelector("#btn-resolution-back").onclick = () =>
     handleActiveDocumentResolution("back");
 }
 
 // Обработка действий для активного документа
 function handleActiveDocumentResolution(action) {
   const activeDoc = document.querySelector(".tubs__table--active-table");
-  const docType = activeDoc.id === "table-newdoc" 
-    ? RESOLUTION_TYPES.NEW_DOC 
+  const docType = activeDoc.id === "table-newdoc"
+    ? RESOLUTION_TYPES.NEW_DOC
     : RESOLUTION_TYPES.EXISTING_DOC;
-  
+
   if (docType === RESOLUTION_TYPES.NEW_DOC) {
     AddNewdocResolution(action);
   } else {
@@ -53,7 +57,7 @@ function AddNewdocResolution(action) {
       btnPanel.style.display = "flex";
       docBtn.style.display = "none";
       break;
-    
+
     case "add":
       addNewResolution(resolutionPanel, false);
       inputIspolnitel.setAttribute("placeholder", "Заполняется автоматически");
@@ -80,6 +84,61 @@ function AddNewdocResolution(action) {
         if (resolutionCount === 1) {
           inputIspolnitel.setAttribute("placeholder", "");
         }
+      }
+      break;
+  }
+}
+
+//------Функция кнопки "Резолюция"------
+
+
+function AddDocResolution(action) {
+  const activeTab = document.querySelector(".main__tabs--active");
+  const activeDoc = document.querySelector(".tubs__table--active-table");
+  const activeDocId = activeDoc.getAttribute("document-id");
+  const resolutionPanel = activeTab.querySelector("#resolution-panel-" + activeDocId);
+  const resolutionCount = resolutionPanel.childElementCount;
+  const btnAdd = activeTab.querySelector("#btn-resolution-add");
+  const btnPanel = activeTab.querySelector("#btn-resolution-panel");
+  const docPanel = activeTab.querySelector("#title-docpanel");
+  const newResolution = document.createElement("div");
+
+  newResolution.setAttribute("class", "table__resolution");
+  newResolution.setAttribute("id", "doc-newresolution");
+
+  switch (action) {
+    case "open":
+      if (resolutionStartCount === null) {
+        resolutionStartCount = resolutionPanel.childElementCount;
+        console.log(resolutionStartCount)
+      }
+      docPanel.style.display = "none";
+      btnPanel.style.display = "flex";
+      break;
+
+    case "add":
+      addNewResolution(resolutionPanel, false);
+      break;
+
+    case "result":
+      if (resolutionCount === 0) {
+        flashButton(btnAdd);
+      } else {
+        addNewResolution(resolutionPanel, true);
+      }
+      break;
+
+    case "back":
+      btnPanel.style.display = "none";
+      docPanel.style.display = "flex";
+      checkSaveBtn (resolutionCount - resolutionStartCount)
+      break;
+
+    case "remove":
+      // Используем сохраненное начальное значение
+      console.log(resolutionStartCount)
+      if (resolutionStartCount !== null && resolutionCount > resolutionStartCount) {
+        resolutionPanel.removeChild(resolutionPanel.lastChild);
       }
       break;
   }
@@ -125,6 +184,16 @@ function scrollPanel(panel) {
     left: 5000,
     behavior: "smooth"
   });
+}
+
+function checkSaveBtn(countRes) {
+  const activeTab = document.querySelector(".main__tabs--active");
+  const btnSave = activeTab.querySelector("#btn-doc-save");
+  if (countRes > 0) {
+    btnSave.style.display = "flex";
+  } else {
+    btnSave.style.display = "none";
+  }
 }
 
 // Подствечиваем красным кнопку, если валидация не пройдена

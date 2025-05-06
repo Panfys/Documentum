@@ -1352,7 +1352,7 @@ body {
 }
 
 #btn-newdoc-addnewdoc,
-#btn-newdoc-savedoc {
+#btn-doc-save {
   background-color: var(--btn-bgr-color);
 
   &:hover {
@@ -1364,6 +1364,10 @@ body {
     background-color: var(--btn-bgr-color);
     transition: 0.2s;
   }
+}
+
+#btn-doc-save {
+  display: none;
 }
 
 .tubs__head--container {
