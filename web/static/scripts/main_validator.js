@@ -1,4 +1,24 @@
 //---Проверка введенных данных при создании или изменении документа
+
+// Функция валидации
+function validateDocumentData(data) {
+  validate = 0
+
+  console.log(data)
+
+  if (!validDocFileType(data.fileType)) validate++
+
+  return validate;
+}
+
+function validDocFileType(fileType) {
+  if (!(fileType.slice(0, 5) == "image" || fileType == "application/pdf")) {
+    const activeTab = document.querySelector(".main__tabs--active");
+    flashButton(activeTab.querySelector("#btn-newdoc-addfile"));
+    return false;
+  } else return true
+}
+
 function WalidDocumentData(data) {
   active_tub = document.querySelector(".main__tabs--active");
   error = false;
@@ -17,18 +37,7 @@ function WalidDocumentData(data) {
   //Для всех типов документов
 
   //---Проверка добавления файла------
-  if (!(file.type.slice(0, 5) == "image" || file.type == "application/pdf")) {
-    active_tub.querySelector("#btn-newdoc-addfile").style.backgroundColor =
-      "var(--error-color)";
-    setTimeout(() => {
-      active_tub.querySelector("#btn-newdoc-addfile").style.backgroundColor =
-        "var(--low-color)";
-    }, 3000);
-    error = true;
-  } else {
-    active_tub.querySelector("#btn-newdoc-addfile").style.backgroundColor =
-      "var(--low-color)";
-  }
+
 
   //---Проверка номера документа------
   if (
