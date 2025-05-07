@@ -106,12 +106,14 @@ function clearFilePanel() {
   const fileName = activeTab.querySelector("#newdoc-file-name");
   const fileSize = activeTab.querySelector("#newdoc-file-size");
   const fileImg = activeTab.querySelector("#newdoc-file-img");
+  const fileInput = activeTab.querySelector("#input-newdoc-file");
 
   filePanel.style.display = "none";
   fileName.textContent = "";
   fileSize.textContent = "";
   fileImg.innerHTML = "";
   btnFile.textContent = "Файл";
+  fileInput.value = "";
 }
 
 // Очистка панели резолюций
@@ -122,6 +124,7 @@ function clearResolutionPanel() {
 
   resolutionPanel.innerHTML = "";
   inputIspolnitel.setAttribute("placeholder", "");
+
 }
 
 // Добавление файла новому документу
@@ -146,6 +149,8 @@ function handleFileUpload() {
       fileSize.textContent = formatFileSize(file.size);
       filePanel.style.display = "flex";
       btnFile.textContent = "Изменить файл";
+    } else {
+      clearFilePanel();
     }
   };
 }
@@ -176,6 +181,7 @@ function formatFileSize(bytes) {
 async function submitNewDocumentForm() {
   const activeTab = document.querySelector(".main__tabs--active");
   const form = activeTab.querySelector("#form-newdoc");
+  const fileInput = form.querySelector('input[type="file"]');
   const tabId = `#${activeTab.id}`;
   const docType = Object.values(DOCUMENT_TYPES).find(
     type => type.tabId === tabId
@@ -195,21 +201,26 @@ async function submitNewDocumentForm() {
     }
   }
 
+  if (fileInput && fileInput.files[0]) {
+    docData.fileType = fileInput.files[0].type;
+  }
+  else docData.fileType = ""
+
+
+  // 2. Валидация данных
+  if (validateDocumentData(docData) > 0) {
+    return;
+  }
+  
   console.log(docData)
   return
-  // 2. Валидация данных
-  if (!validateFormData(formDataObj)) {
-    return false;
-  }
-
   // 3. Создаем новый FormData для отправки
   const uploadFormData = new FormData();
 
   // Добавляем текстовые данные как JSON
-  uploadFormData.append('data', JSON.stringify(formDataObj));
+  uploadFormData.append('data', JSON.stringify(docData));
 
   // Добавляем файл отдельно
-  const fileInput = form.querySelector('input[type="file"]');
   if (fileInput && fileInput.files[0]) {
     uploadFormData.append('file', fileInput.files[0]);
   }
@@ -230,18 +241,6 @@ async function submitNewDocumentForm() {
     console.error('Ошибка отправки:', error);
     return false;
   }
-}
-
-// Функция валидации
-function validateDocumentData(data) {
-  // Пример валидации - проверка обязательных полей
-  if (!data.name || data.name.trim() === '') {
-    alert('Поле "Имя" обязательно для заполнения');
-    return false;
-  }
-
-  // Добавьте другие проверки по необходимости
-  return true;
 }
 
 function processResolutions(activeTab, docData) {
