@@ -141,7 +141,7 @@ function handleFileUpload() {
 
   fileInput.onchange = function () {
     const file = fileInput.files[0];
-    if (file && (file.type === "application/pdf" || file.type.startsWith("image"))) {
+    if (file && (!validDocFileType(file.type))) {
       const fileUrl = URL.createObjectURL(file);
 
       fileName.textContent = file.name;
@@ -197,7 +197,7 @@ async function submitNewDocumentForm() {
   for (const [key, value] of formData.entries()) {
     // Пропускаем файловые поля
     if (!(value instanceof File)) {
-      docData[key] = value;
+      docData[key] = value.trim();
     }
   }
 
@@ -212,34 +212,19 @@ async function submitNewDocumentForm() {
     return;
   }
   
-  console.log(docData)
-  return
   // 3. Создаем новый FormData для отправки
   const uploadFormData = new FormData();
 
   // Добавляем текстовые данные как JSON
-  uploadFormData.append('data', JSON.stringify(docData));
+  uploadFormData.append('document', JSON.stringify(docData));
 
   // Добавляем файл отдельно
   if (fileInput && fileInput.files[0]) {
     uploadFormData.append('file', fileInput.files[0]);
   }
 
-  // 4. Отправка на сервер
-  try {
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: uploadFormData
-    });
-
-    if (!response.ok) throw new Error('Ошибка сервера');
-
-    const result = await response.json();
-    console.log('Успешно отправлено:', result);
-    return true;
-  } catch (error) {
-    console.error('Ошибка отправки:', error);
-    return false;
+  if (await fetchAddDocument(uploadFormData)) {
+    alert ("ГОТОВО")
   }
 }
 

@@ -59,7 +59,7 @@ function AddNewdocResolution(action) {
       break;
 
     case "add":
-      addNewResolution(resolutionPanel, false);
+      addNewResolution(resolutionPanel, false, resolutionPanel.childElementCount);
       inputIspolnitel.setAttribute("placeholder", "Заполняется автоматически");
       btnAdd.style.backgroundColor = "var(--low-color)";
       break;
@@ -68,7 +68,7 @@ function AddNewdocResolution(action) {
       if (resolutionCount === 0) {
         flashButton(btnAdd);
       } else {
-        addNewResolution(resolutionPanel, true);
+        addNewResolution(resolutionPanel, true, resolutionPanel.childElementCount);
       }
       break;
 
@@ -117,14 +117,14 @@ function AddDocResolution(action) {
       break;
 
     case "add":
-      addNewResolution(resolutionPanel, false);
+      addNewResolution(resolutionPanel, false, resolutionPanel.childElementCount);
       break;
 
     case "result":
       if (resolutionCount === 0) {
         flashButton(btnAdd);
       } else {
-        addNewResolution(resolutionPanel, true);
+        addNewResolution(resolutionPanel, true, resolutionPanel.childElementCount);
       }
       break;
 
@@ -145,9 +145,10 @@ function AddDocResolution(action) {
 }
 
 // Вспомогательные функции
-function addNewResolution(panel, isResult) {
+function addNewResolution(panel, isResult, id) {
   const resolution = document.createElement("div");
   resolution.className = "table__resolution";
+  resolution.id = `resolution-${id}`;
 
   resolution.innerHTML = isResult
     ? `
@@ -186,6 +187,7 @@ function scrollPanel(panel) {
   });
 }
 
+// добавление/удаление кнопки сохранить
 function checkSaveBtn(countRes) {
   const activeTab = document.querySelector(".main__tabs--active");
   const btnSave = activeTab.querySelector("#btn-doc-save");
