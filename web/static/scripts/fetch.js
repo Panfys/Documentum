@@ -118,7 +118,7 @@ async function FetchUpdateUserIcon(icon) {
 
     const newIconUrl = await response.text();
     return newIconUrl
-    
+
   } catch (error) {
     serverMessage("show", error.message);
     return ""
@@ -136,7 +136,7 @@ async function FetchUpdateUserPass(updatePass) {
       body: JSON.stringify(updatePass),
       credentials: "include"
     });
-    response.status 
+    response.status
     if (!response.ok) {
       if (response.status === 400) {
         return response.text();
@@ -175,7 +175,7 @@ async function FetchLogoutUser() {
 async function FetchGetDocuments(settings) {
   try {
     const url = new URL('/documents', window.location.origin);
-    
+
     Object.entries(settings).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         url.searchParams.append(key, value);
@@ -203,15 +203,33 @@ async function FetchGetDocuments(settings) {
 // Запись просмотра докумнтов
 async function FetchViewDocument(id) {
   try {
-      const response = await fetch(`/document/${encodeURIComponent(id)}/view`, {
-          method: 'PATCH',
-      });
+    const response = await fetch(`/document/${encodeURIComponent(id)}/view`, {
+      method: 'PATCH',
+    });
 
-      if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText);
-      }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
+    }
   } catch (error) {
-      serverMessage("show", error.message);
+    serverMessage("show", error.message);
+  }
+}
+
+async function fetchAddDocument(data) {
+  try {
+    const response = await fetch('/document', {
+      method: 'POST',
+      body: data
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
+    }
+    return true
+  } catch (error) {
+    serverMessage("show", error.message);
+    return false
   }
 }

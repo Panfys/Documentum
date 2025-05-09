@@ -2,31 +2,35 @@
 
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/static/style/css/style_global.css" />
-    <link rel="stylesheet" href="/static/style/css/fontello.css" />
-    <link rel="stylesheet" href="/static/style/css/mfglabs.css" />
-    <link rel="icon" href="/static/style/images/icon.png" type="image/x-icon" />
-    <title>Documentum</title>
-  </head>
 
-  <body>
-    <div class="container">
-      {{if .UserIsValid}}
-        {{template "main" .}}
-      {{else}}
-        {{template "entrance" .}}
-      {{end}}
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/style/css/style_global.css" />
+  <link rel="stylesheet" href="/static/style/css/fontello.css" />
+  <link rel="stylesheet" href="/static/style/css/mfglabs.css" />
+  <link rel="icon" href="/static/style/images/icon.png" type="image/x-icon" />
+  <title>Documentum</title>
+</head>
 
-    <div class="server__messages">
-      <p class="server__messages--text"></p>
+<body>
+  <div class="container">
+    {{if .UserIsValid}}
+    {{template "main" .}}
+    {{else}}
+    {{template "entrance" .}}
+    {{end}}
+  </div>
+
+  <div class="server__messages">
+    <p class="server__messages--text"></p>
+    <div>
       <button class="server__messages--btn"></button>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
 
 

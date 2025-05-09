@@ -77,9 +77,26 @@ function openNewDocument() {
     iframe.innerHTML = getFilePreview(fileUrl, file.type);
   }
 
-  if (newDocResolutions && newDocResolutions.innerHTML !== '') {
+  if (newDocResolutions && newDocResolutions.children.length > 0) {
     resolutionsPanel.style.minWidth = '280px';
-    resolutionsPanel.innerHTML = newDocResolutions.innerHTML;
+    resolutionsPanel.innerHTML = ''; 
+    
+    // Копируем каждый элемент с его содержимым и значениями
+    Array.from(newDocResolutions.children).forEach(child => {
+      const clone = child.cloneNode(true); // Глубокое копирование
+      
+      // Восстанавливаем значения полей ввода
+      const inputs = child.querySelectorAll('input, textarea');
+      const cloneInputs = clone.querySelectorAll('input, textarea');
+      
+      inputs.forEach((input, index) => {
+        if (input.type !== 'file') {
+          cloneInputs[index].value = input.value;
+        }
+      });
+      
+      resolutionsPanel.appendChild(clone);
+    });
   }
 }
 
