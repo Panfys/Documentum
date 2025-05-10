@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
-	"strconv"
 )
 
 type DocHandler struct {
@@ -25,21 +24,21 @@ func NewDocHandler(log logger.Logger, service document.DocService) *DocHandler {
 func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query()
-    
-    settings := models.DocSettings{
-        DocType:   query.Get("type"),
-        DocCol:    query.Get("col"),
-        DocSet:    query.Get("set"),
-        DocDatain: query.Get("datain"),
-        DocDatato: query.Get("datato"),
-    }
-    
-    // Валидация хотя бы одного обязательного параметра
-    if settings.DocType == "" {
+
+	settings := models.DocSettings{
+		DocType:   query.Get("type"),
+		DocCol:    query.Get("col"),
+		DocSet:    query.Get("set"),
+		DocDatain: query.Get("datain"),
+		DocDatato: query.Get("datato"),
+	}
+
+	// Валидация хотя бы одного обязательного параметра
+	if settings.DocType == "" {
 		h.log.Error(models.ErrRequest, nil)
 		http.Error(w, models.ErrRequest, 400)
-        return
-    }
+		return
+	}
 
 	documents, err := h.service.GetDocuments(settings)
 
@@ -49,7 +48,7 @@ func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(documents)
+	json.NewEncoder(w).Encode(documents)
 }
 
 func (h *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
@@ -71,51 +70,33 @@ func (h *DocHandler) AddDocument(w http.ResponseWriter, r *http.Request) {
 
 	login := r.Context().Value(models.LoginKey).(string)
 
-	countStr := r.FormValue("count")
-
-	count, err := strconv.Atoi(countStr)
+	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		http.Error(w, models.ErrRequest, http.StatusBadRequest)
 		h.log.Error(models.ErrRequest, err)
+		http.Error(w, models.ErrRequest, http.StatusBadRequest)
 		return
 	}
 
-	file, header, err := r.FormFile("file")
-	if err != nil {
-		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+	jsonData := r.FormValue("document")
+	var document models.Document
+	if err := json.Unmarshal([]byte(jsonData), &document); err != nil {
 		h.log.Error(models.ErrRequest, err)
+		http.Error(w, models.ErrRequest, http.StatusBadRequest)
 		return
 	}
-	defer file.Close()
 
-	document := models.Document{
-		Type:       r.FormValue("type"),
-		FNum:       r.FormValue("fnum"),
-		FDate:      r.FormValue("fdate"),
-		LNum:       r.FormValue("lnum"),
-		LDateStr:   r.FormValue("ldate"),
-		Name:       r.FormValue("name"),
-		Sender:     r.FormValue("sender"),
-		Ispolnitel: r.FormValue("ispolnitel"),
-		Result:     r.FormValue("result"),
-		Familiar:   r.FormValue("familiar"),
-		Count:      count,
-		Copy:       r.FormValue("copy"),
-		Width:      r.FormValue("width"),
-		Location:   r.FormValue("location"),
-		Creator:    login,
-		File:       file,
-		FileHeader: header,
+	document.File, document.FileHeader, err = r.FormFile("file")
+	if err != nil {
+		h.log.Error(models.ErrRequest, err)
+		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+		return
 	}
+	defer document.File.Close()
+
+	document.Creator = login
 
 	switch document.Type {
 	case "Входящий":
-		resolutionsJSON := r.FormValue("resolutions")
-		if err := json.Unmarshal([]byte(resolutionsJSON), &document.Resolutions); err != nil {
-			http.Error(w, models.ErrRequest, http.StatusBadRequest)
-			h.log.Error(models.ErrRequest, err)
-			return
-		}
 		doc, err := h.service.AddIngoingDoc(document)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

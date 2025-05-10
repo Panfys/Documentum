@@ -51,7 +51,7 @@ func (s *SQLStorage) GetResolutoins(id int) ([]models.Resolution, error) {
 	for rows.Next() {
 		var resolution models.Resolution
 
-		if err := rows.Scan(&resolution.ID, &resolution.DocID, &resolution.Ispolnitel, &resolution.Text, &resolution.Time, &resolution.Date, &resolution.User, &resolution.Creator); err != nil {
+		if err := rows.Scan(&resolution.ID, &resolution.DocID, &resolution.Ispolnitel, &resolution.Text, &resolution.Deadline, &resolution.Date, &resolution.User, &resolution.Creator); err != nil {
 			return nil, s.log.Error(models.ErrGetDataInDB, err)
 		}
 

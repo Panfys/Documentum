@@ -47,7 +47,7 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 			docID,
 			res.Ispolnitel,
 			res.Text,
-			res.Time,
+			res.Deadline,
 			res.Date,
 			res.User,
 			res.Creator); err != nil {
@@ -78,7 +78,7 @@ func (s *SQLStorage) AddDocument(doc models.Document) error {
 func (s *SQLStorage) AddResolution(res models.Resolution) error {
 	newRes := "INSERT INTO `res` SET `doc_id` = ?, `ispolnitel` = ?, `text` = ?, `time` = ?, `date` = ?, `user` = ?, `creator` = ?"
 
-	_, err := s.db.Exec(newRes, res.DocID, res.Ispolnitel, res.Text, res.Time, res.Date, res.User, res.Creator)
+	_, err := s.db.Exec(newRes, res.DocID, res.Ispolnitel, res.Text, res.Deadline, res.Date, res.User, res.Creator)
 
 	if err != nil {
 		return s.log.Error(models.ErrAddDataInDB, err)
