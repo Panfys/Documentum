@@ -66,8 +66,8 @@ func (s *docService) GetDocuments(settings models.DocSettings) ([]models.Documen
 			// Сборка резолюций
 			for j := range documents[i].Resolutions {
 
-				if documents[i].Resolutions[j].Time.Valid {
-					documents[i].Resolutions[j].TimeStr, err = s.parseTime(documents[i].Resolutions[j].Time.String)
+				if documents[i].Resolutions[j].Deadline.Valid {
+					documents[i].Resolutions[j].DeadlineStr, err = s.parseTime(documents[i].Resolutions[j].Deadline.String)
 					if err != nil {
 						return []models.Document{}, err
 					}
