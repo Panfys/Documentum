@@ -205,25 +205,33 @@ async function submitNewDocumentForm() {
   }
   else docData.fileType = ""
 
-
-  // 2. Валидация данных
-  if (validateDocumentData(docData) > 0) {
-    return;
+  if (docData.type === "Приказ") {
+    if (validateDirectiveData(docData) > 0) {
+      return;
+    }
+  } else {
+    // 2. Валидация данных
+    if (validateDocumentData(docData) > 0) {
+      return;
+    }
   }
-  
-  // 3. Создаем новый FormData для отправки
+
   const uploadFormData = new FormData();
 
-  // Добавляем текстовые данные как JSON
   uploadFormData.append('document', JSON.stringify(docData));
 
-  // Добавляем файл отдельно
   if (fileInput && fileInput.files[0]) {
     uploadFormData.append('file', fileInput.files[0]);
   }
 
-  if (await fetchAddDocument(uploadFormData)) {
-    alert ("ГОТОВО")
+  if (docData.type === "Приказ") {
+    if (await fetchAddDirective(uploadFormData)) {
+      alert("Документ загружен! Перезагрузите страницу!")
+    }
+  } else {
+    if (await fetchAddDocument(uploadFormData)) {
+      alert("Документ загружен! Перезагрузите страницу!")
+    }
   }
 }
 

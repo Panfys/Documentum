@@ -9,8 +9,10 @@ import (
 
 type DocService interface {
 	GetDocuments(settings models.DocSettings) ([]models.Document, error)
+	GetDirectives(settings models.DocSettings) ([]models.Directive, error)
 	AddLookDocument(id string, name string) error
 	AddDocument(doc models.Document) (models.Document, error)
+	AddDirective(dir models.Directive) (models.Directive, error)
 }
 
 type docService struct {

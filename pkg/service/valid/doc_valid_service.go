@@ -19,6 +19,7 @@ import (
 type DocValidatService interface {
 	ValidDocument(reqDoc models.Document) (models.Document, error)
 	ValidResolution(res *models.Resolution) (models.Resolution, error)
+	ValidDirective(reqDir models.Directive) (models.Directive, error)
 }
 
 func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document, error) {
@@ -29,7 +30,11 @@ func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document,
 		return models.Document{}, errors.New("тип документа указан некорректно")
 	}
 
-	docCount, _ := strconv.Atoi(doc.Count)
+	docCount, err := strconv.Atoi(doc.Count)
+
+	if err != nil {
+		return models.Document{}, errors.New("количество экземпляров указано некорректно")
+	}
 
 	if doc.Type == "Входящий" {
 		err := v.validDocFNum(doc.FNum, "Вх. № ")

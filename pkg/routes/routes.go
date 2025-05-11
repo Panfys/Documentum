@@ -55,11 +55,12 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	//GET
 	protect.HandleFunc("/documents", docHandler.GetDocuments).Methods("GET")
 	//POST
-	protect.HandleFunc("/document", docHandler.AddDocument).Methods("POST")
+	protect.HandleFunc("/documents/document", docHandler.AddDocument).Methods("POST")
+	protect.HandleFunc("/documents/directive", docHandler.AddDirective).Methods("POST")
 	//PATCH
-	protect.HandleFunc("/user/me/icon", userHandler.UpdateUserIcon).Methods("PATCH")
-	protect.HandleFunc("/user/me/pass", userHandler.UpdateUserPassword).Methods("PATCH")
-	protect.HandleFunc("/document/{id:[0-9]+}/view", docHandler.AddLookDocument).Methods("PATCH")
+	protect.HandleFunc("/users/me/icon", userHandler.UpdateUserIcon).Methods("PATCH")
+	protect.HandleFunc("/users/me/pass", userHandler.UpdateUserPassword).Methods("PATCH")
+	protect.HandleFunc("/documents/{id:[0-9]+}/view", docHandler.AddLookDocument).Methods("PATCH")
 	//DELETE
 	protect.HandleFunc("/auth/logout", authHandler.ExitHandler).Methods("DELETE")
 

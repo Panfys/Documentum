@@ -33,7 +33,7 @@
 <div class="tubs__container--head" id="directive-head-container">
   <table class="tubs__table" id="directive-haed-table">
     <tr>
-      <th rowspan="2" class="table__column--number">Порядковый номер <br>и дата учета</th>
+      <th rowspan="2">Порядковый номер</th>
       <th rowspan="2" class="table__column--number">Дата подписи приказа (директивы)</th>
       <th colspan="5" class="table__column--colspan">Подписано и получено</th>
       <th colspan="3" class="table__column--colspan">Отправлено</th>
@@ -59,7 +59,7 @@
 
   <table class="tubs__table" id="directive-hidden-table">
     <tr>
-      <th rowspan="2" class="table__column--number">Порядковый номер <br>и дата учета</th>
+      <th rowspan="2" class="table__column--number">Порядковый номер</th>
       <th rowspan="2" class="table__column--number">Дата подписи приказа (директивы)</th>
       <th colspan="5" class="table__column--colspan">Подписано и получено</th>
       <th colspan="3" class="table__column--colspan">Отправлено</th>
@@ -85,14 +85,12 @@
   <table class="tubs__table tubs__table--newdoc" id="table-newdoc" btn-id="directive">
 
     <tr>
-      <td class="table__column--number">
-        <input class="table__text--input" id="input-newdoc-fnum" name="fnum" type="text" value="Приказ № ">
-        <br> от
-        <input class="table__data--input" id="input-newdoc-fdate" name="fdate" type="date" value="">
+      <td>
+        <input class="table__text--input" id="input-newdoc-number" name="number" type="text" value="Приказ № ">
       </td>
 
       <td class="table__column--number">
-        <input class="table__data--input" id="input-newdoc-ldate" name="ldate" type="date">
+        <input class="table__data--input" id="input-newdoc-date" name="date" type="date">
       </td>
 
       <td colspan="2">
@@ -100,27 +98,29 @@
       </td>
 
       <td>
-        <input class="table__text--input" id="input-newdoc-sender" name="sender" type="text">
+        <input class="table__text--input" id="input-newdoc-autor" name="autor" type="text">
       </td>
 
       <td>
-        <input class="table__text--input" id="input-newdoc-ispolnitel" name="ispolnitel" type="text">
+        <input class="table__text--input" id="input-newdoc-numCoverLetter" name="numCoverLetter" type="text"><br> от
+        <input class="table__data--input" id="input-newdoc-dateCoverLetter" name="dateCoverLetter" type="date">
       </td>
 
       <td>
-        <input class="table__text--input" id="input-newdoc-count" name="count" type="number">
+        <input class="table__text--input" id="input-newdoc-countCopy" name="countCopy" type="number">
       </td>
 
       <td id="column-newdoc-sender" >
-        <input class="table__text--input" id="input-newdoc-result" name="result" type="text">
+        <input class="table__text--input" id="input-newdoc-sender" name="sender" type="text">
       </td>
 
       <td id="column-newdoc-letter">
-        <input class="table__text--input" id="input-newdoc-copy" name="copy" type="text">
+        <input class="table__text--input" id="input-newdoc-numSendLetter" name="numSendLetter" type="text"><br> от
+        <input class="table__data--input" id="input-newdoc-dateSendLetter" name="dateSendLetter" type="date">
       </td>
 
       <td id="column-newdoc-copy">
-        <input class="table__text--input" id="input-newdoc-width" name="width" type="number">
+        <input class="table__text--input" id="input-newdoc-countSendCopy" name="countSendCopy" type="number">
       </td>
 
       <td class="table__column--familiar">

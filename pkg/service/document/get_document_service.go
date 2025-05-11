@@ -84,6 +84,57 @@ func (s *docService) GetDocuments(settings models.DocSettings) ([]models.Documen
 	return documents, nil
 }
 
+func (s *docService) GetDirectives(settings models.DocSettings) ([]models.Directive, error) {
+	var directives []models.Directive
+
+	if settings.DocSet == "" {
+		settings.DocSet = "ASC"
+	}
+
+	if settings.DocCol == "" {
+		settings.DocCol = "id"
+	}
+
+	if settings.DocDatain == "" {
+		settings.DocDatain = "2000-01-01"
+	}
+
+	if settings.DocDatato == "" {
+		settings.DocDatato = "3000-01-01"
+	}
+	
+	directives, err := s.stor.GetDirectives(settings)
+
+	if err != nil {
+		return []models.Directive{}, err
+	}
+
+	for i := range directives {
+
+		directives[i].Date, err = s.parseDate(directives[i].Date)
+
+		if err != nil {
+			return []models.Directive{}, err
+		}
+
+		if directives[i].DateCoverLetter.Valid{
+			directives[i].DateCoverLetterStr, err = s.parseDate(directives[i].DateCoverLetter.String)
+			if err != nil {
+				return []models.Directive{}, err
+			}
+		}
+
+		if directives[i].DateSendLetter.Valid{
+			directives[i].DateSendLetterStr, err = s.parseDate(directives[i].DateSendLetter.String)
+			if err != nil {
+				return []models.Directive{}, err
+			}
+		}
+	}
+
+	return directives, nil
+}
+
 func (s *docService) parseDate(date string) (string, error) {
 	newdate, err := time.Parse(time.RFC3339, date)
 	if err != nil {

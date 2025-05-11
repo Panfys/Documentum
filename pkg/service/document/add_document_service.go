@@ -69,3 +69,28 @@ func (d *docService) AddDocument(reqDoc models.Document) (models.Document, error
 
 	return doc, nil
 }
+
+func (d *docService) AddDirective(reqDir models.Directive) (models.Directive, error) {
+
+	dir, err := d.validSrv.ValidDirective(reqDir)
+	if err != nil {
+		return models.Directive{}, err
+	}
+
+	path := "/app/web/source/documents/"
+
+	newFileName, err := d.fileSrv.AddFile(path, dir.FileHeader.Filename, dir.File)
+
+	if err != nil {
+		return models.Directive{}, err
+	}
+
+	dir.FileURL = filepath.Join("/source/documents/", newFileName)
+
+	if err := d.stor.AddDirective(dir); err != nil {
+		d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName))
+		return models.Directive{}, err
+	}
+
+	return dir, nil
+}

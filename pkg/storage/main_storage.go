@@ -45,5 +45,7 @@ type DocStorage interface {
 	AddLookDocument(id string, name string) error
 	GetUserName(login string) (string, error)
 	AddDocumentWithResolutions(doc models.Document) error
+	AddDirective(doc models.Directive) error
+	GetDirectives(settings models.DocSettings) ([]models.Directive, error)
 	AddDocument(doc models.Document) error
 }
