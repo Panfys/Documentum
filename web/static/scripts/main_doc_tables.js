@@ -38,7 +38,7 @@ function WriteDocumentsInTable(documents, container) {
                 <div class='table__resolution' id='ingoing-resolution'>
                     <div class='table__resolution--ispolnitel'>${resolution.ispolnitel}</div>
                     <div class='table__resolution--text'>&#171;${resolution.text}&#187;</div>
-                    <div class='table__resolution--time'>${resolution.time}</div>
+                    <div class='table__resolution--time'>${resolution.deadline}</div>
                     <div class='table__resolution--user'>${resolution.user}</div>
                     <div class='table__resolution--date'>${resolution.date}</div>
                 </div>`;

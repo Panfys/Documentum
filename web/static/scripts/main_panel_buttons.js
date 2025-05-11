@@ -188,7 +188,6 @@ async function submitNewDocumentForm() {
   );
   const docData = {};
   const formData = new FormData(form);
-  docData.createdAt = new Date().toISOString();
   docData.type = docType.type;
 
   processResolutions(activeTab, docData);
@@ -245,7 +244,6 @@ function processResolutions(activeTab, docData) {
     // Базовый объект резолюции
     const resolutionData = {
       type: isTask ? "task" : "result",
-      createdAt: new Date().toISOString(),
       text: resolution.querySelector("#resolution-text")?.value || "",
       user: resolution.querySelector("#resolution-user")?.value || "",
       date: resolution.querySelector("#resolution-date")?.value || ""

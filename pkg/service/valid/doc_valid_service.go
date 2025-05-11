@@ -4,24 +4,24 @@ import (
 	"database/sql"
 	"documentum/pkg/models"
 	"errors"
-	"path/filepath"
-	_ "github.com/go-sql-driver/mysql"
 	"mime"
 	"mime/multipart"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
-	"unicode"
 	"time"
+	"unicode"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type DocValidatService interface {
-	ValidIngoingDoc(reqDoc models.Document) (models.Document, error)
+	ValidDocument(reqDoc models.Document) (models.Document, error)
 	ValidResolution(res *models.Resolution) (models.Resolution, error)
-	ValidOutgoingDoc(reqDoc models.Document) (models.Document, error)
 }
 
-func (v *validatService) ValidIngoingDoc(reqDoc models.Document) (models.Document, error) {
+func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document, error) {
 
 	doc := v.sanitizeDocument(&reqDoc)
 
@@ -29,9 +29,60 @@ func (v *validatService) ValidIngoingDoc(reqDoc models.Document) (models.Documen
 		return models.Document{}, errors.New("тип документа указан некорректно")
 	}
 
-	err := v.validDocFNum(doc.FNum)
-	if err != nil {
-		return models.Document{}, err
+	docCount, _ := strconv.Atoi(doc.Count)
+
+	if doc.Type == "Входящий" {
+		err := v.validDocFNum(doc.FNum, "Вх. № ")
+		if err != nil {
+			return models.Document{}, err
+		}
+
+		err = v.validDocSender(doc.Sender)
+		if err != nil {
+			return models.Document{}, err
+		}
+
+		err = v.validDocCopy(doc.Copy)
+		if err != nil {
+			return models.Document{}, err
+		}
+
+	} else {
+		err := v.validDocFNum(doc.FNum, "Исх. № 330/")
+		if err != nil {
+			return models.Document{}, err
+		}
+
+		err = v.validDocSender(doc.Sender)
+		if err != nil {
+			return models.Document{}, err
+		}
+
+		err = v.validDocCopy(doc.Copy)
+		if err != nil {
+			return models.Document{}, err
+		}
+
+		if docCount > 1 && docCount < 6 {
+			additionalSenders := []string{doc.Sender1, doc.Sender2, doc.Sender3, doc.Sender4}
+			additionalCopyes := []string{doc.Copy1, doc.Copy2, doc.Copy3, doc.Copy4}
+			for i := 0; i < docCount-1; i++ {
+				sender := additionalSenders[i]
+				copy := additionalCopyes[i]
+
+				if err := v.validDocSender(sender); err != nil {
+					return models.Document{}, err
+				}
+
+				err = v.validDocCopy(copy)
+				if err != nil {
+					return models.Document{}, err
+				}
+
+				doc.Sender += " <br> " + sender
+				doc.Copy += " <br> " + copy
+			}
+		}
 	}
 
 	docFDate, err := v.stringToDateNullString(doc.FDate)
@@ -39,8 +90,9 @@ func (v *validatService) ValidIngoingDoc(reqDoc models.Document) (models.Documen
 		return models.Document{}, errors.New("дата документа указана неверно")
 	}
 
-	if !v.validDocDate(docFDate) {
-		return models.Document{}, errors.New("дата документа не указана")
+	err = v.validDocDate(docFDate)
+	if err != nil {
+		return models.Document{}, err
 	}
 
 	doc.LDate, err = v.stringToDateNullString(doc.LDateStr)
@@ -58,86 +110,12 @@ func (v *validatService) ValidIngoingDoc(reqDoc models.Document) (models.Documen
 		return models.Document{}, err
 	}
 
-	err = v.validDocSender(doc.Sender)
-	if err != nil {
-		return models.Document{}, err
-	}
-
 	err = v.validDocIspolnitel(doc.Ispolnitel, doc.Resolutions)
 	if err != nil {
 		return models.Document{}, err
 	}
 
-	err = v.validDocCount(doc.Count)
-	if err != nil {
-		return models.Document{}, err
-	}
-
-	err = v.validDocWidth(doc.Width)
-	if err != nil {
-		return models.Document{}, err
-	}
-
-	if doc.Location != "" && !v.validDocLocation(doc.Location) {
-		return models.Document{}, errors.New(`отметка о подшивке указана неверно, примеры: "Дело 12, стр. 12", "Дело 1, стр. 12-19"`)
-	}
-
-	err = v.validDocFile(doc.FileHeader)
-	if err != nil {
-		return models.Document{}, err
-	}
-
-	return doc, nil
-}
-
-func (v *validatService) ValidOutgoingDoc(reqDoc models.Document) (models.Document, error) {
-
-	doc := v.sanitizeDocument(&reqDoc)
-
-	if !v.validDocType(doc.Type) {
-		return models.Document{}, errors.New("тип документа указан некорректно")
-	}
-
-	err := v.validDocLNum(doc.FNum)
-	if err != nil {
-		return models.Document{}, err
-	}
-
-	docFDate, err := v.stringToDateNullString(doc.FDate)
-	if err != nil {
-		return models.Document{}, errors.New("дата документа указана неверно")
-	}
-
-	if !v.validDocDate(docFDate) {
-		return models.Document{}, errors.New("дата документа не указана")
-	}
-
-	doc.LDate, err = v.stringToDateNullString(doc.LDateStr)
-	if err != nil {
-		return models.Document{}, errors.New("дата поступившего документа указана неверно")
-	}
-
-	err = v.validDocLdate(doc.LDate, doc.LNum)
-	if err != nil {
-		return models.Document{}, err
-	}
-
-	err = v.validDocName(doc.Name)
-	if err != nil {
-		return models.Document{}, err
-	}
-
-	err = v.validDocSender(doc.Sender)
-	if err != nil {
-		return models.Document{}, err
-	}
-
-	err = v.validDocIspolnitel(doc.Ispolnitel, doc.Resolutions)
-	if err != nil {
-		return models.Document{}, err
-	}
-
-	err = v.validDocCount(doc.Count)
+	err = v.validDocCount(docCount)
 	if err != nil {
 		return models.Document{}, err
 	}
@@ -169,30 +147,20 @@ func (v *validatService) validDocType(docType string) bool {
 	}
 }
 
-func (v *validatService) validDocFNum(fnum string) error {
+func (v *validatService) validDocFNum(fnum, Type string) error {
 	trimFnum := strings.TrimSpace(fnum)
 
-	if trimFnum == "" {
-		return errors.New(`номер документа не указан`)
+	if trimFnum == "" || trimFnum == Type || trimFnum == "№" {
+		return errors.New(`порядковый номер документа не указан`)
 	}
 
-	if trimFnum == "№" || trimFnum == "Вх. №" {
-		return errors.New(`номер документа не должен содержать только "№" или "Вх. №"`)
-	}
-
-	if strings.HasPrefix(trimFnum, "Вх. № ") {
-		numPart := strings.TrimPrefix(trimFnum, "Вх. № ")
+	if strings.HasPrefix(trimFnum, Type) {
+		numPart := strings.TrimPrefix(trimFnum, Type)
 		if !v.containsDigit(numPart) {
-			return errors.New(`номер документа должен начинаться либо с "Вх. № ", либо с цифры`)
+			return errors.New(`порядковый номер документа указан неверно, примеры верного номера: "` + Type + `123", "` + Type + `123дсп", "` + Type + `123/124", "` + Type + `123/654дсп"`)
 		}
 	} else {
-		if len(trimFnum) == 0 || !unicode.IsDigit(rune(trimFnum[0])) {
-			return errors.New(` если номер документа не начинается с "Вх. № ", то должен начинаться с цифры`)
-		}
-	}
-
-	if !v.containsDigit(trimFnum) {
-		return errors.New(`номер документа указан некорректно, примеры правильного номера: "Вх. № 1", "Вх. № 317/124дсп", "312/8321", "215/1111дсп"`)
+		return errors.New(`порядковый номер документа указан неверно, примеры верного номера: "` + Type + `123", "` + Type + `123дсп", "` + Type + `123/124", "` + Type + `123/654дсп"`)
 	}
 
 	return nil
@@ -201,12 +169,8 @@ func (v *validatService) validDocFNum(fnum string) error {
 func (v *validatService) validDocLNum(lnum string) error {
 	trimFnum := strings.TrimSpace(lnum)
 
-	if trimFnum == "" {
+	if trimFnum == "" || trimFnum == "№" || trimFnum == "Исх. №" {
 		return errors.New(`номер документа не указан`)
-	}
-
-	if trimFnum == "№" || trimFnum == "Исх. №" {
-		return errors.New(`номер документа не должен содержать только "№" или "Исх. №"`)
 	}
 
 	if strings.HasPrefix(trimFnum, "Исх. № ") {
@@ -216,7 +180,7 @@ func (v *validatService) validDocLNum(lnum string) error {
 		}
 	} else {
 		if len(trimFnum) == 0 || !unicode.IsDigit(rune(trimFnum[0])) {
-			return errors.New(` если номер документа не начинается с "Исх. № ", то должен начинаться с цифры`)
+			return errors.New(`если номер документа не начинается с "Исх. № ", то должен начинаться с цифры`)
 		}
 	}
 
@@ -227,8 +191,12 @@ func (v *validatService) validDocLNum(lnum string) error {
 	return nil
 }
 
-func (v *validatService) validDocDate(date sql.NullString) bool {
-	return date.Valid
+func (v *validatService) validDocDate(date sql.NullString) error {
+	if !date.Valid {
+		return errors.New(`дата учета документа не указана`)
+	}
+
+	return nil
 }
 
 func (v *validatService) validDocLdate(date sql.NullString, num string) error {
@@ -272,7 +240,7 @@ func (v *validatService) validDocSender(sender string) error {
 	trimSender := strings.TrimSpace(sender)
 
 	if trimSender == "" {
-		return errors.New("отправитель документа не указано")
+		return errors.New("отправитель документа не указан")
 	}
 
 	if len(trimSender) > 100 {
@@ -287,7 +255,14 @@ func (v *validatService) validDocIspolnitel(ispolnitel string, resolutions []mod
 
 	if len(resolutions) == 0 {
 		if trimIspolnitel == "" {
-			return errors.New("исполнитель документа не указано")
+			return errors.New("исполнитель документа не указан")
+		}
+
+		pattern := `^[А-ЯЁ][а-яё]+ [А-ЯЁ]\.[А-ЯЁ]\.*$`
+		re := regexp.MustCompile(pattern)
+
+		if !re.MatchString(trimIspolnitel) {
+			return errors.New(`исполнитель указан неверно, пример: "Панфилов А.П."`)
 		}
 
 		if len(trimIspolnitel) > 100 {
@@ -300,7 +275,25 @@ func (v *validatService) validDocIspolnitel(ispolnitel string, resolutions []mod
 func (v *validatService) validDocCount(count int) error {
 
 	if count < 1 {
-		return errors.New("количестов экземпляров не может быть меньше единицы")
+		return errors.New(`количестов экземпляров должно быть больше нуля`)
+	}
+
+	return nil
+}
+
+func (v *validatService) validDocCopy(copy string) error {
+	if copy == "" {
+		return errors.New("номер экземпляра не указан")
+	}
+
+	// Проверяем что первый символ - цифра
+	if len(copy) == 0 || copy[0] < '0' || copy[0] > '9' {
+		return errors.New("номер экземпляра должен начинаться с цифры")
+	}
+
+	// Проверяем что первая цифра > 0
+	if copy[0] == '0' {
+		return errors.New("номер экземпляра должна быть больше нуля")
 	}
 
 	return nil
@@ -411,14 +404,26 @@ func (v *validatService) sanitizeDocument(doc *models.Document) models.Document 
 	doc.LNum = v.policy.Sanitize(doc.LNum)
 	doc.Name = v.policy.Sanitize(doc.Name)
 	doc.Sender = v.policy.Sanitize(doc.Sender)
+	doc.Sender1 = v.policy.Sanitize(doc.Sender1)
+	doc.Sender2 = v.policy.Sanitize(doc.Sender2)
+	doc.Sender3 = v.policy.Sanitize(doc.Sender3)
+	doc.Sender4 = v.policy.Sanitize(doc.Sender4)
 	doc.Ispolnitel = v.policy.Sanitize(doc.Ispolnitel)
 	doc.Result = v.policy.Sanitize(doc.Result)
 	doc.Familiar = v.policy.Sanitize(doc.Familiar)
 	doc.Copy = v.policy.Sanitize(doc.Copy)
+	doc.Copy1 = v.policy.Sanitize(doc.Copy1)
+	doc.Copy2 = v.policy.Sanitize(doc.Copy2)
+	doc.Copy3 = v.policy.Sanitize(doc.Copy3)
+	doc.Copy4 = v.policy.Sanitize(doc.Copy4)
 	doc.Width = v.policy.Sanitize(doc.Width)
 	doc.Location = v.policy.Sanitize(doc.Location)
-	doc.FileHeader.Filename = v.policy.Sanitize(doc.FileHeader.Filename)
 	doc.Creator = v.policy.Sanitize(doc.Creator)
+
+	// Очищаем имя файла (если FileHeader не nil)
+	if doc.FileHeader != nil {
+		doc.FileHeader.Filename = v.policy.Sanitize(doc.FileHeader.Filename)
+	}
 
 	return *doc
 }

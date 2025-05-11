@@ -3,17 +3,37 @@
 // Функция валидации входящего документа
 function validateDocumentData(data) {
   validate = 0
+/*
+  if (data.type === "Входящий") {
+    if (validDocFNum(data.fnum, "Вх. № ")) validate++;
+    if (validDocSender(data.sender)) validate++;
+    if (validDocCopy(data.copy)) validate++;
+  } else {
+    if (validDocFNum(data.fnum, "Исх. № 330/")) validate++;
+    if (1 < data.count && data.count < 6) {
+      if (validDocSender(data.sender)) validate++;
+      if (validDocCopy(data.copy)) validate++;
+      for (let i = 1; i < data.count; i++) {
+        const sender = data[`sender${i}`];
+        const copy = data[`copy${i}`];
+        if (validDocSender(sender, i)) validate++;
+        if (validDocCopy(copy, i)) validate++;
+      }
+    } else {
+      if (validDocSender(data.sender)) validate++;
+      if (validDocCopy(data.copy)) validate++;
+    }
+  }
 
-  if (validDocFNum(data.fnum)) validate++;
   if (validDocFDate(data.fdate)) validate++;
   if ((data.lnum != "" || data.ldate != "") && validDocLNum(data.lnum, data.ldate)) { validate++; } else {
     ReAlertValidDocError('lnum')
   }
+
   if (validDocName(data.name)) validate++;
-  if (validDocSender(data.sender)) validate++;
   if (validDocIspolnitel(data.ispolnitel, data.resolutions)) validate++;
   if (validDocCount(data.count)) validate++;
-  if (validDocCopy(data.copy)) validate++;
+
   if (validDocWidth(data.width)) validate++;
 
   if (data.resolutions.length > 0) {
@@ -23,7 +43,7 @@ function validateDocumentData(data) {
   if (validate === 0) serverMessage("close");
 
   if (validDocFileType(data.fileType)) validate++
-
+*/
   return validate;
 }
 
@@ -56,23 +76,23 @@ function validDocFileType(fileType) {
 }
 
 // Проверка порядкового номера
-function validDocFNum(fnum) {
-  if (fnum === '' || fnum === 'Вх. №' || fnum === '№') {
+function validDocFNum(fnum, type) {
+  if (fnum === '' || fnum === type || fnum === '№') {
     AlertValidDocError("fnum")
     serverMessage("show", 'порядковый номер документа не указан');
     return true;
   }
 
-  if (fnum.startsWith('Вх. № ')) {
-    const numberPart = fnum.slice('Вх. № '.length);
+  if (fnum.startsWith(type)) {
+    const numberPart = fnum.slice(type.length);
     if (!validDocNum(numberPart)) {
       AlertValidDocError("fnum")
-      serverMessage("show", 'порядковый номер документа указан неверно, примеры верного номера: "Вх. № 123", "Вх. № 123дсп", "Вх. № 123/124", "Вх. № 123вн.дсп"');
+      serverMessage("show", `порядковый номер документа указан неверно, примеры верного номера: "${type}123", "${type}123дсп", "${type}123/124", "${type}123/126дсп"`);
       return true;
     }
   } else {
     AlertValidDocError("fnum")
-    serverMessage("show", 'порядковый номер документа указан неверно, примеры верного номера: "Вх. № 123", "Вх. № 123дсп", "Вх. № 123/124", "Вх. № 123вн.дсп"');
+    serverMessage("show", `порядковый номер документа указан неверно, примеры верного номера: "${type}123", "${type}123дсп", "${type}123/124", "${type}123/126дсп"`);
     return true;
   }
 
@@ -154,14 +174,18 @@ function validDocName(name) {
 }
 
 // Проверка отправителя документа
-function validDocSender(sender) {
+function validDocSender(sender, id) {
+  if (!id) {
+    id = ""
+  }
+  
   if (sender === '') {
-    AlertValidDocError("sender")
+    AlertValidDocError(`sender${id}`)
     serverMessage("show", 'отправитель документа не указан');
     return true;
   }
 
-  ReAlertValidDocError('sender')
+  ReAlertValidDocError(`sender${id}`)
   return false;
 }
 
@@ -195,30 +219,34 @@ function validDocCount(count) {
 }
 
 // Проверка количества экз. документа
-function validDocCopy(copy) {
+
+function validDocCopy(copy, id) {
+
+  if (!id) {
+    id = ""
+  }
 
   if (copy === '') {
-    AlertValidDocError("copy")
+    AlertValidDocError(`copy${id}`);
     serverMessage("show", 'номер экземпляра не указан');
     return true;
   }
 
-  // Извлекаем первое число из строки
-  const match = copy.match(/^\d+/);
-  if (!match) {
-    AlertValidDocError("copy")
-    serverMessage("show", 'номер экземпляра должен начинаться с числа');
+  // Проверяем что первый символ - цифра
+  if (!/^\d/.test(copy)) {
+    AlertValidDocError(`copy${id}`);
+    serverMessage("show", 'номер экземпляра должен начинаться с цифры');
     return true;
   }
 
-  const number = parseInt(match[0], 10);
-  if (number <= 0) {
-    AlertValidDocError("copy")
-    serverMessage("show", 'номер экземпляра должен быть больше нуля');
+  // Проверяем что первая цифра > 0
+  if (copy[0] === '0') {
+    AlertValidDocError(`copy${id}`);
+    serverMessage("show", 'первая цифра номера экземпляра должна быть больше нуля');
     return true;
   }
 
-  ReAlertValidDocError('copy');
+  ReAlertValidDocError(`copy${id}`);
   return false;
 }
 
@@ -317,30 +345,18 @@ function validResolution(id, resolution) {
     } else {
       ValidResolutionReError(res_id, 'ispolnitel');
     }
-    if (!resolution.user || resolution.user === '') {
-      ValidResolutionError(res_id, 'user');
-      serverMessage("show", `в резолюции ${id + 1} не указан руководитель`);
-      validate++
-    } else if (!UserPattern.test(resolution.user)) {
-      ValidResolutionError(res_id, 'user');
-      serverMessage("show", `в резолюции ${id + 1} руководитель указан неверно, пример: "Е.Лыков"`);
-      validate++
-    }
-    else {
-      ValidResolutionReError(res_id, 'user');
-    }
+  }
+
+  if (!resolution.user || resolution.user === '') {
+    ValidResolutionError(res_id, 'user');
+    serverMessage("show", `в резолюции ${id + 1} не указан исполнитель`);
+    validate++
+  } else if (!UserPattern.test(resolution.user)) {
+    ValidResolutionError(res_id, 'user');
+    serverMessage("show", `автор резолюции ${id + 1} указан неверно, пример: "Е.Лыков"`);
+    validate++
   } else {
-    if (!resolution.user || resolution.user === '') {
-      ValidResolutionError(res_id, 'user');
-      serverMessage("show", `в резолюции ${id + 1} не указан исполнитель`);
-      validate++
-    } else if (!UserPattern.test(resolution.user)) {
-      ValidResolutionError(res_id, 'user');
-      serverMessage("show", `в резолюции ${id + 1} исполнитель указан неверно, пример: "А.Панфилов"`);
-      validate++
-    } else {
-      ValidResolutionReError(res_id, 'user');
-    }
+    ValidResolutionReError(res_id, 'user');
   }
 
   if (validate > 0) return true; else return false

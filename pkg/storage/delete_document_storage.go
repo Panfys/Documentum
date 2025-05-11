@@ -6,7 +6,7 @@ import (
 
 func (s *SQLStorage) DeleteDocumentByID(id int) error {
 	
-	query := "DELETE FROM doc WHERE id = ?"
+	query := "DELETE FROM documents WHERE id = ?"
 
 	_, err := s.db.Exec(query, id)
 	if err != nil {
@@ -17,7 +17,7 @@ func (s *SQLStorage) DeleteDocumentByID(id int) error {
 }
 
 func (s *SQLStorage) DeleteResolutionByDocID(id int) error {
-	query := "DELETE FROM res WHERE doc_id = ?"
+	query := "DELETE FROM resolutions WHERE doc_id = ?"
 
 	_, err := s.db.Exec(query, id)
 	if err != nil {

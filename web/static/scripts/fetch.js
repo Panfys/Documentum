@@ -201,7 +201,7 @@ async function FetchGetDocuments(settings) {
 }
 
 // Запись просмотра докумнтов
-async function FetchViewDocument(id) {
+async function fetchViewDocument(id) {
   try {
     const response = await fetch(`/document/${encodeURIComponent(id)}/view`, {
       method: 'PATCH',
