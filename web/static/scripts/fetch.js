@@ -106,7 +106,7 @@ async function FetchAuthorize(authData) {
 // Изменение иконки пользователя
 async function FetchUpdateUserIcon(icon) {
   try {
-    const response = await fetch("/user/me/icon", {
+    const response = await fetch("/users/me/icon", {
       method: "PATCH",
       body: icon,
       credentials: "include"
@@ -128,7 +128,7 @@ async function FetchUpdateUserIcon(icon) {
 // Изменение пароля пользователя
 async function FetchUpdateUserPass(updatePass) {
   try {
-    const response = await fetch("/user/me/pass", {
+    const response = await fetch("/users/me/pass", {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -203,7 +203,7 @@ async function FetchGetDocuments(settings) {
 // Запись просмотра докумнтов
 async function fetchViewDocument(id) {
   try {
-    const response = await fetch(`/document/${encodeURIComponent(id)}/view`, {
+    const response = await fetch(`/documents/${encodeURIComponent(id)}/view`, {
       method: 'PATCH',
     });
 
@@ -216,9 +216,29 @@ async function fetchViewDocument(id) {
   }
 }
 
+// Запись нового документа
 async function fetchAddDocument(data) {
   try {
-    const response = await fetch('/document', {
+    const response = await fetch('/documents/document', {
+      method: 'POST',
+      body: data
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
+    }
+    return true
+  } catch (error) {
+    serverMessage("show", error.message);
+    return false
+  }
+}
+
+// Запись новой директивы/приказа
+async function fetchAddDirective(data) {
+  try {
+    const response = await fetch('/documents/directive', {
       method: 'POST',
       body: data
     });

@@ -40,15 +40,31 @@ func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	documents, err := h.service.GetDocuments(settings)
+	w.Header().Set("Content-Type", "application/json")
 
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+	if settings.DocType == "Приказ" {
+		directives, err := h.service.GetDirectives(settings)
+
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		json.NewEncoder(w).Encode(directives)
+
+	} else {
+		documents, err := h.service.GetDocuments(settings)
+
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		json.NewEncoder(w).Encode(documents)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(documents)
+	
+	
 }
 
 func (h *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
@@ -95,19 +111,58 @@ func (h *DocHandler) AddDocument(w http.ResponseWriter, r *http.Request) {
 
 	document.Creator = login
 
-	switch document.Type {
-	default:
-		doc, err := h.service.AddDocument(document)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
+	doc, err := h.service.AddDocument(document)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
 
-		// Кодируем данные в JSON и отправляем
-		if err := json.NewEncoder(w).Encode(doc); err != nil {
-			http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
-			return
-		}
+	if err := json.NewEncoder(w).Encode(doc); err != nil {
+		http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *DocHandler) AddDirective(w http.ResponseWriter, r *http.Request) {
+
+	login := r.Context().Value(models.LoginKey).(string)
+
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		h.log.Error(models.ErrRequest, err)
+		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+		return
+	}
+
+	jsonData := r.FormValue("document")
+	var directive models.Directive
+	if err := json.Unmarshal([]byte(jsonData), &directive); err != nil {
+		h.log.Error(models.ErrRequest, err)
+		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+		return
+	}
+
+	directive.File, directive.FileHeader, err = r.FormFile("file")
+	if err != nil {
+		h.log.Error(models.ErrFileRequest, err)
+		http.Error(w, models.ErrFileRequest, http.StatusBadRequest)
+		return
+	}
+	defer directive.File.Close()
+
+	directive.Creator = login
+
+	dir, err := h.service.AddDirective(directive)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(dir); err != nil {
+		http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
+		return
 	}
 }

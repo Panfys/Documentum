@@ -1,9 +1,9 @@
 //---Проверка введенных данных при создании или изменении документа
 
-// Функция валидации входящего документа
+// Функция валидации входящего или исходящего документа
 function validateDocumentData(data) {
   validate = 0
-/*
+
   if (data.type === "Входящий") {
     if (validDocFNum(data.fnum, "Вх. № ")) validate++;
     if (validDocSender(data.sender)) validate++;
@@ -43,7 +43,7 @@ function validateDocumentData(data) {
   if (validate === 0) serverMessage("close");
 
   if (validDocFileType(data.fileType)) validate++
-*/
+
   return validate;
 }
 
@@ -178,7 +178,7 @@ function validDocSender(sender, id) {
   if (!id) {
     id = ""
   }
-  
+
   if (sender === '') {
     AlertValidDocError(`sender${id}`)
     serverMessage("show", 'отправитель документа не указан');

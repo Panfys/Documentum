@@ -42,6 +42,30 @@ type Document struct {
 	Resolutions []Resolution `json:"resolutions"`
 }
 
+type Directive struct {
+	ID                 int    `json:"id"`
+	Number             string `json:"number"`
+	Date               string `json:"date"`
+	Name               string `json:"name"`
+	Autor              string `json:"autor"`
+	NumCoverLetter     string `json:"numCoverLetter"`
+	DateCoverLetterStr string `json:"dateCoverLetter"`
+	DateCoverLetter    sql.NullString
+	CountCopy          string `json:"countCopy"`
+	Sender             string `json:"sender"`
+	NumSendLetter      string `json:"numSendLetter"`
+	DateSendLetterStr  string `json:"dateSendLetter"`
+	DateSendLetter     sql.NullString
+	CountSendCopy      string `json:"countSendCopy"`
+	Familiar           string `json:"familiar"`
+	Location           string `json:"location"`
+	FileURL            string `json:"fileURL"`
+	File               multipart.File
+	FileHeader         *multipart.FileHeader
+	Creator            string `json:"creator"`
+	CreatedAt          time.Time 
+}
+
 type Resolution struct {
 	ID          string `json:"id"`
 	DocID       int    `json:"doc_id"`

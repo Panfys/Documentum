@@ -79,6 +79,18 @@ func (s *SQLStorage) AddDocument(doc models.Document) error {
 	return nil
 }
 
+func (s *SQLStorage) AddDirective(doc models.Directive) error {
+	insertDirQuery := "INSERT INTO directives (number, date, name, autor, numCoverLetter, dateCoverLetter, countCopy, sender, numSendLetter, dateSendLetter, countSendCopy, familiar, location, fileURL, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+
+	_, err := s.db.Exec(insertDirQuery, doc.Number, doc.Date, doc.Name, doc.Autor, doc.NumCoverLetter, doc.DateCoverLetter, doc.CountCopy, doc.Sender, doc.NumSendLetter, doc.DateSendLetter, doc.CountSendCopy, doc.Familiar, doc.Location, doc.FileURL, doc.Creator, time.Now())
+
+	if err != nil {
+		return s.log.Error(models.ErrAddDataInDB, err)
+	}
+
+	return nil
+}
+
 func (s *SQLStorage) AddResolution(res models.Resolution) error {
 	newRes := "INSERT INTO `resolutions` SET `doc_id` = ?, `ispolnitel` = ?, `text` = ?, `time` = ?, `date` = ?, `user` = ?, `creator` = ?"
 
