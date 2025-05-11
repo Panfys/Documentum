@@ -101,17 +101,20 @@ async function authorize() {
 
     // Динамическая загрузка скриптов
     await loadScripts([
-      "/static/scripts/main_get_data.js",
       "/static/scripts/main.js",
       "/static/scripts/main_account.js",
       "/static/scripts/main_settings.js",
-      "/static/scripts/main_doc_tables.js",
       "/static/scripts/main_header_panel.js",
-      "/static/scripts/main_validator.js",
       "/static/scripts/main_open_files.js",
       "/static/scripts/main_panel_buttons.js",
-      "/static/scripts/main_res_buttons.js"
+      "/static/scripts/main_res_buttons.js",
+      "/static/scripts/main_outgoing.js"
     ]);
+
+     initDocumentViewHandlers();
+     initDocumentHandlers();
+     initResolutionHandlers();
+     updateInputs();
   }
 }
 

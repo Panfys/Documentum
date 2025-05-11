@@ -87,8 +87,8 @@ func (h *DocHandler) AddDocument(w http.ResponseWriter, r *http.Request) {
 
 	document.File, document.FileHeader, err = r.FormFile("file")
 	if err != nil {
-		h.log.Error(models.ErrRequest, err)
-		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+		h.log.Error(models.ErrFileRequest, err)
+		http.Error(w, models.ErrFileRequest, http.StatusBadRequest)
 		return
 	}
 	defer document.File.Close()
@@ -96,32 +96,18 @@ func (h *DocHandler) AddDocument(w http.ResponseWriter, r *http.Request) {
 	document.Creator = login
 
 	switch document.Type {
-	case "Входящий":
-		doc, err := h.service.AddIngoingDoc(document)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-
-		// Кодируем данные в JSON и отправляем
-		if err := json.NewEncoder(w).Encode(doc); err != nil {
-			http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
-			return
-		}
-	case "Исходящий":
-		doc, err := h.service.AddOutgoingDoc(document)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-
-		// Кодируем данные в JSON и отправляем
-		if err := json.NewEncoder(w).Encode(doc); err != nil {
-			http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
-			return
-		}
 	default:
+		doc, err := h.service.AddDocument(document)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+
+		// Кодируем данные в JSON и отправляем
+		if err := json.NewEncoder(w).Encode(doc); err != nil {
+			http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
+			return
+		}
 	}
 }

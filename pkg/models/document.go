@@ -5,6 +5,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"html/template"
 	"mime/multipart"
+	"time"
 )
 
 // Объект для работы с документами
@@ -18,18 +19,26 @@ type Document struct {
 	LDate       sql.NullString
 	Name        string `json:"name"`
 	Sender      string `json:"sender"`
+	Sender1     string `json:"sender1"`
+	Sender2     string `json:"sender2"`
+	Sender3     string `json:"sender3"`
+	Sender4     string `json:"sender4"`
 	Ispolnitel  string `json:"ispolnitel"`
 	Result      string `json:"result"`
 	Familiar    string `json:"familiar"`
-	Count       int    `json:"count,string"`
+	Count       string `json:"count"`
 	Copy        string `json:"copy"`
+	Copy1       string `json:"copy1"`
+	Copy2       string `json:"copy2"`
+	Copy3       string `json:"copy3"`
+	Copy4       string `json:"copy4"`
 	Width       string `json:"width"`
 	Location    string `json:"location"`
 	FileURL     string `json:"file"`
 	File        multipart.File
 	FileHeader  *multipart.FileHeader
-	Creator     string       `json:"creator"`
-	CreatedAt   string       `json:"createdAt"`
+	Creator     string `json:"creator"`
+	CreatedAt   time.Time
 	Resolutions []Resolution `json:"resolutions"`
 }
 
@@ -44,6 +53,7 @@ type Resolution struct {
 	Date        string `json:"date"`
 	User        string `json:"user"`
 	Creator     string `json:"creator"`
+	CreatedAt   time.Time
 	Result      string `json:"result"`
 }
 

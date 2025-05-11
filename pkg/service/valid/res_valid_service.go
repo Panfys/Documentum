@@ -1,6 +1,7 @@
 package valid
 
 import (
+	"database/sql"
 	"documentum/pkg/models"
 	"errors"
 	"regexp"
@@ -12,29 +13,30 @@ func (v *validatService) ValidResolution(reqRes *models.Resolution) (models.Reso
 
 	res := v.sanitizeResolution(reqRes)
 
-	if res.Ispolnitel != "NULL" && !v.validResIspolnitel(res.Ispolnitel) {
-		return models.Resolution{}, errors.New(`исполнитель документа в резолюции указан неверно, пример: "Панфилов А.П." или "Панфилов А.П., Якель Е.В."`)
-	} else if res.Ispolnitel == "NULL" {
-		res.Ispolnitel = ""
-	}
-
 	err := v.validResText(res.Text)
 	if err != nil {
 		return models.Resolution{}, err
 	}
 
-	res.Deadline, err = v.stringToDateNullString(res.DeadlineStr)
-	if err != nil {
-		return models.Resolution{}, errors.New("срок исполнения документа указан неверно")
-	}
-
 	resDate, err := v.stringToDateNullString(res.Date)
 	if err != nil {
-		return models.Resolution{}, errors.New("дата документа указана неверно")
+		return models.Resolution{}, errors.New("дата резолюции указана неверно")
 	}
-	if !v.validDocDate(resDate) {
-		return models.Resolution{}, errors.New("дата резолюции не указана")
+
+	err = v.validResDate(resDate)
+	if err != nil {
+		return models.Resolution{}, err
 	}
+
+	if res.Type == "task" {
+		if !v.validResIspolnitel(res.Ispolnitel) {
+			return models.Resolution{}, errors.New(`исполнитель документа в резолюции указан неверно, пример: "Панфилов А.П." или "Панфилов А.П., Якель Е.В."`)
+		}
+		res.Deadline, err = v.stringToDateNullString(res.DeadlineStr)
+		if err != nil {
+			return models.Resolution{}, errors.New("срок исполнения документа указан неверно")
+		}
+	} 
 
 	if !v.validResUser(res.User) {
 		return models.Resolution{}, errors.New(`автор резолюции указан неверно, пример: "Е.Лыков"`)
@@ -64,7 +66,7 @@ func (v *validatService) validResText(text string) error {
 	trimText := strings.TrimSpace(text)
 
 	if trimText == "" {
-		return errors.New("текст резолюции не указано")
+		return errors.New("текст резолюции не указан")
 	}
 
 	firstChar := []rune(trimText)[0]
@@ -84,6 +86,14 @@ func (v *validatService) validResUser(user string) bool {
 	pattern := `^[А-ЯЁ]\.[А-ЯЁ][а-яё]+$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(user)
+}
+
+func (v *validatService) validResDate(date sql.NullString) error {
+	if !date.Valid {
+		return errors.New(`дата резолюции не указана`)
+	}
+
+	return nil
 }
 
 func (v *validatService) sanitizeResolution(res *models.Resolution) models.Resolution {
