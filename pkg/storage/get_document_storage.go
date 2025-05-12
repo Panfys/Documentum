@@ -38,7 +38,7 @@ func (s *SQLStorage) GetDocuments(settings models.DocSettings) ([]models.Documen
 
 func (s *SQLStorage) GetDirectives(settings models.DocSettings) ([]models.Directive, error) {
 
-	query := fmt.Sprintf("SELECT * FROM `directives` WHERE `fdate` BETWEEN ? AND ? ORDER BY %s %s", settings.DocCol, settings.DocSet)
+	query := fmt.Sprintf("SELECT * FROM `directives` WHERE `date` BETWEEN ? AND ? ORDER BY %s %s", settings.DocCol, settings.DocSet)
 
 	rows, err := s.db.Query(query, settings.DocDatain, settings.DocDatato)
 
