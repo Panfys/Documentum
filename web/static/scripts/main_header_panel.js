@@ -85,6 +85,6 @@ async function updateDocumentsForTab(tabId) {
 
   // Обновляем соответствующий контейнер
   const container = document.getElementById(docTypeConfig.documentTableId);
-  WriteDocumentsInTable(documents, container)
+  WriteDocumentsInTable(documents, container, docTypeConfig.type)
 }
 
