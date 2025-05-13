@@ -8,6 +8,10 @@
   --light-rgb: 242, 242, 242;
   --dark-rgb: 17, 17, 17;
   --mid-rgb: 55, 55, 55;
+
+  --multiplier: 1; /* Базовая величина */
+  --lowMultiplier: 1; /* Базовая величина */
+  --bigMultiplier: 1; /* Базовая величина */
 }
 
 body.dark-theme {
@@ -40,7 +44,34 @@ body.light-theme {
   --blur-bgr-color: rgba(240, 240, 240, 0.6);
 }
 
-@media (min-width: 100px) and (max-width: 5000px) {
+@media (min-width: 900px) and (max-width: 1300px) {
+  :root {
+    --multiplier: 0.9;
+    --bigMultiplier: 0.8;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  :root {
+    --multiplier: 0.8;
+    --lowMultiplier: 0.9;
+    --bigMultiplier: 0.7;
+  }
+}
+
+@media (min-width: 500px) and (max-width: 599px) {
+  :root {
+    --multiplier: 0.7;
+    --bigMultiplier: 0.5;
+  }
+}
+
+@media (min-width: 1px) and (max-width: 499px) {
+  :root {
+    --multiplier: 0.6;
+    --lowMultiplier: 0.8;
+    --bigMultiplier: 0.6;
+  }
 }
 
 * {
@@ -49,7 +80,7 @@ body.light-theme {
   text-decoration: none;
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
-  font-size: 12px;
+  font-size: calc(12px * var(--multiplier));
   outline: none;
 }
 
@@ -497,9 +528,9 @@ body {
   align-items: center;
   justify-content: center;
   background: var(--base-color);
-  width: 90px;
-  height: 28px;
-  margin: 0 6px;
+  width: calc(90px * var(--multiplier));
+  height: calc(28px * var(--multiplier));
+  margin: 0 calc(6px * var(--multiplier));;
   border: solid 2px var(--borg-btn-color);
   font-weight: 500;
   cursor: pointer;
@@ -534,7 +565,7 @@ body {
   display: flex;
   text-align: center;
   align-items: baseline;
-  margin-right: 20px;
+  margin-right: calc(20px * var(--multiplier));
   cursor: pointer;
   background: none;
   border: 0px solid;
@@ -545,14 +576,14 @@ body {
 
   &::before {
     font-family: "mfglabs";
-    font-size: 13px;
+    font-size: calc(13px * var(--lowMultiplier));
     content: "\E80C";
     margin-right: 7px;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 24px;
-    height: 24px;
+    width: calc(24px * var(--multiplier));
+    height: calc(24px * var(--multiplier));
     border: 2px solid var(--low-color);
     color: var(--mid-color);
     border-radius: 50%;
@@ -580,10 +611,10 @@ body {
 
 .main__header--account {
   margin-right: 0;
-  margin-left: 26px;
+  margin-left: calc(26px * var(--multiplier));
 
   &::before {
-    font-size: 11px;
+    font-size: calc(11px * var(--lowMultiplier));
     content: "\F062";
   }
 }
@@ -615,7 +646,7 @@ body {
   flex-direction: column;
   align-items: center;
   margin-bottom: 3px;
-  width: 300px;
+  width: calc(300px * var(--multiplier));
   border-radius: 0 20px 20px 0;
   overflow: auto;
 }
@@ -639,11 +670,11 @@ body {
   background: none;
   color: var(--low-color);
   border: none;
-  font-size: 14px;
+  font-size: calc(14px * var(--multiplier));
   font-weight: 600;
-  height: 36px;
-  min-height: 36px;
-  width: 200px;
+  height: calc(36px * var(--multiplier));
+  min-height: calc(36px * var(--multiplier));
+  width: calc(200px * var(--multiplier));
   margin: 10px 0 10px 50px;
   cursor: pointer;
   outline: none;
@@ -655,7 +686,7 @@ body {
 
   &::after {
     cursor: pointer;
-    font-size: 14px;
+    font-size: calc(14px * var(--multiplier));
     font-family: "mfglabs";
     content: "\F006";
     color: var(--panel-color);
@@ -672,7 +703,7 @@ body {
 
   &::after {
     cursor: pointer;
-    font-size: 14px;
+    font-size: calc(14px * var(--multiplier));
     font-family: "mfglabs";
     content: "\F006";
     color: var(--mid-color);
@@ -686,7 +717,7 @@ body {
   align-items: center;
   margin: 0 20px 3px 20px;
   width: calc(100vw - 640px);
-  min-width: 300px;
+  min-width: calc(300px * var(--multiplier));
   border-radius: 20px;
   overflow: auto;
 }
@@ -700,9 +731,9 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--mid-color);
-  font-size: 14px;
+  font-size: calc(14px * var(--multiplier));
   font-weight: 600;
-  height: 36px;
+  height: calc(36px * var(--multiplier));
   padding: 20px 0;
   width: 95%;
 }
@@ -805,9 +836,9 @@ body {
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  min-height: 200px;
-  width: 200px;
-  height: 200px;
+  min-height: calc(200px * var(--multiplier));
+  width: calc(200px * var(--multiplier));
+  height: calc(200px * var(--multiplier));
   border: 2px solid var(--main-color);
   border-radius: 50%;
   cursor: pointer;
@@ -824,9 +855,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  min-height: 200px;
-  width: 200px;
-  height: 200px;
+   min-height: calc(200px * var(--multiplier));
+  width: calc(200px * var(--multiplier));
+  height: calc(200px * var(--multiplier));
   border: 2px solid var(--main-color);
   border-radius: 50%;
   cursor: pointer;
@@ -843,7 +874,7 @@ body {
 .account__icon::before {
   text-align: center;
   font-family: "mfglabs";
-  font-size: 100px;
+  font-size: calc(100px * var(--multiplier));
   content: "\F062";
   color: var(--low-color);
 }
@@ -870,7 +901,7 @@ body {
 .account__unit,
 .account__status {
   text-align: center;
-  font-size: 14px;
+  font-size: calc(14px * var(--multiplier));
   color: var(--mid-color);
   border-bottom: solid 1px var(--borg-btn-color);
   padding: 0 5px 3px 5px;
@@ -878,7 +909,7 @@ body {
 }
 
 .account__sign {
-  font-size: 12px;
+  font-size: calc(12px * var(--multiplier));
   color: var(--low-color);
   margin-bottom: 20px;
   text-align: center;
@@ -892,11 +923,11 @@ body {
   color: var(--bgr-color);
   border-radius: 20px;
   border: none;
-  font-size: 14px;
+  font-size: calc(14px * var(--multiplier));
   font-weight: 600;
-  height: 36px;
-  min-height: 36px;
-  width: 200px;
+  height: calc(36px * var(--multiplier));
+  min-height: calc(36px * var(--multiplier));
+  width: calc(200px * var(--multiplier));
   margin: 10px 0;
   cursor: pointer;
   outline: none;
@@ -1334,8 +1365,8 @@ body {
   border-radius: 20px;
   border: none;
   font-weight: 500;
-  height: 26px;
-  padding: 0 12px;
+  height: calc(26px * var(--multiplier));
+  padding: 0 calc(12px * var(--multiplier));;
   cursor: pointer;
   outline: none;
   margin-left: 10px;
@@ -1380,13 +1411,11 @@ body {
   width: 100%;
   display: flex;
   justify-content: center;
-  min-width: 1100px;
 }
 
 .tubs__table {
   width: 100%;
   max-width: 2000px;
-  min-width: 1100px;
   min-height: 50px;
   border: 2px solid rgba(var(--main-rgb), 0.2);
   border-radius: 20px;
@@ -1486,20 +1515,20 @@ th {
 
   &::before {
     position: relative;
-    right: 15px;
+    right: calc(15px * var(--bigMultiplier));
     text-align: center;
     font-family: "mfglabs";
     color: var(--mid-color);
-    font-size: 13px;
-    border: 2px solid var(--low-color);
+    font-size: calc(12px * var(--multiplier));
+    border: calc(2px * var(--multiplier)) solid var(--low-color);
     border-radius: 50%;
-    padding: 7px;
+    padding: calc(6px * var(--multiplier));
     content: "\E820";
     cursor: pointer;
   }
 
   &:hover:before {
-    border: 2px solid var(--main-color);
+    border: calc(2px * var(--multiplier)) solid var(--main-color);
     transition: 0.2s;
   }
 }
@@ -1799,8 +1828,8 @@ th {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: calc(30px * var(--multiplier));
+  height: calc(30px * var(--multiplier));
   border: solid 2px var(--low-color);
   cursor: pointer;
   color: var(--low-color);

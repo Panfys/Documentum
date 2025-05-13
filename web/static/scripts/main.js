@@ -9,8 +9,8 @@ window.addEventListener("scroll", function () {
   hidden_containers = active_tub.querySelector(".tubs__container--hidden");
 
   if (window.scrollY > 30) {
-    head_containers.classList.add("tubs__container--tabscroll");
     hidden_containers.style.display = "block";
+    head_containers.classList.add("tubs__container--tabscroll");
   } else {
     head_containers.classList.remove("tubs__container--tabscroll");
     hidden_containers.style.display = "none";
