@@ -2,7 +2,7 @@ function WriteDocumentsInTable(documents, container, type) {
 
     container.innerHTML = '';
     let documentsString = '';
-    console.log(type)
+    
     if (type == "Приказ") {
         if (documents) {
 
@@ -14,7 +14,7 @@ function WriteDocumentsInTable(documents, container, type) {
                     <tr>
                         <td>${document.number}</td>
                         <td class="table__column--number">${document.date}</td>
-                        <td colspan="2">${document.name}</td>
+                        <td colspan="2" id="table__column--name">${document.name}</td>
                         <td>${document.autor}</td>
                         <td>${document.numCoverLetter} ${document.dateCoverLetter}</td>
                         <td>${document.countCopy}</td>
