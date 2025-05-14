@@ -9,18 +9,18 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 
+	"crypto/sha256"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService interface {
 	UserRegistration(user models.User) error
 	UserAuthorization(login, pass string) (int, error)
-	CheckUserTokenToValid(token string) (string, error)
-	GenerateToken(w http.ResponseWriter, login string, remember bool) error
+	CheckUserTokenToValid(tokenString, agent, ip string) (string, error) 
+	GenerateToken(w http.ResponseWriter, authData models.AuthData) error
 }
 
 type authService struct {
@@ -39,55 +39,58 @@ func NewAuthService(log logger.Logger, stor storage.AuthStorage, valid valid.Use
 	}
 }
 
-func (s *authService) GenerateToken(w http.ResponseWriter, login string, remember bool) error {
+func (s *authService) GenerateToken(w http.ResponseWriter, authData models.AuthData) error {
+	now := time.Now()
+	expiresAt := now.Add(24 * time.Hour)
+	if authData.Remember {
+		expiresAt = now.Add(72 * time.Hour)
+	}
+
+	userFP := s.generateFingerprint(authData.IP, authData.Agent)
 
 	claims := jwt.RegisteredClaims{
-		Subject: login,
+		Subject:   authData.Login,
+		IssuedAt:  jwt.NewNumericDate(now),
+		ExpiresAt: jwt.NewNumericDate(expiresAt),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	responceToken, err := token.SignedString(s.secretKey)
+	dynamicKey := append(s.secretKey, []byte(userFP)...)
+	tokenString, err := token.SignedString(dynamicKey)
 	if err != nil {
 		return s.log.Error(models.ErrTokenAuth, err)
 	}
 
-	if remember {
-		http.SetCookie(w, &http.Cookie{
-			Name:     "token",       // Имя куки
-			Value:    responceToken, // Значение (наш JWT-токен)
-			Expires:  time.Now().Add(72 * time.Hour),
-			Path:     "/",                  // Доступно для всех путей на сайте
-			HttpOnly: true,                 // Защита от XSS (недоступно через JavaScript)
-			Secure:   false,                // Только через HTTPS (в production)
-			SameSite: http.SameSiteLaxMode, // Защита от CSRF
-		})
-	} else {
-		http.SetCookie(w, &http.Cookie{
-			Name:     "token",              // Имя куки
-			Value:    responceToken,        // Значение (наш JWT-токен)
-			Path:     "/",                  // Доступно для всех путей на сайте
-			HttpOnly: true,                 // Защита от XSS (недоступно через JavaScript)
-			Secure:   false,                // Только через HTTPS (в production)
-			SameSite: http.SameSiteLaxMode, // Защита от CSRF
-		})
-	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    tokenString,
+		Expires:  expiresAt,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
 
 	return nil
 }
 
-func (s *authService) CheckUserTokenToValid(tokenString string) (string, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (s *authService) CheckUserTokenToValid(tokenString, agent, ip string) (string, error) {
+
+	currentFP := s.generateFingerprint(ip, agent)
+
+	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, s.log.Error(models.ErrTokenAuth, token.Header["alg"])
 		}
-		return s.secretKey, nil
+		dynamicKey := append(s.secretKey, []byte(currentFP)...)
+        return dynamicKey, nil
 	})
 
 	if err != nil {
 		return "", s.log.Error(models.ErrTokenAuth, err)
 	}
-
-	if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid {
+	
+	if claims, ok := token.Claims.(*jwt.RegisteredClaims); ok && token.Valid &&claims.Subject != ""{
 		return claims.Subject, nil
 	}
 
@@ -124,29 +127,32 @@ func (s *authService) UserRegistration(user models.User) error {
 
 	user.Pass = string(hashedPassword)
 
-	if err := s.stor.AddUser(user); err != nil {
-		return err
-	}
-
-	return nil
+	return s.stor.AddUser(user)
 }
 
 func (s *authService) UserAuthorization(login, pass string) (int, error) {
 
 	if exists, err := s.stor.GetUserExists(login); err != nil {
-		return 500, err
+		return http.StatusInternalServerError, err
 	} else if !exists {
-		return 401, errors.New("authError")
+		return http.StatusUnauthorized, errors.New("authError")
 	}
 
 	userPass, err := s.stor.GetUserPassByLogin(login)
 	if err != nil {
-		return 500, err
+		return http.StatusInternalServerError, err
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userPass), []byte(pass)); err != nil {
-		return 401, errors.New("authError")
+		return http.StatusUnauthorized, errors.New("authError")
 	}
 
-	return 0, nil
+	return http.StatusOK, nil
+}
+
+func (s *authService) generateFingerprint(ip, userAgent string) string {
+	h := sha256.New()
+	h.Write([]byte(ip))
+	h.Write([]byte(userAgent))
+	return fmt.Sprintf("%x", h.Sum(nil))
 }

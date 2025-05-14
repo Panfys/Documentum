@@ -11,7 +11,7 @@ func (s *SQLStorage) AddUser(user models.User) error {
 	_, err := s.db.Exec(newUser, user.Login, user.Name, user.Func, user.Unit, user.Group, user.Pass, "Пользователь", "")
 
 	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err) 
+		return s.log.Error(models.ErrAddDataInDB, err," Запрос: ", newUser) 
 	}
 
 	return nil

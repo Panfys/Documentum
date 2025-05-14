@@ -1,7 +1,7 @@
 //---Проверка введенных данных при создании или изменении документа
 
 // Функция валидации приказов и директив
-function validateDirectiveData(data) {
+function validateInventoryData(data) {
   validate = 0
 
   if (validDirNumber(data.number)) validate++;

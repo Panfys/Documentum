@@ -73,7 +73,7 @@ func (s *SQLStorage) AddDocument(doc models.Document) error {
 	_, err := s.db.Exec(insertDocQuery, doc.Type, doc.FNum, doc.FDate, doc.LNum, doc.LDate, doc.Name, doc.Sender, doc.Ispolnitel, doc.Result, doc.Familiar, doc.Count, doc.Copy, doc.Width, doc.Location, doc.FileURL, doc.Creator, doc.CreatedAt)
 
 	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err)
+		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertDocQuery)
 	}
 
 	return nil
@@ -85,7 +85,7 @@ func (s *SQLStorage) AddDirective(doc models.Directive) error {
 	_, err := s.db.Exec(insertDirQuery, doc.Number, doc.Date, doc.Name, doc.Autor, doc.NumCoverLetter, doc.DateCoverLetter, doc.CountCopy, doc.Sender, doc.NumSendLetter, doc.DateSendLetter, doc.CountSendCopy, doc.Familiar, doc.Location, doc.FileURL, doc.Creator, time.Now())
 
 	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err)
+		return s.log.Error(models.ErrAddDataInDB, err," Запрос: ", insertDirQuery)
 	}
 
 	return nil
@@ -97,7 +97,7 @@ func (s *SQLStorage) AddResolution(res models.Resolution) error {
 	_, err := s.db.Exec(newRes, res.DocID, res.Ispolnitel, res.Text, res.Deadline, res.Date, res.User, res.Creator)
 
 	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err)
+		return s.log.Error(models.ErrAddDataInDB, err," Запрос: ", newRes)
 	}
 
 	return nil
