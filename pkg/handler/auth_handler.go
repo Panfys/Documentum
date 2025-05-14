@@ -8,8 +8,10 @@ import (
 	"documentum/pkg/service/structure"
 	"documentum/pkg/service/user"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -67,10 +69,13 @@ func (h *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 	var authData models.AuthData
 
 	if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
-		h.log.Error(models.ErrRequest, err ) 
+		h.log.Error(models.ErrRequest, err)
 		http.Error(w, models.ErrRequest, 400)
 		return
 	}
+
+	authData.Agent = r.UserAgent()
+	authData.IP = h.getUserIP(r)
 
 	// Авторизация пользователя
 	status, err := h.authSrv.UserAuthorization(authData.Login, authData.Pass)
@@ -80,7 +85,7 @@ func (h *AuthHandler) AuthorizationHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Генерация и установка токена
-	if err := h.authSrv.GenerateToken(w, authData.Login, authData.Remember); err != nil {
+	if err := h.authSrv.GenerateToken(w, authData); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -109,15 +114,24 @@ func (h *AuthHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 		Funcs       []models.Unit
 	}{}
 
+	var authData models.AuthData
+	authData.Agent = r.UserAgent()
+	authData.IP = h.getUserIP(r)
+
 	// Проверка токена
 	cookie, err := r.Cookie("token")
 	if err == nil {
-		login, err := h.authSrv.CheckUserTokenToValid(cookie.Value)
-		responseData.UserIsValid = err == nil
-		responseData.AccountData, err = h.userSrv.GetUserAccountData(login)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		login, err := h.authSrv.CheckUserTokenToValid(cookie.Value, authData.Agent, authData.IP)
+		if err == nil {
+			responseData.AccountData, err = h.userSrv.GetUserAccountData(login)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			responseData.UserIsValid = err == nil
+		} else {
+			responseData.AccountData = models.AccountData{}
+			h.ExitHandler(w, r)
 		}
 	}
 
@@ -149,18 +163,14 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
+		var authData models.AuthData
+		authData.Agent = r.UserAgent()
+		authData.IP = h.getUserIP(r)
+
 		// Проверяем валидность токена
-		login, err := h.authSrv.CheckUserTokenToValid(cookie.Value)
+		login, err := h.authSrv.CheckUserTokenToValid(cookie.Value, authData.Agent, authData.IP)
 		if err != nil {
-			// Удаляем невалидный токен
-			http.SetCookie(w, &http.Cookie{
-				Name:     "token",
-				Value:    "",
-				Path:     "/",
-				Expires:  time.Now().Add(-1 * time.Hour),
-				HttpOnly: true,
-				Secure:   false,
-			})
+			h.ExitHandler(w, r)
 			if r.Method == http.MethodGet {
 				http.Redirect(w, r, "/", http.StatusSeeOther)
 				return
@@ -170,6 +180,7 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
+		h.log.Info(fmt.Sprintf("Зашел пользователь с токеном: %s", cookie.Value))
 		ctx := context.WithValue(r.Context(), models.LoginKey, login)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -180,12 +191,12 @@ func (h *AuthHandler) ExitHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
-		Value:    "",                             
-		Path:     "/",                            
-		HttpOnly: true,                          
-		Secure:   false,                          
-		Expires:  time.Now().Add(-1 * time.Hour), 
-		MaxAge:   -1,                             
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		Expires:  time.Now().Add(-1 * time.Hour),
+		MaxAge:   -1,
 		SameSite: http.SameSiteStrictMode,
 	})
 }
@@ -206,4 +217,16 @@ func (h *AuthHandler) renderTemplates(w http.ResponseWriter, tmpl string, data a
 		return h.log.Error(models.ErrParseTMP, err)
 	}
 	return nil
+}
+
+func (h *AuthHandler) getUserIP(r *http.Request) string {
+	// Проверяем заголовки, которые могут содержать реальный IP за прокси
+	if ip := r.Header.Get("X-Forwarded-For"); ip != "" {
+		return strings.Split(ip, ",")[0]
+	}
+	if ip := r.Header.Get("X-Real-IP"); ip != "" {
+		return ip
+	}
+	// Если заголовков нет, берем RemoteAddr
+	return strings.Split(r.RemoteAddr, ":")[0]
 }

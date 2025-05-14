@@ -9,7 +9,7 @@ func (s *SQLStorage) GetUnits(function string) ([]models.Unit, error) {
 	rows, err := s.db.Query("SELECT units_id, units.name FROM `funcs_units` JOIN `units` ON units_id = units.id WHERE `funcs_id` = ?", function)
 	if err != nil {
 		
-		return nil, s.log.Error(models.ErrGetDataInDB, err)
+		return nil, s.log.Error(models.ErrGetDataInDB, err," Запрос: ", "SELECT units_id, units.name ...")
 	}
 	defer rows.Close()
 
@@ -34,7 +34,7 @@ func (s *SQLStorage) GetGroups(function, unit string) ([]models.Unit, error) {
 	rows, err := s.db.Query("SELECT groups.id, groups.name FROM `funcs_groups` JOIN `groups` ON groups_id = groups.id WHERE `funcs_id` = ? AND `units_id` = ?", function, unit)
 
 	if err != nil {
-		return nil, s.log.Error(models.ErrGetDataInDB, err)
+		return nil, s.log.Error(models.ErrGetDataInDB, err," Запрос: ", "SELECT groups.id, groups.name ...")
 	}
 	defer rows.Close()
 
@@ -59,7 +59,7 @@ func (s *SQLStorage) GetFuncs() ([]models.Unit, error) {
 
 	rows, err := s.db.Query("SELECT id, name FROM funcs")
 	if err != nil {
-		return nil, s.log.Error(models.ErrGetDataInDB, err)
+		return nil, s.log.Error(models.ErrGetDataInDB, err," Запрос: ", "SELECT id, name FROM funcs")
 	}
 	defer rows.Close()
 

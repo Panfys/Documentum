@@ -12,7 +12,7 @@ func (s *SQLStorage) GetDocuments(settings models.DocSettings) ([]models.Documen
 	rows, err := s.db.Query(query, settings.DocType, settings.DocDatain, settings.DocDatato)
 
 	if err != nil {
-		return nil, s.log.Error(models.ErrGetDataInDB, err)
+		return nil, s.log.Error(models.ErrGetDataInDB, err," Запрос: ", query)
 	}
 
 	defer rows.Close()
@@ -43,7 +43,7 @@ func (s *SQLStorage) GetDirectives(settings models.DocSettings) ([]models.Direct
 	rows, err := s.db.Query(query, settings.DocDatain, settings.DocDatato)
 
 	if err != nil {
-		return nil, s.log.Error(models.ErrGetDataInDB, err)
+		return nil, s.log.Error(models.ErrGetDataInDB, err," Запрос: ", query)
 	}
 
 	defer rows.Close()
@@ -72,7 +72,7 @@ func (s *SQLStorage) GetResolutoins(id int) ([]models.Resolution, error) {
 	rows, err := s.db.Query("SELECT * FROM `resolutions` WHERE `doc_id` = ?", id)
 
 	if err != nil {
-		return nil, s.log.Error(models.ErrGetDataInDB, err)
+		return nil, s.log.Error(models.ErrGetDataInDB, err," Запрос: ", "SELECT * FROM `resolutions`...")
 	}
 
 	defer rows.Close()
