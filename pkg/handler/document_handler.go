@@ -6,6 +6,7 @@ import (
 	"documentum/pkg/service/document"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"mime/multipart"
 	"net/http"
 )
 
@@ -24,6 +25,8 @@ func NewDocHandler(log logger.Logger, service document.DocService) *DocHandler {
 func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query()
+	vars := mux.Vars(r)
+	table := vars["table"]
 
 	settings := models.DocSettings{
 		DocType:   query.Get("type"),
@@ -42,7 +45,8 @@ func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	if settings.DocType == "Приказ" {
+	switch table {
+	case "directives":
 		directives, err := h.service.GetDirectives(settings)
 
 		if err != nil {
@@ -51,8 +55,16 @@ func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 		}
 
 		json.NewEncoder(w).Encode(directives)
+	case "inventory":
+		inventory, err := h.service.GetInventory(settings)
 
-	} else {
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		json.NewEncoder(w).Encode(inventory)
+	default:
 		documents, err := h.service.GetDocuments(settings)
 
 		if err != nil {
@@ -62,17 +74,15 @@ func (h *DocHandler) GetDocuments(w http.ResponseWriter, r *http.Request) {
 
 		json.NewEncoder(w).Encode(documents)
 	}
-
-	
-	
 }
 
-func (h *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
+func (h *DocHandler) AddFamiliarDocument(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	login := r.Context().Value(models.LoginKey).(string)
 	id := vars["id"]
+	table := vars["table"]
 
-	err := h.service.AddLookDocument(id, login)
+	err := h.service.AddFamiliarDocument(table, id, login)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)
@@ -85,84 +95,75 @@ func (h *DocHandler) AddLookDocument(w http.ResponseWriter, r *http.Request) {
 func (h *DocHandler) AddDocument(w http.ResponseWriter, r *http.Request) {
 
 	login := r.Context().Value(models.LoginKey).(string)
+	table := mux.Vars(r)["table"]
 
-	err := r.ParseMultipartForm(10 << 20)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		h.handleError(w, models.ErrRequest, err, http.StatusBadRequest)
+		return
+	}
+
+	file, header, err := r.FormFile("file")
 	if err != nil {
-		h.log.Error(models.ErrRequest, err)
-		http.Error(w, models.ErrRequest, http.StatusBadRequest)
+		h.handleError(w, models.ErrFileRequest, err, http.StatusBadRequest)
 		return
 	}
+	defer file.Close()
 
-	jsonData := r.FormValue("document")
-	var document models.Document
-	if err := json.Unmarshal([]byte(jsonData), &document); err != nil {
-		h.log.Error(models.ErrRequest, err)
-		http.Error(w, models.ErrRequest, http.StatusBadRequest)
-		return
+	var result any
+	switch table {
+	case "directives":
+		result, err = h.addDirective(r, file, header, login)
+	case "inventory":
+		result, err = h.addInventory(r, file, header, login)
+	default:
+		result, err = h.addInOutDoc(r, file, header, login)
 	}
 
-	document.File, document.FileHeader, err = r.FormFile("file")
 	if err != nil {
-		h.log.Error(models.ErrFileRequest, err)
-		http.Error(w, models.ErrFileRequest, http.StatusBadRequest)
+		h.handleError(w, err.Error(), err, http.StatusInternalServerError)
 		return
 	}
-	defer document.File.Close()
 
-	document.Creator = login
-
-	doc, err := h.service.AddDocument(document)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
-
-	if err := json.NewEncoder(w).Encode(doc); err != nil {
-		http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
-		return
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		h.handleError(w, "Ошибка формирования ответа", err, http.StatusInternalServerError)
 	}
 }
 
-func (h *DocHandler) AddDirective(w http.ResponseWriter, r *http.Request) {
-
-	login := r.Context().Value(models.LoginKey).(string)
-
-	err := r.ParseMultipartForm(10 << 20)
-	if err != nil {
-		h.log.Error(models.ErrRequest, err)
-		http.Error(w, models.ErrRequest, http.StatusBadRequest)
-		return
+func (h *DocHandler) addDirective(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) (models.Directive, error) {
+	var doc models.Directive
+	if err := json.Unmarshal([]byte(r.FormValue("document")), &doc); err != nil {
+		return models.Directive{}, err
 	}
+	doc.File = file
+	doc.FileHeader = header
+	doc.Creator = login
+	return h.service.AddDirective(doc)
+}
 
-	jsonData := r.FormValue("document")
-	var directive models.Directive
-	if err := json.Unmarshal([]byte(jsonData), &directive); err != nil {
-		h.log.Error(models.ErrRequest, err)
-		http.Error(w, models.ErrRequest, http.StatusBadRequest)
-		return
+func (h *DocHandler) addInventory(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) (models.Inventory, error) {
+	var doc models.Inventory
+	if err := json.Unmarshal([]byte(r.FormValue("document")), &doc); err != nil {
+		return models.Inventory{}, err
 	}
+	doc.File = file
+	doc.FileHeader = header
+	doc.Creator = login
+	return h.service.AddInventory(doc)
+}
 
-	directive.File, directive.FileHeader, err = r.FormFile("file")
-	if err != nil {
-		h.log.Error(models.ErrFileRequest, err)
-		http.Error(w, models.ErrFileRequest, http.StatusBadRequest)
-		return
+func (h *DocHandler) addInOutDoc(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) (models.Document, error) {
+	var doc models.Document
+	if err := json.Unmarshal([]byte(r.FormValue("document")), &doc); err != nil {
+		return models.Document{}, err
 	}
-	defer directive.File.Close()
+	doc.File = file
+	doc.FileHeader = header
+	doc.Creator = login
+	return h.service.AddDocument(doc)
+}
 
-	directive.Creator = login
-
-	dir, err := h.service.AddDirective(directive)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-
-	if err := json.NewEncoder(w).Encode(dir); err != nil {
-		http.Error(w, "Ошибка формирования ответа", http.StatusInternalServerError)
-		return
-	}
+func (h *DocHandler) handleError(w http.ResponseWriter, message string, err error, status int) {
+	h.log.Error(message, err)
+	http.Error(w, message, status)
 }

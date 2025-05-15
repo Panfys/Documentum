@@ -7,17 +7,17 @@ import (
 
 func (s *SQLStorage) GetDocuments(settings models.DocSettings) ([]models.Document, error) {
 
-	query := fmt.Sprintf("SELECT * FROM `documents` WHERE `type` = ? AND `fdate` BETWEEN ? AND ? ORDER BY %s %s", settings.DocCol, settings.DocSet)
+	query := fmt.Sprintf("SELECT * FROM `inouts` WHERE `type` = ? AND `fdate` BETWEEN ? AND ? ORDER BY %s %s", settings.DocCol, settings.DocSet)
 
 	rows, err := s.db.Query(query, settings.DocType, settings.DocDatain, settings.DocDatato)
 
 	if err != nil {
-		return nil, s.log.Error(models.ErrGetDataInDB, err," Запрос: ", query)
+		return nil, s.log.Error(models.ErrGetDataInDB, err, " Запрос: ", query)
 	}
 
 	defer rows.Close()
 
-	var	documents []models.Document
+	var documents []models.Document
 
 	for rows.Next() {
 		var document models.Document
@@ -43,17 +43,17 @@ func (s *SQLStorage) GetDirectives(settings models.DocSettings) ([]models.Direct
 	rows, err := s.db.Query(query, settings.DocDatain, settings.DocDatato)
 
 	if err != nil {
-		return nil, s.log.Error(models.ErrGetDataInDB, err," Запрос: ", query)
+		return nil, s.log.Error(models.ErrGetDataInDB, err, " Запрос: ", query)
 	}
 
 	defer rows.Close()
 
-	var	directives []models.Directive
+	var directives []models.Directive
 
 	for rows.Next() {
 		var directive models.Directive
 
-		if err := rows.Scan(&directive.ID ,&directive.Number, &directive.Date, &directive.Name, &directive.Autor, &directive.NumCoverLetter, &directive.DateCoverLetter, &directive.CountCopy, &directive.Sender, &directive.NumSendLetter, &directive.DateSendLetter, &directive.CountSendCopy, &directive.Familiar, &directive.Location, &directive.FileURL, &directive.Creator, &directive.CreatedAt); err != nil {
+		if err := rows.Scan(&directive.ID, &directive.Number, &directive.Date, &directive.Name, &directive.Autor, &directive.NumCoverLetter, &directive.DateCoverLetter, &directive.CountCopy, &directive.Sender, &directive.NumSendLetter, &directive.DateSendLetter, &directive.CountSendCopy, &directive.Familiar, &directive.Location, &directive.FileURL, &directive.Creator, &directive.CreatedAt); err != nil {
 			return nil, s.log.Error(models.ErrGetDataInDB, err)
 		}
 
@@ -64,7 +64,36 @@ func (s *SQLStorage) GetDirectives(settings models.DocSettings) ([]models.Direct
 		return nil, s.log.Error(models.ErrGetDataInDB, err)
 	}
 
-	return directives, nil
+	return directives, nil 
+}
+
+func (s *SQLStorage) GetInventory(settings models.DocSettings) ([]models.Inventory, error) {
+
+	rows, err := s.db.Query(fmt.Sprintf("SELECT * FROM `inventory` ORDER BY %s %s", settings.DocCol, settings.DocSet))
+
+	if err != nil {
+		return nil, s.log.Error(models.ErrGetDataInDB, err, " Запрос: ", "SELECT * FROM `inventory`...")
+	}
+
+	defer rows.Close()
+
+	var inventoryDocs []models.Inventory
+
+	for rows.Next() {
+		var inventoryDoc models.Inventory
+
+		if err := rows.Scan(&inventoryDoc.ID, &inventoryDoc.Number, &inventoryDoc.NumCoverLetter, &inventoryDoc.DateCoverLetter, &inventoryDoc.Name, &inventoryDoc.Sender, &inventoryDoc.CountCopy, &inventoryDoc.Copy, &inventoryDoc.Addressee, &inventoryDoc.NumSendLetter, &inventoryDoc.DateSendLetter, &inventoryDoc.SendCopy, &inventoryDoc.Familiar, &inventoryDoc.Location, &inventoryDoc.FileURL, &inventoryDoc.Creator, &inventoryDoc.CreatedAt); err != nil {
+			return nil, s.log.Error(models.ErrGetDataInDB, err)
+		}
+
+		inventoryDocs = append(inventoryDocs, inventoryDoc)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, s.log.Error(models.ErrGetDataInDB, err)
+	}
+
+	return inventoryDocs, nil
 }
 
 func (s *SQLStorage) GetResolutoins(id int) ([]models.Resolution, error) {
@@ -72,7 +101,7 @@ func (s *SQLStorage) GetResolutoins(id int) ([]models.Resolution, error) {
 	rows, err := s.db.Query("SELECT * FROM `resolutions` WHERE `doc_id` = ?", id)
 
 	if err != nil {
-		return nil, s.log.Error(models.ErrGetDataInDB, err," Запрос: ", "SELECT * FROM `resolutions`...")
+		return nil, s.log.Error(models.ErrGetDataInDB, err, " Запрос: ", "SELECT * FROM `resolutions`...")
 	}
 
 	defer rows.Close()

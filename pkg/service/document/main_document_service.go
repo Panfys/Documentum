@@ -10,9 +10,11 @@ import (
 type DocService interface {
 	GetDocuments(settings models.DocSettings) ([]models.Document, error)
 	GetDirectives(settings models.DocSettings) ([]models.Directive, error)
-	AddLookDocument(id string, name string) error
+	GetInventory(settings models.DocSettings) ([]models.Inventory, error)
+	AddFamiliarDocument(table, id, login string) error
 	AddDocument(doc models.Document) (models.Document, error)
 	AddDirective(dir models.Directive) (models.Directive, error)
+	AddInventory(reqInv models.Inventory) (models.Inventory, error)
 }
 
 type docService struct {

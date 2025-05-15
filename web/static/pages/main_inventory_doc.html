@@ -44,7 +44,7 @@
       </th>
     </tr>
     <tr>
-      <th colspan="2">Входящий номер и дата сопроводительного письма, инвентарный номер</th>
+      <th colspan="2">Входящий номер и дата сопроводительного письма</th>
       <th colspan="3">Название издания</th>
       <th colspan="2">Откудо поступило, издатель, год издания</th>
       <th>Количество экземпляров</th>
@@ -70,7 +70,7 @@
       </th>
     </tr>
     <tr>
-      <th colspan="2">Входящий номер и дата сопроводительного письма, инвентарный номер</th>
+      <th colspan="2">Входящий номер и дата сопроводительного письма</th>
       <th colspan="3">Название издания</th>
       <th colspan="2">Откудо поступило, издатель, год издания</th>
       <th>Количество экземпляров</th>
@@ -86,13 +86,13 @@
   <table class="tubs__table tubs__table--newdoc" id="table-newdoc" btn-id="inventory">
     <tr>
       <td class="table__column--number">
-        <input class="table__text--input" id="input-newdoc-fnum" name="fnum" type="text" value="Инв. №">
+        <input class="table__text--input" id="input-newdoc-fnum" name="number" type="text" value="Инв. № ">
       </td>
 
       <td colspan="2">
-        <input class="table__text--input" id="input-newdoc-lnum" name="lnum" type="text">
+        <input class="table__text--input" id="input-newdoc-lnum" name="numCoverLetter	" type="text">
         <br> от
-        <input class="table__data--input" id="input-newdoc-ldate" name="ldate" type="date">
+        <input class="table__data--input" id="input-newdoc-ldate" name="dateCoverLetter" type="date">
       </td>
 
       <td colspan="3">
@@ -104,7 +104,7 @@
       </td>
 
       <td>
-        <input class="table__text--input" id="input-newdoc-count" name="count" type="number">
+        <input class="table__text--input" id="input-newdoc-count" name="countCopy" type="number">
       </td>
 
       <td>
@@ -112,15 +112,16 @@
       </td>
 
       <td colspan="2">
-        <input class="table__text--input" id="input-newdoc-ispolnitel" name="ispolnitel" type="text">
+        <input class="table__text--input" id="input-newdoc-ispolnitel" name="addressee" type="text">
       </td>
 
       <td colspan="2">
-        <input class="table__text--input" id="input-newdoc-result" name="result" type="text">
+        <input class="table__text--input" id="input-newdoc-result" name="numSendLetter" type="text">  <br> от
+        <input class="table__data--input" id="input-newdoc-ldate" name="dateSendsLetter	" type="date">
       </td>
 
       <td>
-        <input class="table__text--input" id="input-newdoc-width" name="width" type="number">
+        <input class="table__text--input" id="input-newdoc-width" name="sendСopy" type="number">
       </td>
 
       <td class="table__column--familiar">

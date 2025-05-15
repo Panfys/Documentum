@@ -2,13 +2,16 @@ package storage
 
 import (
 	"documentum/pkg/models"
+	"fmt"
 	"time"
 )
 
-func (s *SQLStorage) AddLookDocument(id string, name string) error {
-	username := "<br>" + name
+func (s *SQLStorage) AddFamiliarDocument(table, id, name string) error {
 
-	_, err := s.db.Exec("UPDATE `documents` SET `familiar` = IF(`familiar` LIKE ?, `familiar`, CONCAT(`familiar`, ?)) WHERE `id` = ?", "%"+name+"%", username, id)
+	query := fmt.Sprintf("UPDATE %s SET familiar = IF(familiar IS NULL OR familiar = '', ?, CONCAT(familiar, ', <br> ', ?)) WHERE id = ? AND (familiar IS NULL OR familiar NOT LIKE ?)", table)
+	
+	_, err := s.db.Exec(query, name, name, id, "%"+name+"%")
+
 	if err != nil {
 		return s.log.Error(models.ErrAddDataInDB, err)
 	}
@@ -23,7 +26,7 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 	}
 
 	var docID int64
-	insertDocQuery := "INSERT INTO documents (type, fnum, fdate, lnum, ldate, name, sender, ispolnitel, result, familiar, count, copy, width, location, file, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	insertDocQuery := "INSERT INTO inouts (type, fnum, fdate, lnum, ldate, name, sender, ispolnitel, result, familiar, count, copy, width, location, file, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 	result, err := tx.Exec(insertDocQuery, doc.Type, doc.FNum, doc.FDate, doc.LNum, doc.LDate,
 		doc.Name, doc.Sender, doc.Ispolnitel, doc.Result,
@@ -42,7 +45,7 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 	}
 
 	for _, res := range doc.Resolutions {
-		insertResQuery := "INSERT INTO resolutions (type, doc_id, ispolnitel, text, deadline, date, user, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		insertResQuery := "INSERT INTO inouts (type, doc_id, ispolnitel, text, deadline, date, user, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 		if _, err := tx.Exec(insertResQuery,
 			res.Type,
@@ -54,9 +57,9 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 			res.User,
 			res.Creator,
 			time.Now(),
-			); err != nil {
+		); err != nil {
 			tx.Rollback()
-			return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertResQuery) 
+			return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertResQuery)
 		}
 	}
 
@@ -68,7 +71,7 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 }
 
 func (s *SQLStorage) AddDocument(doc models.Document) error {
-	insertDocQuery := "INSERT INTO documents (type, fnum, fdate, lnum, ldate, name, sender, ispolnitel, result, familiar, count, copy, width, location, file, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	insertDocQuery := "INSERT INTO inouts (type, fnum, fdate, lnum, ldate, name, sender, ispolnitel, result, familiar, count, copy, width, location, file, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 	_, err := s.db.Exec(insertDocQuery, doc.Type, doc.FNum, doc.FDate, doc.LNum, doc.LDate, doc.Name, doc.Sender, doc.Ispolnitel, doc.Result, doc.Familiar, doc.Count, doc.Copy, doc.Width, doc.Location, doc.FileURL, doc.Creator, doc.CreatedAt)
 
@@ -85,7 +88,19 @@ func (s *SQLStorage) AddDirective(doc models.Directive) error {
 	_, err := s.db.Exec(insertDirQuery, doc.Number, doc.Date, doc.Name, doc.Autor, doc.NumCoverLetter, doc.DateCoverLetter, doc.CountCopy, doc.Sender, doc.NumSendLetter, doc.DateSendLetter, doc.CountSendCopy, doc.Familiar, doc.Location, doc.FileURL, doc.Creator, time.Now())
 
 	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err," Запрос: ", insertDirQuery)
+		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertDirQuery)
+	}
+
+	return nil
+}
+
+func (s *SQLStorage) AddInventory(doc models.Inventory) error {
+	insertInvQuery := "INSERT INTO inventory (number, numCoverLetter, dateCoverLetter, name, sender, countCopy, copy, addressee, numSendLetter, dateSendLetter, sendCopy, familiar, location, fileURL, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+
+	_, err := s.db.Exec(insertInvQuery, doc.Number, doc.NumCoverLetter, doc.DateCoverLetter, doc.Name, doc.Sender, doc.CountCopy, doc.Copy, doc.Addressee, doc.NumSendLetter, doc.DateSendLetter, doc.SendCopy, doc.Familiar, doc.Location, doc.FileURL, doc.Creator, time.Now())
+
+	if err != nil {
+		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertInvQuery)
 	}
 
 	return nil
@@ -97,7 +112,7 @@ func (s *SQLStorage) AddResolution(res models.Resolution) error {
 	_, err := s.db.Exec(newRes, res.DocID, res.Ispolnitel, res.Text, res.Deadline, res.Date, res.User, res.Creator)
 
 	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err," Запрос: ", newRes)
+		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", newRes)
 	}
 
 	return nil

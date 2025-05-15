@@ -186,6 +186,9 @@ async function submitNewDocumentForm() {
   const docType = Object.values(DOCUMENT_TYPES).find(
     type => type.tabId === tabId
   );
+  const docTable = Object.values(DOCUMENT_TYPES).find(
+    table => table.tabId === tabId
+  );
   const docData = {};
   const formData = new FormData(form);
   docData.type = docType.type;
@@ -209,6 +212,10 @@ async function submitNewDocumentForm() {
     if (validateDirectiveData(docData) > 0) {
       return;
     }
+  } else if (docData.type === "Издание") {
+   /* if (validateInventoryData(docData) > 0) {
+      return;
+    } */
   } else {
     // 2. Валидация данных
     if (validateDocumentData(docData) > 0) {
@@ -224,14 +231,8 @@ async function submitNewDocumentForm() {
     uploadFormData.append('file', fileInput.files[0]);
   }
 
-  if (docData.type === "Приказ") {
-    if (await fetchAddDirective(uploadFormData)) {
-      alert("Документ загружен! Перезагрузите страницу!")
-    }
-  } else {
-    if (await fetchAddDocument(uploadFormData)) {
-      alert("Документ загружен! Перезагрузите страницу!")
-    }
+  if (await fetchAddDocument(docTable.table, uploadFormData)) {
+    alert("Документ загружен! Перезагрузите страницу!")
   }
 }
 

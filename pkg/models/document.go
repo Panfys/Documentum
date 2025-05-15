@@ -63,7 +63,31 @@ type Directive struct {
 	File               multipart.File
 	FileHeader         *multipart.FileHeader
 	Creator            string `json:"creator"`
-	CreatedAt          time.Time 
+	CreatedAt          time.Time
+}
+
+type Inventory struct {
+	ID                 int    `json:"id"`
+	Number             string `json:"number"`
+	NumCoverLetter     string `json:"numCoverLetter"`
+	DateCoverLetterStr string `json:"dateCoverLetter"`
+	DateCoverLetter    sql.NullString
+	Name               string `json:"name"`
+	Sender             string `json:"sender"`
+	CountCopy          string `json:"countCopy"`
+	Copy               string `json:"copy"`
+	Addressee          string `json:"addressee"`
+	NumSendLetter      string `json:"numSendLetter"`
+	DateSendLetterStr  string `json:"dateSendLetter"`
+	DateSendLetter     sql.NullString
+	SendCopy           string `json:"sendCopy"`
+	Familiar           string `json:"familiar"`
+	Location           string `json:"location"`
+	FileURL            string `json:"fileURL"`
+	File               multipart.File
+	FileHeader         *multipart.FileHeader
+	Creator            string `json:"creator"`
+	CreatedAt          time.Time
 }
 
 type Resolution struct {

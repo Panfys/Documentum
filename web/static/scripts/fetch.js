@@ -1,7 +1,7 @@
 // Получение структурных подразделений
 async function FetchUnits(func) {
   try {
-    const response = await fetch(`/funcs/${encodeURIComponent(func)}/units`);
+    const response = await fetch(`/structures/${encodeURIComponent(func)}`);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -22,9 +22,9 @@ async function FetchUnits(func) {
 }
 
 // Получение подразделений
-async function FetchGroups(func, unit) {
+async function FetchGroups(func, unit) { 
   try {
-    const response = await fetch(`/funcs/${encodeURIComponent(func)}/${encodeURIComponent(unit)}/groups`);
+    const response = await fetch(`/structures/${encodeURIComponent(func)}/${encodeURIComponent(unit)}`);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -172,16 +172,17 @@ async function FetchLogoutUser() {
 }
 
 // Получение документов
-async function FetchGetDocuments(settings) {
+async function FetchGetDocuments(table, settings) {
   try {
-    const url = new URL('/documents', window.location.origin);
-
-    Object.entries(settings).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        url.searchParams.append(key, value);
-      }
-    });
-
+    const url = new URL(`/documents/${encodeURIComponent(table)}`, window.location.origin);
+    
+    if (settings) {
+      Object.entries(settings).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          url.searchParams.append(key, value);
+        }
+      });
+    }
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers: {
@@ -201,9 +202,9 @@ async function FetchGetDocuments(settings) {
 }
 
 // Запись просмотра докумнтов
-async function fetchViewDocument(id) {
+async function fetchFamiliarDocument(table, id) {
   try {
-    const response = await fetch(`/documents/${encodeURIComponent(id)}/view`, {
+    const response = await fetch(`/documents/${encodeURIComponent(table)}/${encodeURIComponent(id)}/familiar`, {
       method: 'PATCH',
     });
 
@@ -217,28 +218,10 @@ async function fetchViewDocument(id) {
 }
 
 // Запись нового документа
-async function fetchAddDocument(data) {
-  try {
-    const response = await fetch('/documents/document', {
-      method: 'POST',
-      body: data
-    });
+async function fetchAddDocument(table, data) {
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText);
-    }
-    return true
-  } catch (error) {
-    serverMessage("show", error.message);
-    return false
-  }
-}
-
-// Запись новой директивы/приказа
-async function fetchAddDirective(data) {
   try {
-    const response = await fetch('/documents/directive', {
+    const response = await fetch(`/documents/${encodeURIComponent(table)}`, {
       method: 'POST',
       body: data
     });

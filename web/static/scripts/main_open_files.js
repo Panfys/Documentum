@@ -32,6 +32,13 @@ async function openDocument(action, docId) {
     return;
   }
 
+  const activeTab = document.querySelector('.main__tabs--active');
+  tabId = "#"+activeTab.id;
+  const docTypeConfig = Object.values(DOCUMENT_TYPES).find(
+    table => table.tabId === tabId
+  );
+  console.log(docTypeConfig.table)
+
   // Открытие документа
   document.body.style.overflow = 'hidden';
   panel.style.display = 'flex';
@@ -54,7 +61,7 @@ async function openDocument(action, docId) {
     const familiarText = familiarCell?.textContent || '';
 
     if (accountName && !familiarText.includes(accountName)) {
-        await fetchViewDocument(docId);
+        await fetchFamiliarDocument(docTypeConfig.table, docId);
     }
   }
 }

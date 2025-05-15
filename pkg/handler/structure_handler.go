@@ -2,9 +2,10 @@ package handler
 
 import (
 	"documentum/pkg/service/structure"
-	"net/http"
-	"github.com/gorilla/mux"
 	"encoding/json"
+	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type StructureHandler struct {
@@ -19,7 +20,7 @@ func NewStructureHandler(service structure.StructureService) *StructureHandler{
 
 func (h *StructureHandler) GetUnits(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-    function := vars["id"]
+    function := vars["funcId"]
 
 	units, err := h.service.GetUnits(function)
 	if err != nil {
@@ -30,7 +31,7 @@ func (h *StructureHandler) GetUnits(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
 
-    json.NewEncoder(w).Encode(units)
+    json.NewEncoder(w).Encode(units)  
 }
 
 func (h *StructureHandler) GetGroups(w http.ResponseWriter, r *http.Request) {

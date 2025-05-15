@@ -37,30 +37,28 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	docHandler := handler.NewDocHandler(log, docService)
 	structHandler := handler.NewStructureHandler(structService)
 
-	r.HandleFunc("/", authHandler.GetHandler)
-
-	// STATIC
-	r.PathPrefix("/static/").Handler(handler.StaticHandler())
-	r.PathPrefix("/source/").Handler(authHandler.AuthMiddleware(handler.StaticHandler()))
-
-	// OPEN
-	r.HandleFunc("/funcs/{id:[0-9]+}/units", structHandler.GetUnits).Methods("GET")
-	r.HandleFunc("/funcs/{funcId:[0-9]+}/{unitId:[0-9]+}/groups", structHandler.GetGroups).Methods("GET")
+	/// OPEN
+	//GET
+	r.HandleFunc("/", authHandler.GetHandler).Methods("GET")
+	r.PathPrefix("/static/").Handler(handler.StaticHandler()).Methods("GET")
+	r.PathPrefix("/source/").Handler(authHandler.AuthMiddleware(handler.StaticHandler())).Methods("GET")
+	r.HandleFunc("/structures/{funcId:[0-9]+}", structHandler.GetUnits).Methods("GET")
+	r.HandleFunc("/structures/{funcId:[0-9]+}/{unitId:[0-9]+}", structHandler.GetGroups).Methods("GET")
+	//POST
 	r.HandleFunc("/auth/register", authHandler.RegistrationHandler).Methods("POST")
 	r.HandleFunc("/auth/login", authHandler.AuthorizationHandler).Methods("POST")
 
-	// PROTECTED
+	/// PROTECTED
 	protect := r.PathPrefix("/").Subrouter()
 	protect.Use(authHandler.AuthMiddleware)
 	//GET
-	protect.HandleFunc("/documents", docHandler.GetDocuments).Methods("GET")
+	protect.HandleFunc("/documents/{table:[a-z]+}", docHandler.GetDocuments).Methods("GET")
 	//POST
-	protect.HandleFunc("/documents/document", docHandler.AddDocument).Methods("POST")
-	protect.HandleFunc("/documents/directive", docHandler.AddDirective).Methods("POST")
+	protect.HandleFunc("/documents/{table:[a-z]+}", docHandler.AddDocument).Methods("POST")
 	//PATCH
 	protect.HandleFunc("/users/me/icon", userHandler.UpdateUserIcon).Methods("PATCH")
 	protect.HandleFunc("/users/me/pass", userHandler.UpdateUserPassword).Methods("PATCH")
-	protect.HandleFunc("/documents/{id:[0-9]+}/view", docHandler.AddLookDocument).Methods("PATCH")
+	protect.HandleFunc("/documents/{table:[a-z]+}/{id:[0-9]+}/familiar", docHandler.AddFamiliarDocument).Methods("PATCH")
 	//DELETE
 	protect.HandleFunc("/auth/logout", authHandler.ExitHandler).Methods("DELETE")
 
