@@ -6,7 +6,7 @@ import (
 
 func (s *SQLStorage) DeleteDocumentByID(id int) error {
 	
-	query := "DELETE FROM documents WHERE id = ?"
+	query := "DELETE FROM inouts WHERE id = ?"
 
 	_, err := s.db.Exec(query, id)
 	if err != nil {

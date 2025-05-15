@@ -2,7 +2,7 @@ function WriteDocumentsInTable(documents, container, type) {
 
     container.innerHTML = '';
     let documentsString = '';
-    
+
     if (type == "Приказ") {
         if (documents) {
 
@@ -16,11 +16,42 @@ function WriteDocumentsInTable(documents, container, type) {
                         <td class="table__column--number">${document.date}</td>
                         <td colspan="2" id="table__column--name">${document.name}</td>
                         <td>${document.autor}</td>
-                        <td>${document.numCoverLetter} ${document.dateCoverLetter}</td>
+                        <td>${document.numCoverLetter}<br>${document.dateCoverLetter}</td>
                         <td>${document.countCopy}</td>
-                        <td id="column-newdoc-sender">${document.sender}</td>
-                        <td id="column-newdoc-letter">${document.numSendLetter}${document.dateSendLetter}</td>
-                        <td id="column-newdoc-copy">${document.countSendCopy}</td>
+                        <td>${document.sender}</td>
+                        <td>${document.numSendLetter}<br>${document.dateSendLetter}</td>
+                        <td>${document.countSendCopy}</td>
+                        <td class="table__column--familiar">${document.familiar}</td>
+                        <td class="table__column--location">${document.location}</td>
+                        <td class="table__column--button">
+                            <button class="table__btn--opendoc" file="${document.fileURL}"></button>
+                        </td>
+                    </tr>
+                </table>`;
+            });
+
+            container.innerHTML = documentsString;
+            setupDocumentTables()
+        }
+        return
+    } else if (type == "Издание") {
+        if (documents) {
+
+            documents.forEach(document => {
+                if (!document) return;
+
+                documentsString += `
+                <table class="tubs__table tubs__table--document" id="document-table-${document.id}" document-id='${document.id}'>
+                   <tr>
+                        <td class="table__column--number">${document.number}</td>
+                        <td colspan="2">${document.numCoverLetter}<br>${document.dateCoverLetter}</td>
+                        <td colspan="3" id="table__column--name">${document.name}</td>
+                        <td colspan="2">${document.sender}</td>
+                        <td>${document.countCopy}</td>
+                        <td>${document.copy}</td>
+                        <td colspan="2">${document.addressee}</td>
+                        <td colspan="2">${document.numSendLetter}<br>${document.dateSendLetter}</td>
+                        <td>${document.sendCopy}</td>
                         <td class="table__column--familiar">${document.familiar}</td>
                         <td class="table__column--location">${document.location}</td>
                         <td class="table__column--button">

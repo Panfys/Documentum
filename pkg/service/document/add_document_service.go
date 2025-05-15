@@ -5,14 +5,14 @@ import (
 	"path/filepath"
 )
 
-func (d *docService) AddLookDocument(id string, login string) error {
+func (d *docService) AddFamiliarDocument(table, id, login string) error {
 
 	name, err := d.stor.GetUserName(login)
 	if err != nil {
 		return err
 	}
 
-	err = d.stor.AddLookDocument(id, name)
+	err = d.stor.AddFamiliarDocument(table, id, name)
 
 	if err != nil {
 		return err
@@ -93,4 +93,29 @@ func (d *docService) AddDirective(reqDir models.Directive) (models.Directive, er
 	}
 
 	return dir, nil
+}
+
+func (d *docService) AddInventory(reqInv models.Inventory) (models.Inventory, error) {
+
+	inv, err := d.validSrv.ValidInventory(reqInv)
+	if err != nil {
+		return models.Inventory{}, err
+	}
+	     
+	path := "/app/web/source/documents/"
+
+	newFileName, err := d.fileSrv.AddFile(path, inv.FileHeader.Filename, inv.File)
+
+	if err != nil {
+		return models.Inventory{}, err
+	}
+
+	inv.FileURL = filepath.Join("/source/documents/", newFileName)
+
+	if err := d.stor.AddInventory(inv); err != nil {
+		d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName))
+		return models.Inventory{}, err
+	}
+
+	return inv, nil
 }

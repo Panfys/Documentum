@@ -8,7 +8,6 @@ import (
 	"documentum/pkg/service/structure"
 	"documentum/pkg/service/user"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"net/http"
 	"strings"
@@ -180,7 +179,6 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
-		h.log.Info(fmt.Sprintf("Зашел пользователь с токеном: %s", cookie.Value))
 		ctx := context.WithValue(r.Context(), models.LoginKey, login)
 
 		next.ServeHTTP(w, r.WithContext(ctx))

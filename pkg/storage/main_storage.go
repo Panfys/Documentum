@@ -13,9 +13,9 @@ type SQLStorage struct {
 
 func NewSQLStorage(db *sql.DB, log logger.Logger) *SQLStorage {
 	return &SQLStorage{
-		db: db,
+		db:  db,
 		log: log,
-	} 
+	}
 }
 
 type AuthStorage interface {
@@ -40,12 +40,13 @@ type StructureStorage interface {
 }
 
 type DocStorage interface {
-	GetDocuments(settings models.DocSettings) ([]models.Document, error)
-	GetResolutoins(id int) ([]models.Resolution, error)
-	AddLookDocument(id string, name string) error
 	GetUserName(login string) (string, error)
+	GetDocuments(settings models.DocSettings) ([]models.Document, error)
+	GetDirectives(settings models.DocSettings) ([]models.Directive, error)
+	GetInventory(settings models.DocSettings) ([]models.Inventory, error)
+	GetResolutoins(id int) ([]models.Resolution, error)
+	AddFamiliarDocument(table, id, name string) error
 	AddDocumentWithResolutions(doc models.Document) error
 	AddDirective(doc models.Directive) error
-	GetDirectives(settings models.DocSettings) ([]models.Directive, error)
-	AddDocument(doc models.Document) error
+	AddInventory(doc models.Inventory) error
 }

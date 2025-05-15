@@ -9,22 +9,26 @@ const DOCUMENT_TYPES = {
     tabId: "#main-tab-ingoing",
     type: "Входящий",
     defaultBtnId: "menu-btn-ingoing",
-    documentTableId: "ingoing-documents-container"
+    documentTableId: "ingoing-documents-container",
+    table: "inouts"
   },
   OUTGOING: {
     tabId: "#main-tab-outgoing",
     type: "Исходящий",
-    documentTableId: "outgoing-documents-container"
+    documentTableId: "outgoing-documents-container",
+    table: "inouts"
   },
   DIRECTIVE: {
     tabId: "#main-tab-directive",
     type: "Приказ",
-    documentTableId: "directive-documents-container"
+    documentTableId: "directive-documents-container",
+    table: "directives"
   },
   INVENTORY: {
     tabId: "#main-tab-inventory",
     type: "Издание",
-    documentTableId: "inventory-documents-container"
+    documentTableId: "inventory-documents-container",
+    table: "inventory" 
   }
 };
 
@@ -80,8 +84,12 @@ async function updateDocumentsForTab(tabId) {
     type => type.tabId === tabId
   );
 
+   const docTableConfig = Object.values(DOCUMENT_TYPES).find(
+    table => table.tabId === tabId
+  );
+
   // Получаем документы
-  const documents = await FetchGetDocuments({ type: docTypeConfig.type });
+  const documents = await FetchGetDocuments(docTableConfig.table, {type: docTypeConfig.type});
 
   // Обновляем соответствующий контейнер
   const container = document.getElementById(docTypeConfig.documentTableId);

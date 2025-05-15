@@ -20,6 +20,7 @@ type DocValidatService interface {
 	ValidDocument(reqDoc models.Document) (models.Document, error)
 	ValidResolution(res *models.Resolution) (models.Resolution, error)
 	ValidDirective(reqDir models.Directive) (models.Directive, error)
+	ValidInventory(reqInv models.Inventory) (models.Inventory, error)
 }
 
 func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document, error) {
