@@ -45,7 +45,7 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 	}
 
 	for _, res := range doc.Resolutions {
-		insertResQuery := "INSERT INTO inouts (type, doc_id, ispolnitel, text, deadline, date, user, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		insertResQuery := "INSERT INTO resolutions (type, doc_id, ispolnitel, text, deadline, date, user, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 		if _, err := tx.Exec(insertResQuery,
 			res.Type,

@@ -6,10 +6,16 @@ function validateDocumentData(data) {
 
   if (data.type === "Входящий") {
     if (validDocFNum(data.fnum, "Вх. № ")) validate++;
+    if ((data.lnum != "" || data.ldate != "") && validDocLNum(data.lnum, data.ldate, "Исх. № ")) { validate++; } else {
+      ReAlertValidDocError('lnum')
+    }
     if (validDocSender(data.sender)) validate++;
     if (validDocCopy(data.copy)) validate++;
   } else {
     if (validDocFNum(data.fnum, "Исх. № 330/")) validate++;
+    if ((data.lnum != "" || data.ldate != "") && validDocLNum(data.lnum, data.ldate, "Вх. № ")) { validate++; } else {
+      ReAlertValidDocError('lnum')
+    }
     if (1 < data.count && data.count < 6) {
       if (validDocSender(data.sender)) validate++;
       if (validDocCopy(data.copy)) validate++;
@@ -26,9 +32,6 @@ function validateDocumentData(data) {
   }
 
   if (validDocFDate(data.fdate)) validate++;
-  if ((data.lnum != "" || data.ldate != "") && validDocLNum(data.lnum, data.ldate)) { validate++; } else {
-    ReAlertValidDocError('lnum')
-  }
 
   if (validDocName(data.name)) validate++;
   if (validDocIspolnitel(data.ispolnitel, data.resolutions)) validate++;
@@ -113,35 +116,25 @@ function validDocFDate(fdate) {
 }
 
 // Проверка номера документа
-function validDocLNum(lnum, ldate) {
-  if (lnum === '') {
+function validDocLNum(lnum, ldate, type) {
+  if (lnum === type || lnum === '№') {
     AlertValidDocError("lnum")
     serverMessage("show", 'номер документа не указан');
     return true;
   }
 
-  // Проверка формата с "Исх. №"
-  if (lnum.startsWith('Исх. № ')) {
-    const numberPart = lnum.slice('Исх. № '.length);
-    if (numberPart.length === 0) {
-      AlertValidDocError("lnum")
-      serverMessage("show", 'после "Исх. № " должен следовать номер');
-      return true
-    }
+  if (lnum.startsWith(type)) {
+    const numberPart = lnum.slice(type.length);
     if (!validDocNum(numberPart)) {
       AlertValidDocError("lnum")
-      serverMessage("show", 'номер документа указан неверно, примеры верного номера: "Исх. № 123", "Исх. № 123дсп", "123/124", "123дсп"');
+      serverMessage("show", `номер документа указан неверно, примеры верного номера: "${type}123", "${type}123дсп", "${type}123/124", "${type}123/126дсп"`);
       return true;
     }
-  }
-  // Проверка формата без "Исх. №"
-  else {
-    if (!validDocNum(lnum)) {
+  } else if (!validDocNum(lnum)) {
       AlertValidDocError("lnum")
-      serverMessage("show", 'номер документа указан неверно, примеры верного номера: "Исх. № 123", "Исх. № 123дсп", "123/124", "123дсп"');
+      serverMessage("show", 'номер документа указан неверно, примеры верного номера: "Вх. № 123дсп", "123/124", "123дсп"');
       return true;
     }
-  }
 
   if (ldate == "") {
     AlertValidDocError("ldate")
