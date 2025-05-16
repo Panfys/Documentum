@@ -35,10 +35,20 @@ func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document,
 
 	if err != nil {
 		return models.Document{}, errors.New("количество экземпляров указано некорректно")
+	}	
+
+	doc.LDate, err = v.stringToDateNullString(doc.LDateStr)
+	if err != nil {
+		return models.Document{}, errors.New("дата поступившего документа указана неверно")
 	}
 
 	if doc.Type == "Входящий" {
 		err := v.validDocFNum(doc.FNum, "Вх. № ")
+		if err != nil {
+			return models.Document{}, err
+		}
+
+		err = v.validDocLdate(doc.LDate, doc.LNum, "Исх. №")
 		if err != nil {
 			return models.Document{}, err
 		}
@@ -55,6 +65,11 @@ func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document,
 
 	} else {
 		err := v.validDocFNum(doc.FNum, "Исх. № 330/")
+		if err != nil {
+			return models.Document{}, err
+		}
+
+		err = v.validDocLdate(doc.LDate, doc.LNum, "Вх. № ")
 		if err != nil {
 			return models.Document{}, err
 		}
@@ -101,16 +116,6 @@ func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document,
 		return models.Document{}, err
 	}
 
-	doc.LDate, err = v.stringToDateNullString(doc.LDateStr)
-	if err != nil {
-		return models.Document{}, errors.New("дата поступившего документа указана неверно")
-	}
-
-	err = v.validDocLdate(doc.LDate, doc.LNum)
-	if err != nil {
-		return models.Document{}, err
-	}
-
 	err = v.validDocName(doc.Name)
 	if err != nil {
 		return models.Document{}, err
@@ -132,7 +137,7 @@ func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document,
 	}
 
 	if doc.Location != "" && !v.validDocLocation(doc.Location) {
-		return models.Document{}, errors.New(`отметка о подшивке указана неверно, примеры: "Дело 12, стр. 12", "Дело 1, стр. 12-19"`)
+		return models.Document{}, errors.New(`отметка о подшивке указана неверно, примеры: "Дело 12, стр. 12", "Дело 1, стр. 12-19", "Реестр № 1", "Акт № 15дсп от 14.05.2025 г."`)
 	}
 
 	err = v.validDocFile(doc.FileHeader)
@@ -172,21 +177,21 @@ func (v *validatService) validDocFNum(fnum, Type string) error {
 	return nil
 }
 
-func (v *validatService) validDocLNum(lnum string) error {
+func (v *validatService) validDocLNum(lnum string, Type string) error {
 	trimFnum := strings.TrimSpace(lnum)
 
-	if trimFnum == "" || trimFnum == "№" || trimFnum == "Исх. №" {
+	if trimFnum == Type {
 		return errors.New(`номер документа не указан`)
 	}
 
-	if strings.HasPrefix(trimFnum, "Исх. № ") {
-		numPart := strings.TrimPrefix(trimFnum, "Исх. № ")
+	if strings.HasPrefix(trimFnum, Type) {
+		numPart := strings.TrimPrefix(trimFnum, Type)
 		if !v.containsDigit(numPart) {
-			return errors.New(`номер документа должен начинаться либо с "Исх. № ", либо с цифры`)
+			return errors.New(`номер документа должен начинаться либо с ` + Type + `, либо с цифры`)
 		}
 	} else {
 		if len(trimFnum) == 0 || !unicode.IsDigit(rune(trimFnum[0])) {
-			return errors.New(`если номер документа не начинается с "Исх. № ", то должен начинаться с цифры`)
+			return errors.New(`если номер документа не начинается с ` + Type + `, то должен начинаться с цифры`)
 		}
 	}
 
@@ -205,9 +210,9 @@ func (v *validatService) validDocDate(date sql.NullString) error {
 	return nil
 }
 
-func (v *validatService) validDocLdate(date sql.NullString, num string) error {
+func (v *validatService) validDocLdate(date sql.NullString, num, Type string) error {
 	if num != "" {
-		err := v.validDocLNum(num)
+		err := v.validDocLNum(num, Type)
 		if err != nil {
 			return err
 		}
@@ -332,41 +337,50 @@ func (v *validatService) validDocWidth(width string) error {
 }
 
 func (v *validatService) validDocLocation(location string) bool {
+    // Проверяем общий формат: "Дело <число>, стр. <число>[-<число>]"
+    casePattern := `^Дело (\d+), стр\. (\d+)(?:-(\d+))?$`
+    // Проверяем форматы: "Реестр № <число>", "Акт № <число>[дсп][от <дата>]"
+    registryPattern := `^(Реестр|Акт) № (\d+)(дсп)?(?:\sот\s\d{2}\.\d{2}\.\d{4}\sг\.)?$`
+    
+    reCase := regexp.MustCompile(casePattern)
+    reRegistry := regexp.MustCompile(registryPattern)
+    
+    // Проверяем оба возможных формата
+    if matches := reCase.FindStringSubmatch(location); matches != nil {
+        // Проверяем, что все числа валидны (положительные)
+        _, err := strconv.Atoi(matches[1]) // Номер дела
+        if err != nil || matches[1] == "0" {
+            return false
+        }
 
-	// Проверяем общий формат: "Дело <число>, стр. <число>[-<число>]"
-	pattern := `^Дело (\d+), стр\. (\d+)(?:-(\d+))?$`
-	re := regexp.MustCompile(pattern)
-	matches := re.FindStringSubmatch(location)
+        _, err = strconv.Atoi(matches[2]) // Первая страница
+        if err != nil || matches[2] == "0" {
+            return false
+        }
 
-	if matches == nil {
-		return false
-	}
+        // Если есть диапазон (например, "12-19"), проверяем второе число
+        if matches[3] != "" {
+            pageEnd, err := strconv.Atoi(matches[3])
+            if err != nil || matches[3] == "0" {
+                return false
+            }
 
-	// Проверяем, что все числа валидны (положительные)
-	_, err := strconv.Atoi(matches[1]) // Номер дела
-	if err != nil || matches[1] == "0" {
-		return false
-	}
-
-	_, err = strconv.Atoi(matches[2]) // Первая страница
-	if err != nil || matches[2] == "0" {
-		return false
-	}
-
-	// Если есть диапазон (например, "12-19"), проверяем второе число
-	if matches[3] != "" {
-		pageEnd, err := strconv.Atoi(matches[3])
-		if err != nil || matches[3] == "0" {
-			return false
-		}
-
-		pageStart, _ := strconv.Atoi(matches[2])
-		if pageEnd <= pageStart {
-			return false
-		}
-	}
-
-	return true
+            pageStart, _ := strconv.Atoi(matches[2])
+            if pageEnd <= pageStart {
+                return false
+            }
+        }
+        return true
+    } else if matches := reRegistry.FindStringSubmatch(location); matches != nil {
+        // Проверяем номер реестра/акта
+        _, err := strconv.Atoi(matches[2])
+        if err != nil || matches[2] == "0" {
+            return false
+        }
+        return true
+    }
+    
+    return false
 }
 
 func (v *validatService) validDocFile(file *multipart.FileHeader) error {

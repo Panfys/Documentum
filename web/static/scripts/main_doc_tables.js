@@ -38,7 +38,7 @@ function WriteDocumentsInTable(documents, container, type) {
         if (documents) {
 
             documents.forEach(document => {
-                if (!document) return;
+                if (!document) return; 
 
                 documentsString += `
                 <table class="tubs__table tubs__table--document" id="document-table-${document.id}" document-id='${document.id}'>

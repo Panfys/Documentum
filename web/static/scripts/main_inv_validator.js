@@ -4,11 +4,11 @@
 function validateInventoryData(data) {
   validate = 0
 
-  if (validDirNumber(data.number)) validate++;
-  if (validDirDate(data.date)) validate++;
-  if (validDirName(data.name)) validate++;
-  if (validDirAutor(data.autor)) validate++;
-  if (validDirCountCopy(data.countCopy)) validate++;
+  if (validInvNumber(data.number)) validate++;
+  if (validInvName(data.name)) validate++;
+  if (validInvSender(data.sender)) validate++;
+  if (validInvCountCopy(data.countCopy)) validate++;
+  if (validDocCopy(data.copy)) validate++;
 
   if (validate === 0) serverMessage("close");
 
@@ -18,10 +18,10 @@ function validateInventoryData(data) {
 }
 
 // Проверка порядкового номера
-function validDirNumber(number) {
-  if (number === '' || number === "Приказ №" || number === '№' || number === "Приказание №" || number === "Директива №") {
+function validInvNumber(number) {
+  if (number === '' || number === "Инв. №" || number === '№') {
     AlertValidDocError("number")
-    serverMessage("show", 'порядковый номер документа не указан');
+    serverMessage("show", 'порядковый (инвентарный) номер документа не указан');
     return true;
   }
   ReAlertValidDocError('number')
@@ -29,29 +29,17 @@ function validDirNumber(number) {
   return false;
 }
 
-// Проверка даты подписания
-function validDirDate(date) {
-  if (date === '') {
-    AlertValidDocError("date")
-    serverMessage("show", 'дата подписи не указана');
-    return true;
-  }
-
-  ReAlertValidDocError('date')
-  return false;
-}
-
 // Проверка названия документа
-function validDirName(name) {
+function validInvName(name) {
   if (name === '') {
     AlertValidDocError("name")
-    serverMessage("show", 'краткое содержание не указано');
+    serverMessage("show", 'название издания не указано');
     return true;
   }
 
   if (!/^[А-Я]/.test(name)) {
     AlertValidDocError("name");
-    serverMessage("show", 'краткое содержание  должно начинаться с заглавной буквы');
+    serverMessage("show", 'название издания должно начинаться с заглавной буквы');
     return true;
   }
 
@@ -59,20 +47,20 @@ function validDirName(name) {
   return false;
 }
 
-// Проверка автора приказа/директивы
-function validDirAutor(autor) {
-  if (autor === '') {
-    AlertValidDocError("autor")
-    serverMessage("show", 'лицо, подписавшее документ не указано');
+// Проверка отправителя документа
+function validInvSender(sender) {
+  if (sender === '') {
+    AlertValidDocError("sender")
+    serverMessage("show", 'отправитель, издатель и год издания не указаны');
     return true;
   }
 
-  ReAlertValidDocError('autor')
+  ReAlertValidDocError('sender')
   return false;
 }
 
 // Проверка количества экз. документа
-function validDirCountCopy(count) {
+function validInvCountCopy(count) {
   if (count < 1) {
     AlertValidDocError("countCopy")
     serverMessage("show", 'количестов экземпляров должно быть больше нуля');

@@ -213,9 +213,9 @@ async function submitNewDocumentForm() {
       return;
     }
   } else if (docData.type === "Издание") {
-   /* if (validateInventoryData(docData) > 0) {
+    if (validateInventoryData(docData) > 0) {
       return;
-    } */
+    } 
   } else {
     // 2. Валидация данных
     if (validateDocumentData(docData) > 0) {
