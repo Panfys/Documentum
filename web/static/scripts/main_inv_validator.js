@@ -26,6 +26,19 @@ function validInvNumber(number) {
   }
   ReAlertValidDocError('number')
 
+  if (number.startsWith("Инв. № ")) {
+    const numberPart = number.slice("Инв. № ".length);
+    if (!validDocNum(numberPart)) {
+      AlertValidDocError("number")
+      serverMessage("show", `порядковый (инвентарный) номер издания указан неверно, примеры верного номера: "Инв. № 123", "Инв. № 123дсп"`);
+      return true;
+    }
+  } else {
+    AlertValidDocError("number")
+    serverMessage("show", `порядковый (инвентарный) номер издания указан неверно, примеры верного номера: "Инв. № 123", "Инв. № 123дсп"`);
+    return true;
+  }
+
   return false;
 }
 

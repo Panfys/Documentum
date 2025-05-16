@@ -124,6 +124,7 @@ func (h *AuthHandler) GetHandler(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			responseData.AccountData, err = h.userSrv.GetUserAccountData(login)
 			if err != nil {
+				h.ExitHandler(w, r)
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
