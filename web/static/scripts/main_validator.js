@@ -131,10 +131,10 @@ function validDocLNum(lnum, ldate, type) {
       return true;
     }
   } else if (!validDocNum(lnum)) {
-      AlertValidDocError("lnum")
-      serverMessage("show", 'номер документа указан неверно, примеры верного номера: "Вх. № 123дсп", "123/124", "123дсп"');
-      return true;
-    }
+    AlertValidDocError("lnum")
+    serverMessage("show", 'номер документа указан неверно, примеры верного номера: "Вх. № 123дсп", "123/124", "123дсп"');
+    return true;
+  }
 
   if (ldate == "") {
     AlertValidDocError("ldate")
@@ -296,9 +296,16 @@ function validDocNum(num) {
 }
 
 // Проверка резолюций
-function validResolutions(resolutions) {
+function validResolutions(resolutions, startResCount) {
+  
+  if (!startResCount) {
+    startResCount = 0
+  }
+  console.log(resolutions)
   validate = 0
-  resolutions.forEach((resolution, id) => {
+  resolutions.forEach((resolution, index) => {
+    const id = Number(index) + Number(startResCount);
+    console.log(id)
     if (validResolution(id, resolution)) validate++
   })
   if (validate > 0) return true; else return false
@@ -307,6 +314,7 @@ function validResolutions(resolutions) {
 function validResolution(id, resolution) {
   validate = 0
   res_id = `resolution-${id}`;
+  console.log(res_id)
   // Валидация текста резолюции
   if (!resolution.text || resolution.text === '') {
     ValidResolutionError(res_id, 'text');

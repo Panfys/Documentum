@@ -110,7 +110,7 @@ function AddDocResolution(action) {
     case "open":
       if (resolutionStartCount === null) {
         resolutionStartCount = resolutionPanel.childElementCount;
-        console.log(resolutionStartCount)
+        resolutionPanel.setAttribute("res_count", resolutionPanel.childElementCount);
       }
       docPanel.style.display = "none";
       btnPanel.style.display = "flex";

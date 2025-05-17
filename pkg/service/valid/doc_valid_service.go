@@ -21,6 +21,7 @@ type DocValidatService interface {
 	ValidResolution(res *models.Resolution) (models.Resolution, error)
 	ValidDirective(reqDir models.Directive) (models.Directive, error)
 	ValidInventory(reqInv models.Inventory) (models.Inventory, error)
+	ValidUpdateDocument(reqDoc models.Document) (models.Document, error)
 }
 
 func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document, error) {
@@ -35,7 +36,7 @@ func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document,
 
 	if err != nil {
 		return models.Document{}, errors.New("количество экземпляров указано некорректно")
-	}	
+	}
 
 	doc.LDate, err = v.stringToDateNullString(doc.LDateStr)
 	if err != nil {
@@ -144,6 +145,21 @@ func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document,
 	if err != nil {
 		return models.Document{}, err
 	}
+
+	return doc, nil
+}
+
+func (v *validatService) ValidUpdateDocument(reqDoc models.Document) (models.Document, error) {
+
+	doc := v.sanitizeDocument(&reqDoc)
+
+	docID, err := strconv.Atoi(doc.IDStr)
+
+	if err != nil {
+		return models.Document{}, v.log.Error(models.ErrRequest, "указанный в запросе ID документа неверный:", doc.IDStr)
+	}
+	
+	doc.ID = docID 
 
 	return doc, nil
 }
@@ -337,50 +353,50 @@ func (v *validatService) validDocWidth(width string) error {
 }
 
 func (v *validatService) validDocLocation(location string) bool {
-    // Проверяем общий формат: "Дело <число>, стр. <число>[-<число>]"
-    casePattern := `^Дело (\d+), стр\. (\d+)(?:-(\d+))?$`
-    // Проверяем форматы: "Реестр № <число>", "Акт № <число>[дсп][от <дата>]"
-    registryPattern := `^(Реестр|Акт) № (\d+)(дсп)?(?:\sот\s\d{2}\.\d{2}\.\d{4}\sг\.)?$`
-    
-    reCase := regexp.MustCompile(casePattern)
-    reRegistry := regexp.MustCompile(registryPattern)
-    
-    // Проверяем оба возможных формата
-    if matches := reCase.FindStringSubmatch(location); matches != nil {
-        // Проверяем, что все числа валидны (положительные)
-        _, err := strconv.Atoi(matches[1]) // Номер дела
-        if err != nil || matches[1] == "0" {
-            return false
-        }
+	// Проверяем общий формат: "Дело <число>, стр. <число>[-<число>]"
+	casePattern := `^Дело (\d+), стр\. (\d+)(?:-(\d+))?$`
+	// Проверяем форматы: "Реестр № <число>", "Акт № <число>[дсп][от <дата>]"
+	registryPattern := `^(Реестр|Акт) № (\d+)(дсп)?(?:\sот\s\d{2}\.\d{2}\.\d{4}\sг\.)?$`
 
-        _, err = strconv.Atoi(matches[2]) // Первая страница
-        if err != nil || matches[2] == "0" {
-            return false
-        }
+	reCase := regexp.MustCompile(casePattern)
+	reRegistry := regexp.MustCompile(registryPattern)
 
-        // Если есть диапазон (например, "12-19"), проверяем второе число
-        if matches[3] != "" {
-            pageEnd, err := strconv.Atoi(matches[3])
-            if err != nil || matches[3] == "0" {
-                return false
-            }
+	// Проверяем оба возможных формата
+	if matches := reCase.FindStringSubmatch(location); matches != nil {
+		// Проверяем, что все числа валидны (положительные)
+		_, err := strconv.Atoi(matches[1]) // Номер дела
+		if err != nil || matches[1] == "0" {
+			return false
+		}
 
-            pageStart, _ := strconv.Atoi(matches[2])
-            if pageEnd <= pageStart {
-                return false
-            }
-        }
-        return true
-    } else if matches := reRegistry.FindStringSubmatch(location); matches != nil {
-        // Проверяем номер реестра/акта
-        _, err := strconv.Atoi(matches[2])
-        if err != nil || matches[2] == "0" {
-            return false
-        }
-        return true
-    }
-    
-    return false
+		_, err = strconv.Atoi(matches[2]) // Первая страница
+		if err != nil || matches[2] == "0" {
+			return false
+		}
+
+		// Если есть диапазон (например, "12-19"), проверяем второе число
+		if matches[3] != "" {
+			pageEnd, err := strconv.Atoi(matches[3])
+			if err != nil || matches[3] == "0" {
+				return false
+			}
+
+			pageStart, _ := strconv.Atoi(matches[2])
+			if pageEnd <= pageStart {
+				return false
+			}
+		}
+		return true
+	} else if matches := reRegistry.FindStringSubmatch(location); matches != nil {
+		// Проверяем номер реестра/акта
+		_, err := strconv.Atoi(matches[2])
+		if err != nil || matches[2] == "0" {
+			return false
+		}
+		return true
+	}
+
+	return false
 }
 
 func (v *validatService) validDocFile(file *multipart.FileHeader) error {

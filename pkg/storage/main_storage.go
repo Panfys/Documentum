@@ -49,4 +49,5 @@ type DocStorage interface {
 	AddDocumentWithResolutions(doc models.Document) error
 	AddDirective(doc models.Directive) error
 	AddInventory(doc models.Inventory) error
+	UpdateDocumentWithResolutions(doc models.Document) error 
 }

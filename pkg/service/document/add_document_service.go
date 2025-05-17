@@ -101,7 +101,7 @@ func (d *docService) AddInventory(reqInv models.Inventory) (models.Inventory, er
 	if err != nil {
 		return models.Inventory{}, err
 	}
-	return inv, nil
+	
 	path := "/app/web/source/documents/"
 
 	newFileName, err := d.fileSrv.AddFile(path, inv.FileHeader.Filename, inv.File)
