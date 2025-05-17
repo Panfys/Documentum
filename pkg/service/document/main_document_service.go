@@ -15,6 +15,7 @@ type DocService interface {
 	AddDocument(doc models.Document) (models.Document, error)
 	AddDirective(dir models.Directive) (models.Directive, error)
 	AddInventory(reqInv models.Inventory) (models.Inventory, error)
+	UpdateDocument(reqDoc models.Document) (models.Document, error)
 }
 
 type docService struct {

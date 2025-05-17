@@ -18,7 +18,7 @@ function serverMessage(action, message) {
           clearTimeout(timeoutId);
           timeoutId = null;
         }
-        
+
         const now = new Date().toLocaleString();
         messageText.innerHTML = `(${now}) Сообщение от сервера: ${message}<br>`;
         // Сохраняем ID нового таймера
@@ -33,7 +33,7 @@ function serverMessage(action, message) {
           clearTimeout(timeoutId);
           timeoutId = null;
         }
-        
+
         messageDiv.style.display = "none";
         messageText.innerHTML = "";
       }
@@ -70,7 +70,7 @@ function AlertValidDocError(input) {
   const activeTab = document.querySelector(".main__tabs--active");
   activeTab.querySelector("#input-newdoc-" + input).style.borderColor =
     "var(--error-color)";
-    activeTab.querySelector("#input-newdoc-" + input).style.color =
+  activeTab.querySelector("#input-newdoc-" + input).style.color =
     "var(--error-color)";
 }
 

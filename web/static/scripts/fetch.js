@@ -236,3 +236,23 @@ async function fetchAddDocument(table, data) {
     return false
   }
 }
+
+// Запись изменений в документ
+async function fetchUpdateDocument(table, data, id) {
+
+  try {
+    const response = await fetch(`/documents/${encodeURIComponent(table)}/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: data
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
+    }
+    return true
+  } catch (error) {
+    serverMessage("show", error.message);
+    return false
+  }
+}

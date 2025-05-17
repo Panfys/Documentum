@@ -20,6 +20,11 @@ function initDocumentHandlers() {
     btn.addEventListener("click", submitNewDocumentForm);
   });
 
+  // Кнопка сохранения изменений документа
+  document.querySelectorAll("#btn-doc-save").forEach(btn => {
+    btn.addEventListener("click", submitUpdateDocument);
+  });
+
   // Кнопка поиска
   document.querySelectorAll("#btn-search").forEach(
     btn => {
@@ -180,6 +185,7 @@ function formatFileSize(bytes) {
 
 async function submitNewDocumentForm() {
   const activeTab = document.querySelector(".main__tabs--active");
+  const resolutionPanel = activeTab.querySelector("#newdoc-resolution-panel");
   const form = activeTab.querySelector("#form-newdoc");
   const fileInput = form.querySelector('input[type="file"]');
   const tabId = `#${activeTab.id}`;
@@ -193,7 +199,7 @@ async function submitNewDocumentForm() {
   const formData = new FormData(form);
   docData.type = docType.type;
 
-  processResolutions(activeTab, docData);
+  processResolutions(resolutionPanel, docData);
 
   // 1. Собираем данные формы в объект (без файла)
   for (const [key, value] of formData.entries()) {
@@ -215,7 +221,7 @@ async function submitNewDocumentForm() {
   } else if (docData.type === "Издание") {
     if (validateInventoryData(docData) > 0) {
       return;
-    } 
+    }
   } else {
     // 2. Валидация данных
     if (validateDocumentData(docData) > 0) {
@@ -236,9 +242,7 @@ async function submitNewDocumentForm() {
   }
 }
 
-function processResolutions(activeTab, docData) {
-  const resolutionPanel = activeTab.querySelector("#newdoc-resolution-panel");
-
+function processResolutions(resolutionPanel, docData) {
   if (!resolutionPanel) {
     return;
   }
@@ -269,11 +273,38 @@ function processResolutions(activeTab, docData) {
         resolution.querySelector("#resolution-result")?.value || "";
     }
 
-    resolutionsData.push(resolutionData);
+    if (resolution.getAttribute("id") !== "ingoing-resolution") {
+      resolutionsData.push(resolutionData);
+    }
   });
 
   // Добавляем резолюции в основной объект формы
   docData.resolutions = resolutionsData;
+}
+
+async function submitUpdateDocument() {
+  const activeTab = document.querySelector(".main__tabs--active");
+  const activeTable = document.querySelector(".tubs__table--active-table");
+  const documentID = activeTable.getAttribute("document-id");
+  const resolutionPanel = document.querySelector(`#resolution-panel-${documentID}`);
+  const tabId = `#${activeTab.id}`;
+  const docTable = Object.values(DOCUMENT_TYPES).find(
+    table => table.tabId === tabId
+  );
+  const docData = {};
+  startResCount = resolutionPanel.getAttribute("res_count")
+  console.log(startResCount);
+  processResolutions(resolutionPanel, docData);
+  if (docData.resolutions.length > 0) {
+    if (validResolutions(docData.resolutions, startResCount)) return;
+  }
+  const updateFormData = new FormData();
+
+  updateFormData.append('document', JSON.stringify(docData));
+
+  if (await fetchUpdateDocument(docTable.table, updateFormData, documentID)) {
+    alert("Документ обновлен! Перезагрузите страницу!")
+  }
 }
 
 // Инициализация при загрузке страницы

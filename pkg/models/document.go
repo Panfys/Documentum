@@ -11,6 +11,7 @@ import (
 // Объект для работы с документами
 type Document struct {
 	ID          int    `json:"id"`
+	IDStr       string 
 	Type        string `json:"type"`
 	FNum        string `json:"fnum"`
 	FDate       string `json:"fdate"`
