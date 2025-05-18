@@ -109,7 +109,8 @@ async function authorize() {
       "/static/scripts/main_panel_buttons.js",
       "/static/scripts/main_res_buttons.js",
       "/static/scripts/main_outgoing.js",
-      "static/scripts/main_dir_validator.js"
+      "static/scripts/main_dir_validator.js",
+      "static/scripts/websocket.js"
     ]);
 
      initDocumentViewHandlers();
