@@ -45,7 +45,7 @@ type DocStorage interface {
 	GetDirectives(settings models.DocSettings) ([]models.Directive, error)
 	GetInventory(settings models.DocSettings) ([]models.Inventory, error)
 	GetResolutoins(id int) ([]models.Resolution, error)
-	AddFamiliarDocument(table, id, name string) error
+	UpdateDocFamiliar(table, id, name string) (int64, error)
 	AddDocumentWithResolutions(doc models.Document) error
 	AddDirective(doc models.Directive) error
 	AddInventory(doc models.Inventory) error

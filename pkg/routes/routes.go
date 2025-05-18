@@ -27,11 +27,12 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	//Service
 	fileService := file.NewFilesService(log)
 	validService := valid.NewValidatService(log)
+	wsService := ws.NewWebSocketService(log)
 	userService := user.NewUserService(log, stor, validService, fileService)
 	structService := structure.NewstructureService(stor)
-	docService := document.NewDocService(stor, validService, fileService)
+	docService := document.NewDocService(stor, validService, fileService, wsService)
 	authServise := auth.NewAuthService(log, stor, validService, secretKey)
-	wsService := ws.NewWebSocketService(log)
+	
 
 	//Handlers
 	authHandler := handler.NewAuthHandler(log, authServise, userService, structService)
@@ -62,10 +63,10 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	//PATCH
 	protect.HandleFunc("/users/me/icon", userHandler.UpdateUserIcon).Methods("PATCH")
 	protect.HandleFunc("/users/me/pass", userHandler.UpdateUserPassword).Methods("PATCH")
-	protect.HandleFunc("/documents/{table:[a-z]+}/{id:[0-9]+}/familiar", docHandler.AddFamiliarDocument).Methods("PATCH")
+	protect.HandleFunc("/documents/{table:[a-z]+}/{id:[0-9]+}/familiar", docHandler.UpdateDocFamiliar).Methods("PATCH")
 	protect.HandleFunc("/documents/{table:[a-z]+}/{id:[0-9]+}", docHandler.UpdateDocResolutions).Methods("PATCH")
 	//DELETE
-	protect.HandleFunc("/auth/logout", authHandler.ExitHandler).Methods("DELETE")
+	protect.HandleFunc("/auth/logout", authHandler.ExitHandler)
 
 	// ERROR 404
 	r.NotFoundHandler = http.HandlerFunc(handler.NotFoundHandler)

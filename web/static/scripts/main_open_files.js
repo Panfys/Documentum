@@ -1,4 +1,3 @@
-// Константы для селекторов и классов
 const SELECTORS = {
   PANEL_OPEN_DOC: '#panel-opendoc',
   IFRAME_OPEN_DOC: '#iframe-opendoc',
@@ -37,7 +36,6 @@ async function openDocument(action, docId) {
   const docTypeConfig = Object.values(DOCUMENT_TYPES).find(
     table => table.tabId === tabId
   );
-  console.log(docTypeConfig.table)
 
   // Открытие документа
   document.body.style.overflow = 'hidden';
@@ -61,8 +59,9 @@ async function openDocument(action, docId) {
     const familiarText = familiarCell?.textContent || '';
 
     if (accountName && !familiarText.includes(accountName)) {
-        await fetchFamiliarDocument(docTypeConfig.table, docId);
+        
     }
+    await fetchFamiliarDocument(docTypeConfig.table, docId);
   }
 }
 

@@ -3,18 +3,21 @@ package ws
 import (
 	"documentum/pkg/logger"
 	"documentum/pkg/models"
-	"github.com/gorilla/websocket"
+	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 type WSService interface {
 	RegisterClient(client *models.Client)
 	UnregisterClient(client *models.Client)
-	HandleMessage(client *models.Client, message []byte) error
+	HandleMessage(client *models.Client, message models.Message) error
 	UpdateClientActivity(client *models.Client)
-	SendToClient(client *models.Client, message []byte) error
-	Broadcast(message []byte)
+	SendToClient(client *models.Client, message models.Message) error
+	Broadcast(message models.Message)
 }
 
 type WebSocketService struct {
@@ -40,7 +43,7 @@ func (s *WebSocketService) cleanupRoutine() {
 			if time.Since(client.LastActive) > 45*time.Second {
 				client.Conn.Close()
 				delete(s.clients, client)
-				s.log.Info("удаление неактивного пользователя: " + client.Login)
+				s.log.Info("отключение неактивного пользователя: " + client.Login)
 			}
 		}
 		s.mu.Unlock()
@@ -53,12 +56,16 @@ func (s *WebSocketService) RegisterClient(client *models.Client) {
 
 	for c := range s.clients {
 		if c.Login == client.Login {
+			if c.Agent != client.Agent || c.IP != client.IP {
+				s.disconnectClient(c)
+				s.log.Info("дисконнект " + client.Login)
+			}
 			c.Mutex.Lock()
 			c.Conn.Close()
 			c.Conn = client.Conn
 			c.LastActive = time.Now()
 			c.Mutex.Unlock()
-			//s.log.Info("обновление статуса клиента " + client.Login)
+			s.log.Info("обновление статуса клиента " + client.Login)
 			return
 		}
 	}
@@ -66,7 +73,7 @@ func (s *WebSocketService) RegisterClient(client *models.Client) {
 	// Новый клиент
 	client.LastActive = time.Now()
 	s.clients[client] = true
-	s.log.Info("регистрация клиента " + client.Login)
+	s.log.Info("подключение клиента " + client.Login)
 }
 
 func (s *WebSocketService) UnregisterClient(client *models.Client) {
@@ -82,34 +89,50 @@ func (s *WebSocketService) UnregisterClient(client *models.Client) {
 	}
 }
 
+func (s *WebSocketService) disconnectClient(client *models.Client) {
+	var message models.Message
+	message.Action = "disconnect"
+	s.SendToClient(client, message) 
+}
+
 func (s *WebSocketService) UpdateClientActivity(client *models.Client) {
 	client.Mutex.Lock()
 	defer client.Mutex.Unlock()
 	client.LastActive = time.Now()
 }
 
-func (s *WebSocketService) HandleMessage(client *models.Client, message []byte) error {
+func (s *WebSocketService) HandleMessage(client *models.Client, message models.Message) error {
+	// Обработка PING-запроса
+	if message.Action == "PING" {
+		pongMessage := models.Message{
+			Action: "PONG",
+		}
 
-	if string(message) == "PING" {
-		return s.SendToClient(client, []byte("PONG"))
-	} else {
-		s.log.Info("Получение сообщения от пользователя " + client.Login + ", Content: " + string(message))
+		return s.SendToClient(client, pongMessage)
 	}
+
+	// Логируем входящее сообщение (если это не PING)
+	s.log.Info(fmt.Sprintf(
+		"Получено сообщение от пользователя %s, Content: %v",
+		client.Login,
+		message.Content,
+	))
 
 	return nil
 }
 
-func (s *WebSocketService) SendToClient(client *models.Client, message []byte) error {
+func (s *WebSocketService) SendToClient(client *models.Client, message models.Message) error {
 	client.Mutex.Lock()
 	defer client.Mutex.Unlock()
-	if string(message) != "PONG" {
-		s.log.Info("Отправлено сообщение пользователю " + client.Login + ", Content: " + string(message)) 
-	}
 
-	return client.Conn.WriteMessage(websocket.TextMessage, message)
+	messageBytes, err := json.Marshal(message)
+	if err != nil {
+		return s.log.Error("Ошибка обработки в JSON при отправке PONG", err)
+	}
+	return client.Conn.WriteMessage(websocket.TextMessage, messageBytes)
 }
 
-func (s *WebSocketService) Broadcast(message []byte) {
+func (s *WebSocketService) Broadcast(message models.Message) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

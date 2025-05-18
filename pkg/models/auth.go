@@ -2,7 +2,11 @@ package models
 
 type contextKey string
 
-var LoginKey contextKey = "login"
+const (
+    LoginKey contextKey = "login"
+    UserAgentKey contextKey = "userAgent"
+    IPKey contextKey = "ip"
+)
 
 type AuthData struct {
 	Login    string `json:"login"`

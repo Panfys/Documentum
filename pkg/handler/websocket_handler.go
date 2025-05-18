@@ -4,9 +4,9 @@ import (
 	"documentum/pkg/logger"
 	"documentum/pkg/models"
 	"documentum/pkg/service/ws"
-	"net/http"
-
+	"encoding/json"
 	"github.com/gorilla/websocket"
+	"net/http"
 )
 
 type WebSocketHandler struct {
@@ -35,32 +35,37 @@ func (h *WebSocketHandler) HandleConnection(w http.ResponseWriter, r *http.Reque
 	}
 
 	login := r.Context().Value(models.LoginKey).(string)
+	agent := r.Context().Value(models.UserAgentKey).(string)
+	ip := r.Context().Value(models.IPKey).(string)
 
 	client := &models.Client{
-		Conn:   conn,
+		Conn:  conn,
 		Login: login,
+		Agent: agent,
+		IP: ip,
 	}
 	h.service.RegisterClient(client)
 
-	// Отправка подтверждения
-	if err := conn.WriteMessage(websocket.TextMessage, []byte(login)); err != nil {
-		h.log.Error("Failed to send OK:", err)
-		return
-	}
-
-	// Обработка сообщений
 	for {
-		_, msg, err := conn.ReadMessage() 
+		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			//h.log.Error("соединение с " + login, " закрыто, Error:", err)
+			h.log.Error("Соединение с "+client.Login+" закрыто. Ошибка:", err)
 			break
 		}
-		
-		// Обновляем время активности
+
+		// Обновляем время активности клиента
 		h.service.UpdateClientActivity(client)
-		
-		if err := h.service.HandleMessage(client, msg); err != nil {
-			h.log.Error("ошибка отправки сообщения: ", err)
+
+		// Декодируем JSON в структуру Message
+		var message models.Message
+		if err := json.Unmarshal(msg, &message); err != nil {
+			h.log.Error("Ошибка декодирования JSON:", err)
+			continue // Пропускаем некорректное сообщение
+		}
+
+		// Обрабатываем сообщение
+		if err := h.service.HandleMessage(client, message); err != nil {
+			h.log.Error("Ошибка обработки сообщения:", err)
 		}
 	}
 }

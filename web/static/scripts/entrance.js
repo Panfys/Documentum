@@ -1,11 +1,3 @@
-//------------------------------ENTRANCE-------------------------------------
-
-/*/-------Прелоадер
-window.onload = function() {
-  document.querySelector('.main__preloader--panel').style.display = 'none';
-}; */
-
-// Variables
 const btnShowPassword = document.querySelector(".password__checkbox");
 const loginInput = document.querySelector("#regist-login-input");
 const nameInput = document.querySelector("#regist-name-input");

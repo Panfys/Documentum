@@ -2,8 +2,26 @@ package storage
 
 import (
 	"documentum/pkg/models"
+	"fmt"
 	"time"
 )
+
+func (s *SQLStorage) UpdateDocFamiliar(table, id, name string) (int64, error) {
+
+	query := fmt.Sprintf("UPDATE %s SET familiar = IF(familiar IS NULL OR familiar = '', ?, CONCAT(familiar, ', <br> ', ?)) WHERE id = ? AND (familiar IS NULL OR familiar NOT LIKE ?)", table)
+
+	result, err := s.db.Exec(query, name, name, id, "%"+name+"%")
+	if err != nil {
+		return 0, s.log.Error(models.ErrAddDataInDB, err)
+	}
+	
+	res, err := result.RowsAffected()
+	if err != nil {
+		return 0, s.log.Error(models.ErrAddDataInDB, err)
+	}
+
+	return res, nil
+}
 
 func (s *SQLStorage) UpdateDocumentWithResolutions(doc models.Document) error {
 

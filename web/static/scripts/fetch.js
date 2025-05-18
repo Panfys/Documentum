@@ -1,4 +1,3 @@
-// Получение структурных подразделений
 async function FetchUnits(func) {
   try {
     const response = await fetch(`/structures/${encodeURIComponent(func)}`);
