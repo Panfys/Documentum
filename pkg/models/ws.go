@@ -1,9 +1,11 @@
 package models
 
 import (
-	"github.com/gorilla/websocket"
+	
 	"sync"
 	"time"
+	"github.com/gorilla/websocket"
+	"encoding/json"
 )
 
 type Client struct {
@@ -11,4 +13,17 @@ type Client struct {
 	Login string
 	Mutex    sync.Mutex
 	LastActive time.Time
+	Agent string
+	IP string
 }
+
+type Message struct {
+	Action string `json:"action"`
+	Content json.RawMessage `json:"content,omitempty"`
+}
+type UpdDocFamConten struct {
+	Table string `json:"table"`
+	DocID string `json:"docID"`
+	Familiar string `json:"familiar"` 
+}
+

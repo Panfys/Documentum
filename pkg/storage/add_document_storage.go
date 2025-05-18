@@ -2,21 +2,8 @@ package storage
 
 import (
 	"documentum/pkg/models"
-	"fmt"
 	"time"
 )
-
-func (s *SQLStorage) AddFamiliarDocument(table, id, name string) error {
-
-	query := fmt.Sprintf("UPDATE %s SET familiar = IF(familiar IS NULL OR familiar = '', ?, CONCAT(familiar, ', <br> ', ?)) WHERE id = ? AND (familiar IS NULL OR familiar NOT LIKE ?)", table)
-	
-	_, err := s.db.Exec(query, name, name, id, "%"+name+"%")
-
-	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err)
-	}
-	return nil
-}
 
 func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 

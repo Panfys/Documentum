@@ -8,6 +8,7 @@ class WSClient {
     this.longReconnectDelay = 60000; // 1 минута
     this.pingTimeout = null;
     this.reconnectTimeout = null;
+    this.messageHandlers = new Map(); // Для обработки разных типов сообщений
     this.connect();
   }
 
@@ -35,20 +36,45 @@ class WSClient {
     };
 
     this.socket.onmessage = (e) => {
-      if (e.data === 'PONG') {
-        //console.debug('PONG received');
-      } else {
-        console.log('Message:', e.data);
+      try {
+        const message = JSON.parse(e.data);
+
+        switch (message.action) {
+          case "PONG": {
+            return;
+          }
+          case "disconnect": {
+            alert("Обнаружено новое подключение с другого устройства");
+            FetchLogoutUser()
+          }
+          default: {
+            // Вызов обработчика для конкретного action
+            const handler = this.messageHandlers.get(message.action);
+            if (handler) {
+              handler(message.content);
+            } else {
+              console.log('Unhandled message:', message);
+              this.onMessage?.(message); // Общий обработчик
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Message parse error:', err, 'Raw data:', e.data);
       }
     };
+  }
+
+  // Регистрация обработчиков для разных типов сообщений
+  on(action, handler) {
+    this.messageHandlers.set(action, handler);
+    return this; // Для чейнинга
   }
 
   startPing() {
     this.clearPing();
     this.pingTimeout = setInterval(() => {
-      if (this.socket.readyState === WebSocket.OPEN) {
-        //console.debug('Sending PING');
-        this.socket.send('PING');
+      if (this.socket?.readyState === WebSocket.OPEN) {
+        this.send({ action: 'PING' });
       }
     }, this.pingInterval);
   }
@@ -65,14 +91,11 @@ class WSClient {
       clearTimeout(this.reconnectTimeout);
     }
 
-    let delay;
-    if (this.reconnectAttempts < this.maxFastReconnectAttempts) {
-      delay = this.fastReconnectDelay;
-      console.log(`Fast reconnect in ${delay/1000} sec (attempt ${this.reconnectAttempts + 1}/${this.maxFastReconnectAttempts})`);
-    } else {
-      delay = this.longReconnectDelay;
-      console.log(`Slow reconnect in ${delay/1000/60} minutes`);
-    }
+    const delay = this.reconnectAttempts < this.maxFastReconnectAttempts
+      ? this.fastReconnectDelay
+      : this.longReconnectDelay;
+
+    console.log(`Reconnect in ${delay / 1000} sec (attempt ${this.reconnectAttempts + 1})`);
 
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectAttempts++;
@@ -80,11 +103,13 @@ class WSClient {
     }, delay);
   }
 
+  // Отправка структуры Message
   send(message) {
     if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(message);
+      this.socket.send(JSON.stringify(message));
     } else {
       console.error('Cannot send - connection not ready');
+      // Можно добавить очередь сообщений при необходимости
     }
   }
 
@@ -96,14 +121,25 @@ class WSClient {
     if (this.socket) {
       this.socket.close();
     }
+    this.messageHandlers.clear();
   }
 }
 
-// Использование
-const client = new WSClient();
+// Пример использования
+const client = new WSClient()
+  .on('CHAT_MESSAGE', (content) => {
+    console.log('New message:', content);
+  })
+  .on('SYSTEM_ALERT', (content) => {
+    client.send({
+      action: 'SEND_MESSAGE',
+      content: { text: 'Hello', userId: 123 }
+    });
 
-// Для тестирования в консоли:
-window.testWS = {
+  });
+
+// Для тестирования в консоли
+window.wsClient = {
   disconnect: () => client.socket.close(),
-  reconnect: () => client.connect()
+  reconnect: () => client.connect(),
 };

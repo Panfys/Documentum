@@ -1,4 +1,3 @@
-// Константы для элементов интерфейса
 const menuButtons = document.querySelectorAll(".header__menu--btn");
 const settingsButton = document.querySelector(".main__header--settings");
 const accountButton = document.querySelector(".main__header--account");

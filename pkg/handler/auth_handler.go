@@ -180,7 +180,10 @@ func (h *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
-		ctx := context.WithValue(r.Context(), models.LoginKey, login)
+		ctx := r.Context()
+        ctx = context.WithValue(ctx, models.LoginKey, login)
+        ctx = context.WithValue(ctx, models.UserAgentKey, authData.Agent)
+        ctx = context.WithValue(ctx, models.IPKey, authData.IP)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

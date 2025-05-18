@@ -2,8 +2,42 @@ package document
 
 import (
 	"documentum/pkg/models"
-	//"path/filepath"
+	"fmt"
+	"encoding/json"
 )
+
+func (d *docService) UpdateDocFamiliar(table, id, login string) error {
+
+	name, err := d.stor.GetUserName(login)
+	if err != nil {
+		return err
+	}
+
+	res, err := d.stor.UpdateDocFamiliar(table, id, name)
+
+	if err != nil {
+		return err
+	}
+
+	if res == 1 {
+		var (
+			message models.Message
+			content models.UpdDocFamConten
+		)
+		message.Action = "updDocFam"
+		content.Table = table
+		content.DocID = id
+		content.Familiar = fmt.Sprintf("<br>%s", name)
+		jsonContent, err := json.Marshal(content)
+		if err != nil {
+			return err
+		}
+		message.Content = jsonContent
+		d.wsSrv.Broadcast(message)
+	}
+
+	return nil
+}
 
 func (d *docService) UpdateDocument(reqDoc models.Document) (models.Document, error) {
 

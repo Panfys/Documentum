@@ -5,22 +5,6 @@ import (
 	"path/filepath"
 )
 
-func (d *docService) AddFamiliarDocument(table, id, login string) error {
-
-	name, err := d.stor.GetUserName(login)
-	if err != nil {
-		return err
-	}
-
-	err = d.stor.AddFamiliarDocument(table, id, name)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (d *docService) AddDocument(reqDoc models.Document) (models.Document, error) {
 
 	doc, err := d.validSrv.ValidDocument(reqDoc)
