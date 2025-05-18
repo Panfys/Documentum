@@ -10,6 +10,7 @@ import (
 	"documentum/pkg/service/structure"
 	"documentum/pkg/service/user"
 	"documentum/pkg/service/valid"
+	"documentum/pkg/service/ws"
 	"documentum/pkg/storage"
 
 	"net/http"
@@ -30,12 +31,14 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	structService := structure.NewstructureService(stor)
 	docService := document.NewDocService(stor, validService, fileService)
 	authServise := auth.NewAuthService(log, stor, validService, secretKey)
+	wsService := ws.NewWebSocketService(log)
 
 	//Handlers
 	authHandler := handler.NewAuthHandler(log, authServise, userService, structService)
 	userHandler := handler.NewUserHandler(log, userService)
 	docHandler := handler.NewDocHandler(log, docService)
 	structHandler := handler.NewStructureHandler(structService)
+	wsHandler := handler.NewWebSocketHandler(log, wsService)
 
 	/// OPEN
 	//GET
@@ -52,6 +55,7 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	protect := r.PathPrefix("/").Subrouter()
 	protect.Use(authHandler.AuthMiddleware)
 	//GET
+	protect.HandleFunc("/ws", wsHandler.HandleConnection).Methods("GET")
 	protect.HandleFunc("/documents/{table:[a-z]+}", docHandler.GetDocuments).Methods("GET")
 	//POST
 	protect.HandleFunc("/documents/{table:[a-z]+}", docHandler.AddDocument).Methods("POST")
