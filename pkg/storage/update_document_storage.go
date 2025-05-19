@@ -6,8 +6,13 @@ import (
 	"time"
 )
 
-func (s *SQLStorage) UpdateDocFamiliar(table, id, name string) (int64, error) {
-
+func (s *SQLStorage) UpdateDocFamiliar(types, id, name string) (int64, error) {
+	var table string 
+	if types == "ingoing" || types == "outgoing" {
+		table = "inouts" 
+	} else {
+		table = types 
+	}
 	query := fmt.Sprintf("UPDATE %s SET familiar = IF(familiar IS NULL OR familiar = '', ?, CONCAT(familiar, ', <br> ', ?)) WHERE id = ? AND (familiar IS NULL OR familiar NOT LIKE ?)", table)
 
 	result, err := s.db.Exec(query, name, name, id, "%"+name+"%")

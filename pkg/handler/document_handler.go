@@ -80,9 +80,9 @@ func (h *DocHandler) UpdateDocFamiliar(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	login := r.Context().Value(models.LoginKey).(string)
 	id := vars["id"]
-	table := vars["table"]
+	types := vars["type"]
 
-	err := h.service.UpdateDocFamiliar(table, id, login)
+	err := h.service.UpdateDocFamiliar(types, id, login)
 
 	if err != nil {
 		http.Error(w, err.Error(), 500)

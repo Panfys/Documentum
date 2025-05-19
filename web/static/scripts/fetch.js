@@ -30,7 +30,7 @@ async function FetchGroups(func, unit) {
       throw new Error(errorText || "Ошибка сервера");
     }
 
-    selectGroups = "<option value=0></option>"
+    selectGroups = "<option value=1></option>"
     const groups = await response.json();
     if (groups != null) {
       groups.forEach(group => {
@@ -201,9 +201,9 @@ async function FetchGetDocuments(table, settings) {
 }
 
 // Запись просмотра докумнтов
-async function fetchFamiliarDocument(table, id) {
+async function fetchFamiliarDocument(type, id) {
   try {
-    const response = await fetch(`/documents/${encodeURIComponent(table)}/${encodeURIComponent(id)}/familiar`, {
+    const response = await fetch(`/documents/${encodeURIComponent(type)}/${encodeURIComponent(id)}/familiar`, {
       method: 'PATCH',
     });
 

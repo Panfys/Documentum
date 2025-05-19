@@ -40,7 +40,7 @@ func (s *WebSocketService) cleanupRoutine() {
 		time.Sleep(30 * time.Second)
 		s.mu.Lock()
 		for client := range s.clients {
-			if time.Since(client.LastActive) > 45*time.Second {
+			if time.Since(client.LastActive) > 60*time.Second {
 				client.Conn.Close()
 				delete(s.clients, client)
 				s.log.Info("отключение неактивного пользователя: " + client.Login)
@@ -107,14 +107,20 @@ func (s *WebSocketService) HandleMessage(client *models.Client, message models.M
 		pongMessage := models.Message{
 			Action: "PONG",
 		}
-
+		s.log.Info(fmt.Sprintf(
+		"Получено сообщение от пользователя %s, Action: %v, Content: %v",
+		client.Login,
+		message.Action,
+		message.Content,
+	))
 		return s.SendToClient(client, pongMessage)
 	}
 
 	// Логируем входящее сообщение (если это не PING)
 	s.log.Info(fmt.Sprintf(
-		"Получено сообщение от пользователя %s, Content: %v",
+		"Получено сообщение от пользователя %s, Action: %v, Content: %v",
 		client.Login,
+		message.Action,
 		message.Content,
 	))
 
@@ -129,6 +135,12 @@ func (s *WebSocketService) SendToClient(client *models.Client, message models.Me
 	if err != nil {
 		return s.log.Error("Ошибка обработки в JSON при отправке PONG", err)
 	}
+	s.log.Info(fmt.Sprintf(
+		"Отправлено сообщение пользователю %s, Message: %v, Content: %v",
+		client.Login,
+		message.Action,
+		message.Content,
+	))
 	return client.Conn.WriteMessage(websocket.TextMessage, messageBytes)
 }
 

@@ -6,14 +6,14 @@ import (
 	"encoding/json"
 )
 
-func (d *docService) UpdateDocFamiliar(table, id, login string) error {
+func (d *docService) UpdateDocFamiliar(types, id, login string) error {
 
 	name, err := d.stor.GetUserName(login)
 	if err != nil {
 		return err
 	}
 
-	res, err := d.stor.UpdateDocFamiliar(table, id, name)
+	res, err := d.stor.UpdateDocFamiliar(types, id, name)
 
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func (d *docService) UpdateDocFamiliar(table, id, login string) error {
 			content models.UpdDocFamConten
 		)
 		message.Action = "updDocFam"
-		content.Table = table
+		content.Type = types
 		content.DocID = id
 		content.Familiar = fmt.Sprintf("<br>%s", name)
 		jsonContent, err := json.Marshal(content)

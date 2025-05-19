@@ -6,26 +6,26 @@ const accountButton = document.querySelector(".main__header--account");
 const DOCUMENT_TYPES = {
   INGOING: {
     tabId: "#main-tab-ingoing",
-    type: "Входящий",
+    type: "ingoing",
     defaultBtnId: "menu-btn-ingoing",
     documentTableId: "ingoing-documents-container",
     table: "inouts"
   },
   OUTGOING: {
     tabId: "#main-tab-outgoing",
-    type: "Исходящий",
+    type: "outgoing",
     documentTableId: "outgoing-documents-container",
     table: "inouts"
   },
   DIRECTIVE: {
     tabId: "#main-tab-directive",
-    type: "Приказ",
+    type: "directives",
     documentTableId: "directive-documents-container",
     table: "directives"
   },
   INVENTORY: {
     tabId: "#main-tab-inventory",
-    type: "Издание",
+    type: "inventory",
     documentTableId: "inventory-documents-container",
     table: "inventory" 
   }

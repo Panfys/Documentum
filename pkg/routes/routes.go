@@ -63,7 +63,7 @@ func SetupRoutes(db *sql.DB, secretKey string, log logger.Logger) http.Handler {
 	//PATCH
 	protect.HandleFunc("/users/me/icon", userHandler.UpdateUserIcon).Methods("PATCH")
 	protect.HandleFunc("/users/me/pass", userHandler.UpdateUserPassword).Methods("PATCH")
-	protect.HandleFunc("/documents/{table:[a-z]+}/{id:[0-9]+}/familiar", docHandler.UpdateDocFamiliar).Methods("PATCH")
+	protect.HandleFunc("/documents/{type:[a-z]+}/{id:[0-9]+}/familiar", docHandler.UpdateDocFamiliar).Methods("PATCH")
 	protect.HandleFunc("/documents/{table:[a-z]+}/{id:[0-9]+}", docHandler.UpdateDocResolutions).Methods("PATCH")
 	//DELETE
 	protect.HandleFunc("/auth/logout", authHandler.ExitHandler)

@@ -43,7 +43,7 @@ func (v *validatService) ValidDocument(reqDoc models.Document) (models.Document,
 		return models.Document{}, errors.New("дата поступившего документа указана неверно")
 	}
 
-	if doc.Type == "Входящий" {
+	if doc.Type == "ingoing" {
 		err := v.validDocFNum(doc.FNum, "Вх. № ")
 		if err != nil {
 			return models.Document{}, err
@@ -167,7 +167,7 @@ func (v *validatService) ValidUpdateDocument(reqDoc models.Document) (models.Doc
 func (v *validatService) validDocType(docType string) bool {
 
 	switch docType {
-	case "Входящий", "Исходящий", "Директива", "Инвентарный":
+	case "ingoing", "outgoing", "directive", "inventory":
 		return true
 	default:
 		return false
