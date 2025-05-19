@@ -3,7 +3,7 @@ function WriteDocumentsInTable(documents, container, type) {
     container.innerHTML = '';
     let documentsString = '';
 
-    if (type == "Приказ") {
+    if (type == "directives") {
         if (documents) {
 
             documents.forEach(document => {
@@ -34,7 +34,7 @@ function WriteDocumentsInTable(documents, container, type) {
             setupDocumentTables()
         }
         return
-    } else if (type == "Издание") {
+    } else if (type == "inventory") {
         if (documents) {
 
             documents.forEach(document => {

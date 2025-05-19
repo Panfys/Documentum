@@ -22,7 +22,7 @@ type Message struct {
 	Content json.RawMessage `json:"content,omitempty"`
 }
 type UpdDocFamConten struct {
-	Table string `json:"table"`
+	Type string `json:"type"`
 	DocID string `json:"docID"`
 	Familiar string `json:"familiar"` 
 }

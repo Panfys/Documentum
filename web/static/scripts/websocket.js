@@ -127,8 +127,19 @@ class WSClient {
 
 // Пример использования
 const client = new WSClient()
-  .on('CHAT_MESSAGE', (content) => {
-    console.log('New message:', content);
+  .on('updDocFam', (content) => {
+    const activeTab = document.querySelector(".main__tabs--active");
+    const activeTabId = `#${activeTab.id}`;
+    const docTabIdData = Object.values(DOCUMENT_TYPES).find(
+      tabId => tabId.type === content.type
+    );
+    if (docTabIdData.tabId === activeTabId) {
+      const doc = activeTab.querySelector(`[document-id="${content.docID}"]`);
+      const docFamiliar = doc.querySelector(".table__column--familiar");
+      docFamiliar.innerHTML += content.familiar;
+    } else {
+      //alert(`Ознакомление ${content.familiar} с документов ${content.docID} в таблице ${content.type}`);
+    }
   })
   .on('SYSTEM_ALERT', (content) => {
     client.send({

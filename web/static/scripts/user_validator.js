@@ -50,7 +50,7 @@ function ValidUnit(unit, input) {
 
 // Валидация ввода подразделения
 function ValidGroups(groups, groupBox, groupMess) {
-  if (groups != `<option value="0"></option>`) {
+  if (groups != `<option value="1"></option>`) {
     groupBox.style.display = "block";
     groupMess.style.display = "block";
   } else {

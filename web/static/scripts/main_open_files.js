@@ -34,7 +34,7 @@ async function openDocument(action, docId) {
   const activeTab = document.querySelector('.main__tabs--active');
   tabId = "#"+activeTab.id;
   const docTypeConfig = Object.values(DOCUMENT_TYPES).find(
-    table => table.tabId === tabId
+    type => type.tabId === tabId
   );
 
   // Открытие документа
@@ -61,7 +61,7 @@ async function openDocument(action, docId) {
     if (accountName && !familiarText.includes(accountName)) {
         
     }
-    await fetchFamiliarDocument(docTypeConfig.table, docId);
+    await fetchFamiliarDocument(docTypeConfig.type, docId);
   }
 }
 
