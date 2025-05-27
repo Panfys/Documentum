@@ -32,13 +32,14 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 	}
 
 	for _, res := range doc.Resolutions {
-		insertResQuery := "INSERT INTO resolutions (type, doc_id, ispolnitel, text, deadline, date, user, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		insertResQuery := "INSERT INTO resolutions (type, doc_id, ispolnitel, text, result, deadline, date, user, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 		if _, err := tx.Exec(insertResQuery,
 			res.Type,
 			docID,
 			res.Ispolnitel,
 			res.Text,
+			res.Result,
 			res.Deadline,
 			res.Date,
 			res.User,
@@ -94,9 +95,9 @@ func (s *SQLStorage) AddInventory(doc models.Inventory) error {
 }
 
 func (s *SQLStorage) AddResolution(res models.Resolution) error {
-	newRes := "INSERT INTO `resolutions` SET `doc_id` = ?, `ispolnitel` = ?, `text` = ?, `time` = ?, `date` = ?, `user` = ?, `creator` = ?"
+	newRes := "INSERT INTO `resolutions` SET `doc_id` = ?, `ispolnitel` = ?, `text` = ?, `result` = ?, `time` = ?, `date` = ?, `user` = ?, `creator` = ?, `createdAt` = ?"
 
-	_, err := s.db.Exec(newRes, res.DocID, res.Ispolnitel, res.Text, res.Deadline, res.Date, res.User, res.Creator)
+	_, err := s.db.Exec(newRes, res.DocID, res.Ispolnitel, res.Text, res.Result, res.Deadline, res.Date, res.User, res.Creator, time.Now())
 
 	if err != nil {
 		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", newRes)

@@ -44,7 +44,7 @@ function handleActiveDocumentResolution(action) {
 function AddNewdocResolution(action) {
   const activeTab = document.querySelector(".main__tabs--active");
   const resolutionPanel = activeTab.querySelector("#newdoc-resolution-panel");
-  const resolutionCount = resolutionPanel.childElementCount;
+  let resolutionCount = resolutionPanel.childElementCount;
   const btnAdd = activeTab.querySelector("#btn-resolution-add");
   const btnPanel = activeTab.querySelector("#btn-resolution-panel");
   const docPanel = activeTab.querySelector("#title-newdocpanel");
@@ -108,10 +108,9 @@ function AddDocResolution(action) {
 
   switch (action) {
     case "open":
-      if (resolutionStartCount === null) {
-        resolutionStartCount = resolutionPanel.childElementCount;
-        resolutionPanel.setAttribute("res_count", resolutionPanel.childElementCount);
-      }
+      const resolutionStart = resolutionPanel.querySelectorAll('#ingoing-resolution');
+      resolutionStartCount = resolutionStart.length;
+      resolutionPanel.setAttribute("res_count", resolutionPanel.childElementCount);
       docPanel.style.display = "none";
       btnPanel.style.display = "flex";
       break;
@@ -131,15 +130,27 @@ function AddDocResolution(action) {
     case "back":
       btnPanel.style.display = "none";
       docPanel.style.display = "flex";
-      checkSaveBtn (resolutionCount - resolutionStartCount)
+      console.log(resolutionCount + "/" + resolutionStartCount)
+      if (resolutionStartCount == null) {
+        checkSaveBtn(0)
+      } else {
+        checkSaveBtn(resolutionCount - resolutionStartCount)
+      }
       break;
 
     case "remove":
       // Используем сохраненное начальное значение
-      console.log(resolutionStartCount)
       if (resolutionStartCount !== null && resolutionCount > resolutionStartCount) {
         resolutionPanel.removeChild(resolutionPanel.lastChild);
       }
+      break;
+    case "removeAll":
+      const children = Array.from(resolutionPanel.children); // Создаём копию, чтобы избежать проблем с динамической коллекцией
+      children.forEach(child => {
+        if (child.id !== "ingoing-resolution") {
+          resolutionPanel.removeChild(child); // Удаляем только если элемент всё ещё внутри
+        }
+      });
       break;
   }
 }

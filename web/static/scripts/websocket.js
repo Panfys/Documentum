@@ -125,7 +125,7 @@ class WSClient {
   }
 }
 
-// Пример использования
+// Использование
 const client = new WSClient()
   .on('updDocFam', (content) => {
     const activeTab = document.querySelector(".main__tabs--active");
@@ -141,12 +141,43 @@ const client = new WSClient()
       //alert(`Ознакомление ${content.familiar} с документов ${content.docID} в таблице ${content.type}`);
     }
   })
-  .on('SYSTEM_ALERT', (content) => {
-    client.send({
-      action: 'SEND_MESSAGE',
-      content: { text: 'Hello', userId: 123 }
-    });
+  .on('updDocRes', (content) => {
 
+    const activeTab = document.querySelector(".main__tabs--active");
+    const activeTabId = `#${activeTab.id}`;
+    const tabId = "#main-tab-ingoing";
+    if (tabId === activeTabId) {
+      const doc = activeTab.querySelector(`[document-id="${content.id}"]`);
+      const docResult = doc.querySelector(".table__column--result");
+      const docIspolnitel = doc.querySelector(".table__column--ispolnitel");
+      const resolutionPanel = activeTab.querySelector("#resolution-panel-" + content.id);
+      if (content.result !== "") {
+        if (docResult.innerHTML == "") {
+          docResult.innerHTML += content.result;
+        } else {
+          docResult.innerHTML += "<br>" + content.result;
+        }
+      }
+      if (content.ispolnitel !== "") {
+        docIspolnitel.innerHTML = content.ispolnitel;
+      }
+      if (content.resolutions && content.resolutions.length) {
+        content.resolutions.forEach(resolution => {
+          if (!resolution) return;
+
+          resolutionPanel.innerHTML += `
+                <div class='table__resolution' id='ingoing-resolution'>
+                    <div class='table__resolution--ispolnitel'>${resolution.ispolnitel}</div>
+                    <div class='table__resolution--text'>&#171;${resolution.text}&#187;</div>
+                    <div class='table__resolution--time'>${resolution.deadline || resolution.result}</div>
+                    <div class='table__resolution--user'>${resolution.user}</div>
+                    <div class='table__resolution--date'>${resolution.date}</div>
+                </div>`;
+        });
+      }
+    } else {
+      //alert(`Ознакомление ${content.familiar} с документов ${content.docID} в таблице ${content.type}`);
+    }
   });
 
 // Для тестирования в консоли
