@@ -238,8 +238,14 @@ async function submitNewDocumentForm() {
   }
 
   if (await fetchAddDocument(docTable.table, uploadFormData)) {
-    alert("Документ загружен! Перезагрузите страницу!")
+    CloseActiveDoc();
+    window.scrollTo({
+      top: document.body.scrollHeight, // до конца страницы
+      behavior: 'smooth' // плавная прокрутка
+    });
   }
+
+
 }
 
 function processResolutions(resolutionPanel, docData) {
@@ -301,8 +307,8 @@ async function submitUpdateDocument() {
 
   updateFormData.append('document', JSON.stringify(docData));
 
-  if (await fetchUpdateDocument(docTable.table, updateFormData, documentID)){
-     handleActiveDocumentResolution("removeAll");
+  if (await fetchUpdateDocument(docTable.table, updateFormData, documentID)) {
+    handleActiveDocumentResolution("removeAll");
   }
 }
 
