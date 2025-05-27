@@ -130,7 +130,6 @@ function AddDocResolution(action) {
     case "back":
       btnPanel.style.display = "none";
       docPanel.style.display = "flex";
-      console.log(resolutionCount + "/" + resolutionStartCount)
       if (resolutionStartCount == null) {
         checkSaveBtn(0)
       } else {

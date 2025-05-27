@@ -27,7 +27,7 @@ const DOCUMENT_TYPES = {
     tabId: "#main-tab-inventory",
     type: "inventory",
     documentTableId: "inventory-documents-container",
-    table: "inventory" 
+    table: "inventory"
   }
 };
 
@@ -57,15 +57,21 @@ initializeActiveTab();
 
 function changeActiveTab(btn) {
   // Получаем предыдущие активные элементы
+  CloseActiveDoc();
   const prevActiveTab = document.querySelector(".main__tabs.main__tabs--active");
   const prevActiveBtn = document.querySelector(".header__menu--btn.menu__btn--active");
+  const activeTabId = `#${btn.dataset.tab}`;
+
+  if (prevActiveTab !== null) {
+    const prevActiveTabId = `#${prevActiveTab.id}`;
+   if (prevActiveTabId == activeTabId) return;
+  }
 
   // Удаляем активные классы
   prevActiveBtn?.classList.remove("menu__btn--active");
   prevActiveTab?.classList.remove("main__tabs--active");
 
   // Устанавливаем новые активные элементы
-  const activeTabId = `#${btn.dataset.tab}`;
   sessionStorage.setItem("active_btn_id", btn.id);
   const activeTab = document.querySelector(activeTabId);
 
@@ -83,12 +89,12 @@ async function updateDocumentsForTab(tabId) {
     type => type.tabId === tabId
   );
 
-   const docTableConfig = Object.values(DOCUMENT_TYPES).find(
+  const docTableConfig = Object.values(DOCUMENT_TYPES).find(
     table => table.tabId === tabId
   );
 
   // Получаем документы
-  const documents = await FetchGetDocuments(docTableConfig.table, {type: docTypeConfig.type});
+  const documents = await FetchGetDocuments(docTableConfig.table, { type: docTypeConfig.type });
 
   // Обновляем соответствующий контейнер
   const container = document.getElementById(docTypeConfig.documentTableId);
