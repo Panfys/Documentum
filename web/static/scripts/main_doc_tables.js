@@ -38,7 +38,7 @@ function WriteDocumentsInTable(documents, container, type) {
         if (documents) {
 
             documents.forEach(document => {
-                if (!document) return; 
+                if (!document) return;
 
                 documentsString += `
                 <table class="tubs__table tubs__table--document" id="document-table-${document.id}" document-id='${document.id}'>
@@ -101,7 +101,7 @@ function WriteDocumentsInTable(documents, container, type) {
                 <div class='table__resolution' id='ingoing-resolution'>
                     <div class='table__resolution--ispolnitel'>${resolution.ispolnitel}</div>
                     <div class='table__resolution--text'>&#171;${resolution.text}&#187;</div>
-                    <div class='table__resolution--time'>${resolution.deadline}</div>
+                    <div class='table__resolution--time'>${resolution.deadline || resolution.result}</div>
                     <div class='table__resolution--user'>${resolution.user}</div>
                     <div class='table__resolution--date'>${resolution.date}</div>
                 </div>`;
@@ -149,14 +149,9 @@ function ViewDocumentTable(doc, event) {
         }
         // Обработка обычной таблицы документа
         else {
-            if (docpanel.style.display === "none") {
-                AddDocResolution("back");
-            }
-
-            resolutionStartCount = null;
+            handleActiveDocumentResolution("removeAll");
+            AddDocResolution("back");
             pre_active_doc.classList.remove("tubs__table--active-table");
-            const pre_active_doc_id = pre_active_doc.getAttribute("document-id");
-            const pre_active_res = document.getElementById("resolution-panel-" + pre_active_doc_id);
 
             // Сброс UI элементов
             tubs_folder.innerHTML = "";

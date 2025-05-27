@@ -1,7 +1,7 @@
 function validateDocumentData(data) {
   validate = 0
 
-  if (data.type === "Входящий") {
+  if (data.type === "ingoing") {
     if (validDocFNum(data.fnum, "Вх. № ")) validate++;
     if ((data.lnum != "" || data.ldate != "") && validDocLNum(data.lnum, data.ldate, "Исх. № ")) { validate++; } else {
       ReAlertValidDocError('lnum')
@@ -77,6 +77,7 @@ function validDocFileType(fileType) {
 
 // Проверка порядкового номера
 function validDocFNum(fnum, type) {
+  console.log (type)
   if (fnum === '' || fnum === type || fnum === '№') {
     AlertValidDocError("fnum")
     serverMessage("show", 'порядковый номер документа не указан');
@@ -298,11 +299,9 @@ function validResolutions(resolutions, startResCount) {
   if (!startResCount) {
     startResCount = 0
   }
-  console.log(resolutions)
   validate = 0
   resolutions.forEach((resolution, index) => {
     const id = Number(index) + Number(startResCount);
-    console.log(id)
     if (validResolution(id, resolution)) validate++
   })
   if (validate > 0) return true; else return false
@@ -311,7 +310,6 @@ function validResolutions(resolutions, startResCount) {
 function validResolution(id, resolution) {
   validate = 0
   res_id = `resolution-${id}`;
-  console.log(res_id)
   // Валидация текста резолюции
   if (!resolution.text || resolution.text === '') {
     ValidResolutionError(res_id, 'text');

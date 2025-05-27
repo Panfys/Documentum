@@ -349,6 +349,7 @@ CREATE TABLE `resolutions` (
   `doc_id` int DEFAULT NULL,
   `ispolnitel` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `text` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `result` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `deadline` date DEFAULT NULL,
   `date` date DEFAULT NULL,
   `user` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,

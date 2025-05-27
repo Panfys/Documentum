@@ -12,8 +12,6 @@ func (d *docService) AddDocument(reqDoc models.Document) (models.Document, error
 		return models.Document{}, err
 	}
 
-	var result string
-
 	for i := range doc.Resolutions {
 		res, err := d.validSrv.ValidResolution(&doc.Resolutions[i])
 		if err != nil {
@@ -22,18 +20,6 @@ func (d *docService) AddDocument(reqDoc models.Document) (models.Document, error
 
 		res.Creator += doc.Creator
 		doc.Resolutions[i] = res
-
-		if res.Result != "" {
-			if result == "" {
-				result = res.Result
-			} else {
-				result += " <br> " + res.Result
-			}
-		}
-	}
-
-	if result != "" {
-		doc.Result = result
 	}
 
 	path := "/app/web/source/documents/"

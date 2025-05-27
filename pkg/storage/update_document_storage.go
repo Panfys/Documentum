@@ -35,24 +35,15 @@ func (s *SQLStorage) UpdateDocumentWithResolutions(doc models.Document) error {
 		return s.log.Error(models.ErrAddDataInDB, err)
 	}
 
-	insertDocQuery := "UPDATE `inouts` SET result = IF(result = '', ?, CONCAT(result, ' <br> ', ?)) WHERE id = ?"
-
-	if doc.Result != "" {
-		_, err := tx.Exec(insertDocQuery, doc.Result, doc.Result, doc.ID)
-		if err != nil {
-			tx.Rollback()
-			return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertDocQuery)
-		}
-	}
-
 	for _, res := range doc.Resolutions {
-		insertResQuery := "INSERT INTO resolutions (type, doc_id, ispolnitel, text, deadline, date, user, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+		insertResQuery := "INSERT INTO resolutions (type, doc_id, ispolnitel, text, result, deadline, date, user, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 		if _, err := tx.Exec(insertResQuery,
 			res.Type,
 			doc.ID,
 			res.Ispolnitel,
 			res.Text,
+			res.Result,
 			res.Deadline,
 			res.Date,
 			res.User,

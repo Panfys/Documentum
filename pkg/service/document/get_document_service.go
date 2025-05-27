@@ -9,23 +9,12 @@ import (
 func (s *docService) GetDocuments(settings models.DocSettings) ([]models.Document, error) {
 	var documents []models.Document
 
-	if settings.DocSet == "" {
-		settings.DocSet = "ASC"
+	set, err := s.settingCorrecter(settings)
+	if err != nil {
+		return []models.Document{}, err
 	}
 
-	if settings.DocCol == "" {
-		settings.DocCol = "id"
-	}
-
-	if settings.DocDatain == "" {
-		settings.DocDatain = "2000-01-01"
-	}
-
-	if settings.DocDatato == "" {
-		settings.DocDatato = "3000-01-01"
-	}
-	
-	documents, err := s.stor.GetDocuments(settings)
+	documents, err = s.stor.GetDocuments(set)
 
 	if err != nil {
 		return []models.Document{}, err
@@ -39,7 +28,7 @@ func (s *docService) GetDocuments(settings models.DocSettings) ([]models.Documen
 			return []models.Document{}, err
 		}
 
-		if documents[i].LDate.Valid{
+		if documents[i].LDate.Valid {
 			documents[i].LDateStr, err = s.parseDate(documents[i].LDate.String)
 			if err != nil {
 				return []models.Document{}, err
@@ -77,6 +66,16 @@ func (s *docService) GetDocuments(settings models.DocSettings) ([]models.Documen
 				if err != nil {
 					return []models.Document{}, err
 				}
+
+				// сбока исполненных документов
+
+				if documents[i].Resolutions[j].Result != "" {
+					if documents[i].Result == "" {
+						documents[i].Result += documents[i].Resolutions[j].Result
+					} else {
+						documents[i].Result += "<br>" + documents[i].Resolutions[j].Result 
+					}
+				}
 			}
 		}
 	}
@@ -85,25 +84,15 @@ func (s *docService) GetDocuments(settings models.DocSettings) ([]models.Documen
 }
 
 func (s *docService) GetDirectives(settings models.DocSettings) ([]models.Directive, error) {
+
 	var directives []models.Directive
 
-	if settings.DocSet == "" {
-		settings.DocSet = "ASC"
+	set, err := s.settingCorrecter(settings)
+	if err != nil {
+		return []models.Directive{}, err
 	}
 
-	if settings.DocCol == "" {
-		settings.DocCol = "id"
-	}
-
-	if settings.DocDatain == "" {
-		settings.DocDatain = "2000-01-01"
-	}
-
-	if settings.DocDatato == "" {
-		settings.DocDatato = "3000-01-01"
-	}
-	
-	directives, err := s.stor.GetDirectives(settings)
+	directives, err = s.stor.GetDirectives(set)
 
 	if err != nil {
 		return []models.Directive{}, err
@@ -117,14 +106,14 @@ func (s *docService) GetDirectives(settings models.DocSettings) ([]models.Direct
 			return []models.Directive{}, err
 		}
 
-		if directives[i].DateCoverLetter.Valid{
+		if directives[i].DateCoverLetter.Valid {
 			directives[i].DateCoverLetterStr, err = s.parseDate(directives[i].DateCoverLetter.String)
 			if err != nil {
 				return []models.Directive{}, err
 			}
 		}
 
-		if directives[i].DateSendLetter.Valid{
+		if directives[i].DateSendLetter.Valid {
 			directives[i].DateSendLetterStr, err = s.parseDate(directives[i].DateSendLetter.String)
 			if err != nil {
 				return []models.Directive{}, err
@@ -138,23 +127,12 @@ func (s *docService) GetDirectives(settings models.DocSettings) ([]models.Direct
 func (s *docService) GetInventory(settings models.DocSettings) ([]models.Inventory, error) {
 	var inventory []models.Inventory
 
-	if settings.DocSet == "" {
-		settings.DocSet = "ASC"
+	set, err := s.settingCorrecter(settings)
+	if err != nil {
+		return []models.Inventory{}, err
 	}
 
-	if settings.DocCol == "" {
-		settings.DocCol = "id"
-	}
-
-	if settings.DocDatain == "" {
-		settings.DocDatain = "2000-01-01"
-	}
-
-	if settings.DocDatato == "" {
-		settings.DocDatato = "3000-01-01"
-	}
-	
-	inventory, err := s.stor.GetInventory(settings)
+	inventory, err = s.stor.GetInventory(set)
 
 	if err != nil {
 		return []models.Inventory{}, err
@@ -162,14 +140,14 @@ func (s *docService) GetInventory(settings models.DocSettings) ([]models.Invento
 
 	for i := range inventory {
 
-		if inventory[i].DateCoverLetter.Valid{
+		if inventory[i].DateCoverLetter.Valid {
 			inventory[i].DateCoverLetterStr, err = s.parseDate(inventory[i].DateCoverLetter.String)
 			if err != nil {
 				return []models.Inventory{}, err
 			}
 		}
 
-		if inventory[i].DateSendLetter.Valid{
+		if inventory[i].DateSendLetter.Valid {
 			inventory[i].DateSendLetterStr, err = s.parseDate(inventory[i].DateSendLetter.String)
 			if err != nil {
 				return []models.Inventory{}, err
@@ -220,4 +198,24 @@ func (s *docService) parseTime(restime string) (string, error) {
 	// Форматируем дату в нужный формат
 	formateTime := "Исполнить до " + newtime.Format("02.01.2006") + " г."
 	return formateTime, nil
+}
+
+func (s *docService) settingCorrecter(settings models.DocSettings) (models.DocSettings, error) {
+	if settings.DocSet == "" {
+		settings.DocSet = "ASC"
+	}
+
+	if settings.DocCol == "" {
+		settings.DocCol = "id"
+	}
+
+	if settings.DocDatain == "" {
+		settings.DocDatain = "2000-01-01"
+	}
+
+	if settings.DocDatato == "" {
+		settings.DocDatato = "3000-01-01"
+	}
+
+	return settings, nil
 }

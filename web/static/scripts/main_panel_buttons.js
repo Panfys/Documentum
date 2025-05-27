@@ -293,7 +293,6 @@ async function submitUpdateDocument() {
   );
   const docData = {};
   startResCount = resolutionPanel.getAttribute("res_count")
-  console.log(startResCount);
   processResolutions(resolutionPanel, docData);
   if (docData.resolutions.length > 0) {
     if (validResolutions(docData.resolutions, startResCount)) return;
@@ -302,8 +301,8 @@ async function submitUpdateDocument() {
 
   updateFormData.append('document', JSON.stringify(docData));
 
-  if (await fetchUpdateDocument(docTable.table, updateFormData, documentID)) {
-    alert("Документ обновлен! Перезагрузите страницу!")
+  if (await fetchUpdateDocument(docTable.table, updateFormData, documentID)){
+     handleActiveDocumentResolution("removeAll");
   }
 }
 

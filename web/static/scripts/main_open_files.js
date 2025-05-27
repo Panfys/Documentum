@@ -32,7 +32,7 @@ async function openDocument(action, docId) {
   }
 
   const activeTab = document.querySelector('.main__tabs--active');
-  tabId = "#"+activeTab.id;
+  tabId = "#" + activeTab.id;
   const docTypeConfig = Object.values(DOCUMENT_TYPES).find(
     type => type.tabId === tabId
   );
@@ -59,9 +59,8 @@ async function openDocument(action, docId) {
     const familiarText = familiarCell?.textContent || '';
 
     if (accountName && !familiarText.includes(accountName)) {
-        
+      await fetchFamiliarDocument(docTypeConfig.type, docId);
     }
-    await fetchFamiliarDocument(docTypeConfig.type, docId);
   }
 }
 
@@ -85,22 +84,22 @@ function openNewDocument() {
 
   if (newDocResolutions && newDocResolutions.children.length > 0) {
     resolutionsPanel.style.minWidth = '280px';
-    resolutionsPanel.innerHTML = ''; 
-    
+    resolutionsPanel.innerHTML = '';
+
     // Копируем каждый элемент с его содержимым и значениями
     Array.from(newDocResolutions.children).forEach(child => {
       const clone = child.cloneNode(true); // Глубокое копирование
-      
+
       // Восстанавливаем значения полей ввода
       const inputs = child.querySelectorAll('input, textarea');
       const cloneInputs = clone.querySelectorAll('input, textarea');
-      
+
       inputs.forEach((input, index) => {
         if (input.type !== 'file') {
           cloneInputs[index].value = input.value;
         }
       });
-      
+
       resolutionsPanel.appendChild(clone);
     });
   }
