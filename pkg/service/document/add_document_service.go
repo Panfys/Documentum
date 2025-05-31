@@ -80,10 +80,34 @@ func (d *docService) AddDirective(reqDir models.Directive) error {
 
 	dir.FileURL = filepath.Join("/source/documents/", newFileName)
 
-	if err := d.stor.AddDirective(dir); err != nil {
+	dirID, err := d.stor.AddDirective(dir)
+	
+	if err != nil {
 		d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName))
 		return err
 	}
+	dir.ID = int(dirID)
+	dir.Type = "directives"
+
+	var responseDir *models.Directive
+
+	responseDir, err = d.prepareDirective(&dir)
+
+	if err != nil {
+		return err
+	}
+
+	message := models.Message{
+		Action: "addDoc",
+	}
+
+	jsonContent, err := json.Marshal(responseDir)
+	if err != nil {
+		return err
+	}
+
+	message.Content = jsonContent
+	d.wsSrv.Broadcast(message)
 
 	return nil
 }
@@ -105,10 +129,35 @@ func (d *docService) AddInventory(reqInv models.Inventory) error {
 
 	inv.FileURL = filepath.Join("/source/documents/", newFileName)
 
-	if err := d.stor.AddInventory(inv); err != nil {
+	invID, err := d.stor.AddInventory(inv) 
+	
+	if err != nil {
 		d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName))
 		return err
 	}
+	inv.ID = int(invID)
+	inv.Type = "inventory"
+
+	var responseInv *models.Inventory
+
+	responseInv, err = d.prepareInventory(&inv)
+
+	if err != nil {
+		return err
+	}
+
+	message := models.Message{
+		Action: "addDoc",
+	}
+
+	jsonContent, err := json.Marshal(responseInv)
+	if err != nil {
+		return err
+	}
+
+	message.Content = jsonContent
+	d.wsSrv.Broadcast(message)
+
 
 	return nil
 }

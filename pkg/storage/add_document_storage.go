@@ -68,10 +68,10 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) (int64, err
 	return docID, nil
 }
 
-func (s *SQLStorage) AddDirective(doc models.Directive) error {
+func (s *SQLStorage) AddDirective(doc models.Directive) (int64, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err)
+		return 0, s.log.Error(models.ErrAddDataInDB, err)
 	}
 	
 	var docID int64
@@ -82,13 +82,13 @@ func (s *SQLStorage) AddDirective(doc models.Directive) error {
 
 	if err != nil {
 		tx.Rollback()
-		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertDirQuery)
+		return 0, s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertDirQuery)
 	}
 
 	docID, err = result.LastInsertId()
 	if err != nil {
 		tx.Rollback()
-		return s.log.Error(models.ErrAddDataInDB, err)
+		return 0, s.log.Error(models.ErrAddDataInDB, err)
 	}
 
 	if doc.Familiar != "" {
@@ -99,7 +99,7 @@ func (s *SQLStorage) AddDirective(doc models.Directive) error {
 		if _, err := tx.Exec(insertFamQuery,
 			"inouts", docID, doc.Familiar, time.Now(),
 		); err != nil {
-			return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertFamQuery)
+			return 0, s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertFamQuery)
 		}
 	}
 	
@@ -107,13 +107,13 @@ func (s *SQLStorage) AddDirective(doc models.Directive) error {
 		s.log.Error(models.ErrAddDataInDB, err)
 	}
 
-	return nil
+	return docID, nil
 }
 
-func (s *SQLStorage) AddInventory(doc models.Inventory) error {
+func (s *SQLStorage) AddInventory(doc models.Inventory) (int64, error) {
 	tx, err := s.db.Begin()
 	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err)
+		return 0, s.log.Error(models.ErrAddDataInDB, err)
 	}
 
 	var docID int64
@@ -124,13 +124,13 @@ func (s *SQLStorage) AddInventory(doc models.Inventory) error {
 
 	if err != nil {
 		tx.Rollback()
-		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertInvQuery)
+		return 0, s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertInvQuery)
 	}
 
 	docID, err = result.LastInsertId()
 	if err != nil {
 		tx.Rollback()
-		return s.log.Error(models.ErrAddDataInDB, err)
+		return 0, s.log.Error(models.ErrAddDataInDB, err)
 	}
 
 	if doc.Familiar != "" {
@@ -141,7 +141,7 @@ func (s *SQLStorage) AddInventory(doc models.Inventory) error {
 		if _, err := tx.Exec(insertFamQuery,
 			"inouts", docID, doc.Familiar, time.Now(),
 		); err != nil {
-			return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertFamQuery)
+			return 0, s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertFamQuery)
 		}
 	}
 	
@@ -149,7 +149,7 @@ func (s *SQLStorage) AddInventory(doc models.Inventory) error {
 		s.log.Error(models.ErrAddDataInDB, err)
 	}
 
-	return nil
+	return docID, nil
 }
 
 func (s *SQLStorage) AddResolution(res models.Resolution) error {

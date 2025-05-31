@@ -47,25 +47,11 @@ func (s *docService) GetDirectives(settings models.DocSettings) ([]models.Direct
 
 	for i := range directives {
 
-		directives[i].Date, err = s.prepareDate(directives[i].Date)
-
+		dir, err := s.prepareDirective(&directives[i])
 		if err != nil {
-			return []models.Directive{}, err
+			return nil, err
 		}
-
-		if directives[i].DateCoverLetter.Valid {
-			directives[i].DateCoverLetterStr, err = s.prepareDate(directives[i].DateCoverLetter.String)
-			if err != nil {
-				return []models.Directive{}, err
-			}
-		}
-
-		if directives[i].DateSendLetter.Valid {
-			directives[i].DateSendLetterStr, err = s.prepareDate(directives[i].DateSendLetter.String)
-			if err != nil {
-				return []models.Directive{}, err
-			}
-		}
+		directives[i] = *dir
 	}
 
 	return directives, nil

@@ -9,24 +9,36 @@
   --dark-rgb: 17, 17, 17;
   --mid-rgb: 55, 55, 55;
 
-  --multiplier: 1; /* Базовая величина */
-  --lowMultiplier: 1; /* Базовая величина */
-  --bigMultiplier: 1; /* Базовая величина */
+  --multiplier: 1;
+  /* Базовая величина */
+  --lowMultiplier: 1;
+  /* Базовая величина */
+  --bigMultiplier: 1;
+  /* Базовая величина */
 }
 
 body.dark-theme {
   --scrollbar-color: rgba(var(--main-rgb), 0.4);
   --main-color: rgb(var(--main-rgb));
   --bgr-image: url(../images/bacground.jpg);
-  --low-color: rgb(143, 143, 143); /* Средний */
-  --mid-color: rgb(242, 242, 242); /* Контрастный от фона*/
-  --bgr-color: rgb(24, 24, 24); /* Близкий к фону */
-  --panel-color: rgba(29, 29, 29, 0.98); /* Сильно темнее фона*/
-  --base-color: rgba(32, 32, 32, 0.98); /* Темнее фона*/
-  --error-color: rgb(255, 64, 64); /* Текст ошибки */
-  --borg-btn-color: rgba(55, 55, 55, 0.4); /* Обводка кнопок без фона */
-  --btn-bgr-color: rgb(189, 189, 189); /* Фон кнопки */
-  --blur-bgr-color: rgba(32, 32, 32, 0.6); /* полупрозрачный фон для блюра*/
+  --low-color: rgb(143, 143, 143);
+  /* Средний */
+  --mid-color: rgb(242, 242, 242);
+  /* Контрастный от фона*/
+  --bgr-color: rgb(24, 24, 24);
+  /* Близкий к фону */
+  --panel-color: rgba(29, 29, 29, 0.98);
+  /* Сильно темнее фона*/
+  --base-color: rgba(32, 32, 32, 0.98);
+  /* Темнее фона*/
+  --error-color: rgb(255, 64, 64);
+  /* Текст ошибки */
+  --borg-btn-color: rgba(55, 55, 55, 0.4);
+  /* Обводка кнопок без фона */
+  --btn-bgr-color: rgb(189, 189, 189);
+  /* Фон кнопки */
+  --blur-bgr-color: rgba(32, 32, 32, 0.6);
+  /* полупрозрачный фон для блюра*/
 }
 
 body.light-theme {
@@ -85,17 +97,22 @@ body.light-theme {
 }
 
 *::-webkit-scrollbar {
-  width: 12px; /* ширина всей полосы прокрутки */
+  width: 12px;
+  /* ширина всей полосы прокрутки */
 }
 
 *::-webkit-scrollbar-track {
-  background: var(--bgr-color); /* цвет зоны отслеживания */
+  background: var(--bgr-color);
+  /* цвет зоны отслеживания */
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: var(--scrollbar-color); /* цвет бегунка */
-  border-radius: 20px; /* округлось бегунка */
-  border: 3px solid var(--bgr-color); /* отступ вокруг бегунка */
+  background-color: var(--scrollbar-color);
+  /* цвет бегунка */
+  border-radius: 20px;
+  /* округлось бегунка */
+  border: 3px solid var(--bgr-color);
+  /* отступ вокруг бегунка */
 }
 
 body {
@@ -255,9 +272,10 @@ body {
 }
 
 .authorization:not(:target),
-:target ~ .authorization.default-target {
+:target~.authorization.default-target {
   display: none;
 }
+
 .authorization:target,
 .authorization.default-target {
   display: flex;
@@ -389,7 +407,7 @@ body {
   }
 }
 
-.password__btn--show input:checked + p::before {
+.password__btn--show input:checked+p::before {
   color: var(--main-color);
 }
 
@@ -427,7 +445,7 @@ body {
   display: none;
 }
 
-.save-check input:checked + p::before {
+.save-check input:checked+p::before {
   content: "\E81D";
   color: var(--main-color);
 }
@@ -530,7 +548,8 @@ body {
   background: var(--base-color);
   width: calc(90px * var(--multiplier));
   height: calc(28px * var(--multiplier));
-  margin: 0 calc(6px * var(--multiplier));;
+  margin: 0 calc(6px * var(--multiplier));
+  ;
   border: solid 2px var(--borg-btn-color);
   font-weight: 500;
   cursor: pointer;
@@ -855,7 +874,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-end;
-   min-height: calc(200px * var(--multiplier));
+  min-height: calc(200px * var(--multiplier));
   width: calc(200px * var(--multiplier));
   height: calc(200px * var(--multiplier));
   border: 2px solid var(--main-color);
@@ -1128,159 +1147,6 @@ body {
   transition: 0.4s;
 }
 
-/* ------------------MAIN-DOCUMENT-SETTINGS-------------------*/
-
-/* Панели  фильтра и сортировки в шапке таблицы
-.main .SetPanel {
-  height: 32px;
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  border-radius: 20px;
-  margin-bottom: 10px;
-  font-size: 12px;
-  background-color: #111111ac;
-}
-
-
-.SrtSetPanel,
-.FltrSetPanel,
-.LikeSetPanel {
-  border-bottom: 2px solid #8f8f8f29;
-}
-
-.SrtSetPanel select {
-  outline: none;
-  height: 24px;
-  width: 130px;
-  text-align: center;
-  margin-left: 10px;
-  border-radius: 20px;
-  border: solid #37373753 2px;
-  background: none;
-  color: #dddddd;
-  cursor: pointer;
-}
-
-.SrtSetPanel select:focus {
-  border: solid 2px #dddddd;
-}
-
-.SrtSetPanel select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  outline: 0;
-  background-color: #111111f0;
-}
-
-.FltrSetPanel input {
-  outline: none;
-  height: 24px;
-  width: 130px;
-  text-align: center;
-  margin: 0 10px;
-  border-radius: 20px;
-  border: solid #37373753 2px;
-  background: none;
-  color: #dddddd;
-  cursor: pointer;
-}
-
-.StlbSetPanel span {
-  color: #dddddd;
-  margin-right: 3px;
-}
-
-.StlbSetPanel button {
-  outline: none;
-  height: 24px;
-  width: 130px;
-  text-align: center;
-  margin: 2px 3px;
-  border-radius: 20px;
-  border: solid #8f8f8f 2px;
-  background: none;
-  color: #dddddd;
-  cursor: pointer;
-}
-
-.SaveSetPanel {
-  width: 4%;
-}
-
-.SaveSetPanel input {
-  display: none;
-}
-
-.SaveSetPanel label {
-  display: flex;
-  justify-content: center;
-}
-
-.SaveSetPanel p::before {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  font-family: "mfglabs";
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  color: #f2f2f2;
-  border: solid 2px #f2f2f2;
-  font-size: 13px;
-  content: "\F097";
-  cursor: pointer;
-}
-
-.SaveSetPanel p:hover::before {
-  border: solid 2px #2d68f8;
-  transition: 0.4s;
-}
-
-.SaveSetPanel input:checked + p::before {
-  border: solid 2px #2d68f8;
-  color: #2d68f8;
-  transition: 0.4s;
-  content: "\E837";
-}
-
-.main table .ClearSetPanel {
-  width: 4%;
-  border-right: none;
-}
-
-.ClearSetPanel button {
-  background: none;
-  border: none;
-}
-
-.ClearSetPanel button:active::before {
-  color: #2d68f8;
-}
-
-.ClearSetPanel button::before {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  font-family: "mfglabs";
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  color: #f2f2f2;
-  border: solid 2px #f2f2f2;
-  font-size: 13px;
-  content: "\E838";
-}
-
-.ClearSetPanel button:hover::before {
-  border: solid 2px #2d68f8;
-  transition: 0.4s;
-}
-
 /* ------------------MAIN-DOCUMENTS--------------------*/
 .main {
   padding-top: 57px;
@@ -1366,7 +1232,8 @@ body {
   border: none;
   font-weight: 500;
   height: calc(26px * var(--multiplier));
-  padding: 0 calc(12px * var(--multiplier));;
+  padding: 0 calc(12px * var(--multiplier));
+  ;
   cursor: pointer;
   outline: none;
   margin-left: 10px;
@@ -1456,6 +1323,10 @@ body {
   margin: 1px 5% 10px 5%;
 }
 
+.tubs__container--documents {
+  padding-bottom: 100px;
+}
+
 /*стили таблиц*/
 .tubs__table td,
 th {
@@ -1473,18 +1344,19 @@ th {
 }
 
 .familiar-list {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    max-height: 70px;
-    overflow-y: auto;
-    scrollbar-width: thin; /* Для Firefox */
-    scrollbar-color: var(--scrollbar-color) var(--bgr-color);
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  max-height: 70px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  /* Для Firefox */
+  scrollbar-color: var(--scrollbar-color) var(--bgr-color);
 }
 
 .familiar-list li {
   color: var(--mid-color);
-} 
+}
 
 /* Стилизация для WebKit-браузеров (Chrome, Safari) */
 .familiar-list::-webkit-scrollbar {
@@ -1638,24 +1510,6 @@ th {
   max-height: 100px;
   max-width: 100px;
   border-radius: 10px;
-}
-/*
-.col13 {
-  width: 8.25%;
-}
-
-.col14 {
-  width: 8%;
-}
-
-.col31 {
-  width: 40%;
-  border-bottom: 2px solid #8f8f8f29;
-}
-
-.col32 {
-  width: 24%;
-  border-bottom: 2px solid #8f8f8f29;
 }
 
 /* Добавление резолюции */
@@ -1907,11 +1761,11 @@ th {
 
 .body__opendocument img {
   max-width: 100%;
-      max-height: 100%;
-      min-width: 500px;
-      min-height: 700px;
-      border: none;
-      border-radius: 20px;
+  max-height: 100%;
+  min-width: 500px;
+  min-height: 700px;
+  border: none;
+  border-radius: 20px;
 }
 
 .body__opendocument object {
@@ -1920,6 +1774,7 @@ th {
   min-width: 500px;
   min-height: 700px;
 }
+
 .body__opendocument embed {
   width: 100%;
   height: 100%;

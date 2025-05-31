@@ -31,6 +31,49 @@ func (s *docService) prepareDocument(doc *models.Document) (*models.Document, er
 	return doc, nil
 }
 
+func (s *docService) prepareDirective(dir *models.Directive) (*models.Directive, error) {
+	var err error
+
+	dir.Date, err = s.prepareDate(dir.Date)
+	if err != nil {
+		return nil, err
+	}
+
+	if dir.DateCoverLetter.Valid {
+		dir.DateCoverLetterStr, err = s.prepareDate(dir.DateCoverLetter.String)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if dir.DateSendLetter.Valid {
+		dir.DateSendLetterStr, err = s.prepareDate(dir.DateSendLetter.String)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return dir, nil
+}
+
+func (s *docService) prepareInventory(inv *models.Inventory) (*models.Inventory, error) {
+	var err error
+
+	if inv.DateCoverLetter.Valid {
+		inv.DateCoverLetterStr, err = s.prepareDate(inv.DateCoverLetter.String)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if inv.DateSendLetter.Valid {
+		inv.DateSendLetterStr, err = s.prepareDate(inv.DateSendLetter.String)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return inv, nil 
+}
+
 func (s *docService) prepareResolutions(doc *models.Document) error {
 
 	// Обработка последней резолюции для Ispolnitel
