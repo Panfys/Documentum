@@ -5,30 +5,28 @@ import (
 	"time"
 )
 
-func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
+func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) (int64, error) {
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err)
+		return 0, s.log.Error(models.ErrAddDataInDB, err)
 	}
 
 	var docID int64
-	insertDocQuery := "INSERT INTO inouts (type, fnum, fdate, lnum, ldate, name, sender, ispolnitel, result, familiar, count, copy, width, location, file, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	insertDocQuery := "INSERT INTO inouts (type, fnum, fdate, lnum, ldate, name, sender, ispolnitel, result, count, copy, width, location, file, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 
 	result, err := tx.Exec(insertDocQuery, doc.Type, doc.FNum, doc.FDate, doc.LNum, doc.LDate,
-		doc.Name, doc.Sender, doc.Ispolnitel, doc.Result,
-		doc.Familiar, doc.Count, doc.Copy,
-		doc.Width, doc.Location,
+		doc.Name, doc.Sender, doc.Ispolnitel, doc.Result, doc.Count, doc.Copy, doc.Width, doc.Location,
 		doc.FileURL, doc.Creator, time.Now())
 	if err != nil {
 		tx.Rollback()
-		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertDocQuery)
+		return 0, s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertDocQuery)
 	}
 
 	docID, err = result.LastInsertId()
 	if err != nil {
 		tx.Rollback()
-		return s.log.Error(models.ErrAddDataInDB, err)
+		return 0, s.log.Error(models.ErrAddDataInDB, err)
 	}
 
 	for _, res := range doc.Resolutions {
@@ -47,7 +45,19 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 			time.Now(),
 		); err != nil {
 			tx.Rollback()
-			return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertResQuery)
+			return 0, s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertResQuery)
+		}
+	}
+
+	if doc.Familiar != "" {
+		insertFamQuery := `INSERT INTO familiars 
+            (docTable, docID, docFamiliar, createdAt) 
+            VALUES (?, ?, ?, ?)`
+
+		if _, err := tx.Exec(insertFamQuery,
+			"inouts", docID, doc.Familiar, time.Now(),
+		); err != nil {
+			return 0, s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertFamQuery)
 		}
 	}
 
@@ -55,40 +65,88 @@ func (s *SQLStorage) AddDocumentWithResolutions(doc models.Document) error {
 		s.log.Error(models.ErrAddDataInDB, err)
 	}
 
-	return nil
-}
-
-func (s *SQLStorage) AddDocument(doc models.Document) error {
-	insertDocQuery := "INSERT INTO inouts (type, fnum, fdate, lnum, ldate, name, sender, ispolnitel, result, familiar, count, copy, width, location, file, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-
-	_, err := s.db.Exec(insertDocQuery, doc.Type, doc.FNum, doc.FDate, doc.LNum, doc.LDate, doc.Name, doc.Sender, doc.Ispolnitel, doc.Result, doc.Familiar, doc.Count, doc.Copy, doc.Width, doc.Location, doc.FileURL, doc.Creator, doc.CreatedAt)
-
-	if err != nil {
-		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertDocQuery)
-	}
-
-	return nil
+	return docID, nil
 }
 
 func (s *SQLStorage) AddDirective(doc models.Directive) error {
-	insertDirQuery := "INSERT INTO directives (number, date, name, autor, numCoverLetter, dateCoverLetter, countCopy, sender, numSendLetter, dateSendLetter, countSendCopy, familiar, location, fileURL, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	tx, err := s.db.Begin()
+	if err != nil {
+		return s.log.Error(models.ErrAddDataInDB, err)
+	}
+	
+	var docID int64
 
-	_, err := s.db.Exec(insertDirQuery, doc.Number, doc.Date, doc.Name, doc.Autor, doc.NumCoverLetter, doc.DateCoverLetter, doc.CountCopy, doc.Sender, doc.NumSendLetter, doc.DateSendLetter, doc.CountSendCopy, doc.Familiar, doc.Location, doc.FileURL, doc.Creator, time.Now())
+	insertDirQuery := "INSERT INTO directives (number, date, name, autor, numCoverLetter, dateCoverLetter, countCopy, sender, numSendLetter, dateSendLetter, countSendCopy, location, fileURL, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+
+	result, err := tx.Exec(insertDirQuery, doc.Number, doc.Date, doc.Name, doc.Autor, doc.NumCoverLetter, doc.DateCoverLetter, doc.CountCopy, doc.Sender, doc.NumSendLetter, doc.DateSendLetter, doc.CountSendCopy, doc.Location, doc.FileURL, doc.Creator, time.Now())
 
 	if err != nil {
+		tx.Rollback()
 		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertDirQuery)
+	}
+
+	docID, err = result.LastInsertId()
+	if err != nil {
+		tx.Rollback()
+		return s.log.Error(models.ErrAddDataInDB, err)
+	}
+
+	if doc.Familiar != "" {
+		insertFamQuery := `INSERT INTO familiars 
+            (docTable, docID, docFamiliar, createdAt) 
+            VALUES (?, ?, ?, ?)`
+
+		if _, err := tx.Exec(insertFamQuery,
+			"inouts", docID, doc.Familiar, time.Now(),
+		); err != nil {
+			return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertFamQuery)
+		}
+	}
+	
+	if err = tx.Commit(); err != nil {
+		s.log.Error(models.ErrAddDataInDB, err)
 	}
 
 	return nil
 }
 
 func (s *SQLStorage) AddInventory(doc models.Inventory) error {
-	insertInvQuery := "INSERT INTO inventory (number, numCoverLetter, dateCoverLetter, name, sender, countCopy, copy, addressee, numSendLetter, dateSendLetter, sendCopy, familiar, location, fileURL, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	tx, err := s.db.Begin()
+	if err != nil {
+		return s.log.Error(models.ErrAddDataInDB, err)
+	}
 
-	_, err := s.db.Exec(insertInvQuery, doc.Number, doc.NumCoverLetter, doc.DateCoverLetter, doc.Name, doc.Sender, doc.CountCopy, doc.Copy, doc.Addressee, doc.NumSendLetter, doc.DateSendLetter, doc.SendCopy, doc.Familiar, doc.Location, doc.FileURL, doc.Creator, time.Now())
+	var docID int64
+
+	insertInvQuery := "INSERT INTO inventory (number, numCoverLetter, dateCoverLetter, name, sender, countCopy, copy, addressee, numSendLetter, dateSendLetter, sendCopy, location, fileURL, creator, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+
+	result, err := tx.Exec(insertInvQuery, doc.Number, doc.NumCoverLetter, doc.DateCoverLetter, doc.Name, doc.Sender, doc.CountCopy, doc.Copy, doc.Addressee, doc.NumSendLetter, doc.DateSendLetter, doc.SendCopy, doc.Location, doc.FileURL, doc.Creator, time.Now())
 
 	if err != nil {
+		tx.Rollback()
 		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertInvQuery)
+	}
+
+	docID, err = result.LastInsertId()
+	if err != nil {
+		tx.Rollback()
+		return s.log.Error(models.ErrAddDataInDB, err)
+	}
+
+	if doc.Familiar != "" {
+		insertFamQuery := `INSERT INTO familiars 
+            (docTable, docID, docFamiliar, createdAt) 
+            VALUES (?, ?, ?, ?)`
+
+		if _, err := tx.Exec(insertFamQuery,
+			"inouts", docID, doc.Familiar, time.Now(),
+		); err != nil {
+			return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertFamQuery)
+		}
+	}
+	
+	if err = tx.Commit(); err != nil {
+		s.log.Error(models.ErrAddDataInDB, err)
 	}
 
 	return nil
@@ -103,5 +161,6 @@ func (s *SQLStorage) AddResolution(res models.Resolution) error {
 		return s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", newRes)
 	}
 
-	return nil
+	return nil 
 }
+ 

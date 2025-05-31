@@ -1472,6 +1472,35 @@ th {
   border-right: 2px solid var(--borg-btn-color);
 }
 
+.familiar-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    max-height: 70px;
+    overflow-y: auto;
+    scrollbar-width: thin; /* Для Firefox */
+    scrollbar-color: var(--scrollbar-color) var(--bgr-color);
+}
+
+.familiar-list li {
+  color: var(--mid-color);
+} 
+
+/* Стилизация для WebKit-браузеров (Chrome, Safari) */
+.familiar-list::-webkit-scrollbar {
+  width: 12px;
+}
+
+.familiar-list::-webkit-scrollbar-track {
+  background: none;
+}
+
+.familiar-list::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color);
+  border-radius: 20px;
+  border: 2px solid var(--bgr-color);
+}
+
 .table__column--number,
 .table__column--result,
 .table__column--familiar {

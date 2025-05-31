@@ -1,6 +1,5 @@
-function WriteDocumentsInTable(documents, container, type) {
+function WriteDocumentsInTable(documents, type) {
 
-    container.innerHTML = '';
     let documentsString = '';
 
     if (type == "directives") {
@@ -21,7 +20,7 @@ function WriteDocumentsInTable(documents, container, type) {
                         <td>${document.sender}</td>
                         <td>${document.numSendLetter}<br>${document.dateSendLetter}</td>
                         <td>${document.countSendCopy}</td>
-                        <td class="table__column--familiar">${document.familiar}</td>
+                        <td class="table__column--familiar">${prepareFamiliars(document.id, document.familiars)}</td>
                         <td class="table__column--location">${document.location}</td>
                         <td class="table__column--button">
                             <button class="table__btn--opendoc" file="${document.fileURL}"></button>
@@ -30,8 +29,7 @@ function WriteDocumentsInTable(documents, container, type) {
                 </table>`;
             });
 
-            container.innerHTML = documentsString;
-            setupDocumentTables()
+            return documentsString;
         }
         return
     } else if (type == "inventory") {
@@ -52,7 +50,7 @@ function WriteDocumentsInTable(documents, container, type) {
                         <td colspan="2">${document.addressee}</td>
                         <td colspan="2">${document.numSendLetter}<br>${document.dateSendLetter}</td>
                         <td>${document.sendCopy}</td>
-                        <td class="table__column--familiar">${document.familiar}</td>
+                        <td class="table__column--familiar">${prepareFamiliars(document.id, document.familiars)}</td>
                         <td class="table__column--location">${document.location}</td>
                         <td class="table__column--button">
                             <button class="table__btn--opendoc" file="${document.fileURL}"></button>
@@ -61,8 +59,7 @@ function WriteDocumentsInTable(documents, container, type) {
                 </table>`;
             });
 
-            container.innerHTML = documentsString;
-            setupDocumentTables()
+            return documentsString;
         }
         return
     } else if (type == "ingoing") {
@@ -80,7 +77,7 @@ function WriteDocumentsInTable(documents, container, type) {
                 <td class='table__column--sender'>${document.sender}</td>
                 <td class='table__column--ispolnitel'>${document.ispolnitel}</td>
                 <td class='table__column--result'>${document.result}</td>
-                <td class='table__column--familiar'>${document.familiar}</td>
+                <td class="table__column--familiar">${prepareFamiliars(document.id, document.familiars)}</td>
                 <td class='table__column--count'>${document.count}</td>
                 <td class='table__column--copy'>${document.copy}</td>
                 <td class='table__column--width'>${document.width}</td>
@@ -110,11 +107,10 @@ function WriteDocumentsInTable(documents, container, type) {
                 documentsString += '</div>';
             });
 
-            container.innerHTML = documentsString;
-            setupDocumentTables()
+            return documentsString;
         }
     } else {
-         if (documents) {
+        if (documents) {
 
             documents.forEach(document => {
                 if (!document) return;
@@ -128,7 +124,7 @@ function WriteDocumentsInTable(documents, container, type) {
                 <td class='table__column--sender'>${document.sender}</td>
                 <td class='table__column--ispolnitel'>${document.ispolnitel}</td>
                 <td class='table__column--result'>${document.result}</td>
-                <td class='table__column--familiar'>${document.familiar}</td>
+                <td class="table__column--familiar">${prepareFamiliars(document.id, document.familiars)}</td>
                 <td class='table__column--count'>${document.count}</td>
                 <td class='table__column--copy'>${document.copy}</td>
                 <td class='table__column--width'>${document.width}</td>
@@ -140,10 +136,18 @@ function WriteDocumentsInTable(documents, container, type) {
         </table>`;
             });
 
-            container.innerHTML = documentsString;
-            setupDocumentTables()
+            return documentsString;
         }
     }
+}
+
+function prepareFamiliars(id, familiars) {
+    const familiarsList = familiars?.length
+                    ? `<ul class="familiar-list" id="familiar-list-${id}">
+                ${familiars.map(f => `<li>${f}</li>`).join('')}
+                    </ul>`
+                    : `<ul class="familiar-list" id="familiar-list-${id}"></ul>`;
+    return familiarsList
 }
 
 // Обработка кликов по таблицам документов
@@ -219,7 +223,7 @@ function ViewDocumentTable(doc, event) {
 
 // Функция закрытия активного документа
 function CloseActiveDoc() {
-      const active_tub = document.querySelector(".main__tabs--active");
+    const active_tub = document.querySelector(".main__tabs--active");
     if (!active_tub) return;
 
     const pre_active_doc = document.querySelector(".tubs__table--active-table");

@@ -64,7 +64,7 @@ function changeActiveTab(btn) {
 
   if (prevActiveTab !== null) {
     const prevActiveTabId = `#${prevActiveTab.id}`;
-   if (prevActiveTabId == activeTabId) return;
+    if (prevActiveTabId == activeTabId) return;
   }
 
   // Удаляем активные классы
@@ -98,6 +98,7 @@ async function updateDocumentsForTab(tabId) {
 
   // Обновляем соответствующий контейнер
   const container = document.getElementById(docTypeConfig.documentTableId);
-  WriteDocumentsInTable(documents, container, docTypeConfig.type)
+  container.innerHTML = WriteDocumentsInTable(documents, docTypeConfig.type)
+  setupDocumentTables()
 }
 

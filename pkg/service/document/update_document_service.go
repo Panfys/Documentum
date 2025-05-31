@@ -28,7 +28,7 @@ func (d *docService) UpdateDocFamiliar(types, id, login string) error {
 		message.Action = "updDocFam"
 		content.Type = types
 		content.DocID = id
-		content.Familiar = fmt.Sprintf(", <br>%s", name)
+		content.Familiar = name
 		jsonContent, err := json.Marshal(content)
 		if err != nil {
 			return err
@@ -40,88 +40,102 @@ func (d *docService) UpdateDocFamiliar(types, id, login string) error {
 	return nil
 }
 
-func (d *docService) UpdateDocument(reqDoc models.Document) (models.Document, error) {
+func (s *docService) UpdateDocument(reqDoc models.Document) error {
+    // Валидация документа
+    doc, err := s.validSrv.ValidUpdateDocument(reqDoc)
+    if err != nil {
+        return err
+    }
 
-	doc, err := d.validSrv.ValidUpdateDocument(reqDoc)
-	if err != nil {
-		return models.Document{}, err
-	}
+    // Валидация и обработка резолюций
+    if err := s.processDocumentResolutions(&doc); err != nil {
+        return err
+    }
 
-	var result, ispolnitel string
+    // Обновление документа в хранилище
+    if err := s.stor.UpdateDocumentWithResolutions(doc); err != nil {
+        return err
+    }
 
-	for i := range doc.Resolutions {
-		res, err := d.validSrv.ValidResolution(&doc.Resolutions[i])
-		if err != nil {
-			return models.Document{}, err
-		}
-		doc.Resolutions[i] = res
+    // Подготовка данных для отображения
+    if err := s.prepareDocumentForResponse(&doc); err != nil {
+        return err
+    }
 
-		if doc.Resolutions[i].Result != "" {
-			if result == "" {
-				result = doc.Resolutions[i].Result
-			} else {
-				result += " <br> " + doc.Resolutions[i].Result
-			}
-		}
-	}
+    // Отправка обновления через WebSocket
+    return s.sendDocumentUpdateWS(&doc)
+}
 
-	if result != "" {
-		doc.Result = result
-	}
-	
-	if err := d.stor.UpdateDocumentWithResolutions(doc); err != nil {
-		//d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName))
-		return models.Document{}, err
-	}
+func (s *docService) processDocumentResolutions(doc *models.Document) error {
+    var resultBuilder string
 
-	for i := range doc.Resolutions { 
-		if doc.Resolutions[i].Deadline.Valid {
-			doc.Resolutions[i].DeadlineStr, err = d.parseTime(doc.Resolutions[i].Deadline.String)
-			if err != nil {
-				return models.Document{}, err
-			}
-		}
+    for i := range doc.Resolutions {
+        // Валидация резолюции
+        res, err := s.validSrv.ValidResolution(&doc.Resolutions[i])
+        if err != nil {
+            return err
+        }
+        doc.Resolutions[i] = res
 
-		doc.Resolutions[i].Date, err = d.parseResolutionDate(doc.Resolutions[i].Date)
-		if err != nil {
-			return models.Document{}, err
-		}
+        // Сборка результата исполнения
+        if res.Result != "" {
+            if resultBuilder == "" {
+                resultBuilder = res.Result
+            } else {
+                resultBuilder += " <br> " + res.Result
+            }
+        }
+    }
 
-		ispolnitel = fmt.Sprintf("<div class='table__ispolnitel--ispolnitel'>%s</div>"+
-			"<div class='table__ispolnitel--text'>&#171%s&#187</div>"+
-			"<div class='table__ispolnitel--user'>%s</div>",
-			doc.Resolutions[i].Ispolnitel, doc.Resolutions[i].Text, doc.Resolutions[i].User)
-		doc.Resolutions[i].Creator = doc.Creator
+    if resultBuilder != "" {
+        doc.Result = resultBuilder
+    }
 
-	}
+    return nil
+}
 
-	if ispolnitel != "" {
-		doc.Ispolnitel = ispolnitel
-	}
+func (s *docService) prepareDocumentForResponse(doc *models.Document) error {
+    var lastIspolnitel string
 
-	/*
-		path := "/app/web/source/documents/"
+    for i := range doc.Resolutions {
+        // Подготовка дат резолюций
+        if err := s.prepareSingleResolution(&doc.Resolutions[i]); err != nil {
+            return err
+        }
 
-		newFileName, err := d.fileSrv.AddFile(path, doc.FileHeader.Filename, doc.File)
+        // Формирование информации об исполнителе для последней резолюции
+        if i == len(doc.Resolutions)-1 {
+            lastIspolnitel = fmt.Sprintf(
+                "<div class='table__ispolnitel--ispolnitel'>%s</div>"+
+                    "<div class='table__ispolnitel--text'>&#171%s&#187</div>"+
+                    "<div class='table__ispolnitel--user'>%s</div>",
+                doc.Resolutions[i].Ispolnitel,
+                doc.Resolutions[i].Text,
+                doc.Resolutions[i].User,
+            )
+            doc.Resolutions[i].Creator = doc.Creator
+        }
+    }
 
-		if err != nil {
-			return models.Document{}, err
-		}
+    if lastIspolnitel != "" {
+        doc.Ispolnitel = lastIspolnitel
+    }
 
-		doc.FileURL = filepath.Join("/source/documents/", newFileName)
-	*/
+    return nil
+}
 
-	// Отправляем в ws для обновления у клиента
-	var (
-		message models.Message
-	)
-	message.Action = "updDocRes"
-	jsonContent, err := json.Marshal(doc)
-	if err != nil {
-		return doc, err
-	}
-	message.Content = jsonContent
-	d.wsSrv.Broadcast(message)
+func (s *docService) sendDocumentUpdateWS(doc *models.Document) error {
+    message := models.Message{
+        Action: "updDocRes",
+    }
 
-	return doc, nil
+    jsonContent, err := json.Marshal(doc)
+    if err != nil {
+        return err
+    }
+
+    message.Content = jsonContent
+    s.wsSrv.Broadcast(message)
+
+    return nil
 }

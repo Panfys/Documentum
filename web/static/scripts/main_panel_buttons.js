@@ -214,11 +214,11 @@ async function submitNewDocumentForm() {
   }
   else docData.fileType = ""
 
-  if (docData.type === "Приказ") {
+  if (docData.type === "directives") {
     if (validateDirectiveData(docData) > 0) {
       return;
     }
-  } else if (docData.type === "Издание") {
+  } else if (docData.type === "inventory") {
     if (validateInventoryData(docData) > 0) {
       return;
     }
