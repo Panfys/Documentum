@@ -109,14 +109,13 @@ func (h *DocHandler) AddDocument(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	var result any
 	switch table {
 	case "directives":
-		result, err = h.addDirective(r, file, header, login)
+		err = h.addDirective(r, file, header, login)
 	case "inventory":
-		result, err = h.addInventory(r, file, header, login)
+		err = h.addInventory(r, file, header, login)
 	default:
-		result, err = h.addInOutDoc(r, file, header, login)
+		err = h.addInOutDoc(r, file, header, login)
 	}
 
 	if err != nil {
@@ -124,10 +123,7 @@ func (h *DocHandler) AddDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(result); err != nil {
-		h.handleError(w, "Ошибка формирования ответа", err, http.StatusInternalServerError)
-	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *DocHandler) UpdateDocResolutions(w http.ResponseWriter, r *http.Request) {
@@ -141,9 +137,9 @@ func (h *DocHandler) UpdateDocResolutions(w http.ResponseWriter, r *http.Request
 	}
 
 	var (
-		file multipart.File
+		file   multipart.File
 		header *multipart.FileHeader
-		err error
+		err    error
 	)
 
 	if r.MultipartForm.File == nil || len(r.MultipartForm.File["file"]) == 0 {
@@ -158,7 +154,6 @@ func (h *DocHandler) UpdateDocResolutions(w http.ResponseWriter, r *http.Request
 		defer file.Close()
 	}
 
-	var result any
 	switch table {
 	case "directives":
 		//result, err = h.updateDirective(r, file, header, login)
@@ -169,7 +164,7 @@ func (h *DocHandler) UpdateDocResolutions(w http.ResponseWriter, r *http.Request
 		h.handleError(w, models.ErrFileRequest, err, http.StatusBadRequest)
 		return
 	default:
-		result, err = h.updateInOutDoc(r, file, header, login)
+		err = h.updateInOutDoc(r, file, header, login)
 	}
 
 	if err != nil {
@@ -177,16 +172,13 @@ func (h *DocHandler) UpdateDocResolutions(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(result); err != nil {
-		h.handleError(w, "Ошибка формирования ответа", err, http.StatusInternalServerError)
-	}
+	w.WriteHeader(http.StatusOK)
 }
 
-func (h *DocHandler) addDirective(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) (models.Directive, error) {
+func (h *DocHandler) addDirective(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) error {
 	var doc models.Directive
 	if err := json.Unmarshal([]byte(r.FormValue("document")), &doc); err != nil {
-		return models.Directive{}, err
+		return err
 	}
 	doc.File = file
 	doc.FileHeader = header
@@ -194,10 +186,10 @@ func (h *DocHandler) addDirective(r *http.Request, file multipart.File, header *
 	return h.service.AddDirective(doc)
 }
 
-func (h *DocHandler) addInventory(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) (models.Inventory, error) {
+func (h *DocHandler) addInventory(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) error {
 	var doc models.Inventory
 	if err := json.Unmarshal([]byte(r.FormValue("document")), &doc); err != nil {
-		return models.Inventory{}, err
+		return err
 	}
 	doc.File = file
 	doc.FileHeader = header
@@ -205,10 +197,10 @@ func (h *DocHandler) addInventory(r *http.Request, file multipart.File, header *
 	return h.service.AddInventory(doc)
 }
 
-func (h *DocHandler) addInOutDoc(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) (models.Document, error) {
+func (h *DocHandler) addInOutDoc(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) error {
 	var doc models.Document
 	if err := json.Unmarshal([]byte(r.FormValue("document")), &doc); err != nil {
-		return models.Document{}, err
+		return err
 	}
 	doc.File = file
 	doc.FileHeader = header
@@ -216,11 +208,11 @@ func (h *DocHandler) addInOutDoc(r *http.Request, file multipart.File, header *m
 	return h.service.AddDocument(doc)
 }
 
-func (h *DocHandler) updateInOutDoc(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) (models.Document, error) {
+func (h *DocHandler) updateInOutDoc(r *http.Request, file multipart.File, header *multipart.FileHeader, login string) error {
 	id := mux.Vars(r)["id"]
 	var doc models.Document
 	if err := json.Unmarshal([]byte(r.FormValue("document")), &doc); err != nil {
-		return models.Document{}, err
+		return err
 	}
 	doc.File = file
 	doc.FileHeader = header

@@ -4,9 +4,9 @@
 
 //------Функция прокрутки и закрепления шапки таблицы-------
 window.addEventListener("scroll", function () {
-  active_tub = document.querySelector(".main__tabs--active");
-  head_containers = active_tub.querySelector(".tubs__container--head");
-  hidden_containers = active_tub.querySelector(".tubs__container--hidden");
+  const active_tub = document.querySelector(".main__tabs--active");
+  const head_containers = active_tub.querySelector(".tubs__container--head");
+  const hidden_containers = active_tub.querySelector(".tubs__container--hidden");
 
   if (window.scrollY > 30) {
     hidden_containers.style.display = "block";

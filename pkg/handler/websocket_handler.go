@@ -23,9 +23,10 @@ func NewWebSocketHandler(log logger.Logger, service ws.WSService) *WebSocketHand
 
 func (h *WebSocketHandler) HandleConnection(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
+		ReadBufferSize:  2048,
+		WriteBufferSize: 2048,
 		CheckOrigin:     func(r *http.Request) bool { return true },
+		EnableCompression: true,
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)

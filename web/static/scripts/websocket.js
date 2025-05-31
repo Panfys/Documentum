@@ -134,11 +134,14 @@ const client = new WSClient()
       tabId => tabId.type === content.type
     );
     if (docTabIdData.tabId === activeTabId) {
-      const doc = activeTab.querySelector(`[document-id="${content.docID}"]`);
-      const docFamiliar = doc.querySelector(".table__column--familiar");
-      docFamiliar.innerHTML += content.familiar;
+      const list = document.querySelector(`#familiar-list-${content.docID}`);
+      if (list) {
+        const li = document.createElement('li');
+        li.textContent = content.familiar;
+        list.appendChild(li);
+      }
     } else {
-      //alert(`Ознакомление ${content.familiar} с документов ${content.docID} в таблице ${content.type}`);
+      console.log(`Ознакомление ${content.familiar} с документов ${content.docID} в таблице ${content.type}`);
     }
   })
   .on('updDocRes', (content) => {
@@ -175,8 +178,19 @@ const client = new WSClient()
                 </div>`;
         });
       }
-    } else {
-      //alert(`Ознакомление ${content.familiar} с документов ${content.docID} в таблице ${content.type}`);
+    }
+  })
+  .on('addDoc', (content) => {
+    const activeTab = document.querySelector(".main__tabs--active");
+    const activeTabId = `#${activeTab.id}`;
+    const docTabIdData = Object.values(DOCUMENT_TYPES).find(
+      tabId => tabId.type === content.type
+    );
+    if (docTabIdData.tabId === activeTabId) {
+      const container = activeTab.querySelector(`#${content.type}-documents-container`);
+      console.log([content]);
+      container.innerHTML += WriteDocumentsInTable([content], content.type);
+      setupDocumentTables()
     }
   });
 

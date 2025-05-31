@@ -2,30 +2,67 @@ package storage
 
 import (
 	"documentum/pkg/models"
-	"fmt"
 	"time"
 )
 
 func (s *SQLStorage) UpdateDocFamiliar(types, id, name string) (int64, error) {
-	var table string 
-	if types == "ingoing" || types == "outgoing" {
-		table = "inouts" 
-	} else {
-		table = types 
-	}
-	query := fmt.Sprintf("UPDATE %s SET familiar = IF(familiar IS NULL OR familiar = '', ?, CONCAT(familiar, ', <br> ', ?)) WHERE id = ? AND (familiar IS NULL OR familiar NOT LIKE ?)", table)
+    var (
+        table     string
+        familiar  string
+        familiars []string
+    )
 
-	result, err := s.db.Exec(query, name, name, id, "%"+name+"%")
-	if err != nil {
-		return 0, s.log.Error(models.ErrAddDataInDB, err)
-	}
-	
-	res, err := result.RowsAffected()
-	if err != nil {
-		return 0, s.log.Error(models.ErrAddDataInDB, err)
-	}
+    // Определяем таблицу
+    if types == "ingoing" || types == "outgoing" {
+        table = "inouts"
+    } else {
+        table = types
+    }
 
-	return res, nil
+    // 1. Получаем все существующие записи familiar для данного документа
+    query := "SELECT docFamiliar FROM familiars WHERE docTable = ? AND docID = ?"
+    rows, err := s.db.Query(query, table, id)
+    if err != nil {
+        return 0, s.log.Error(models.ErrGetDataInDB, err)
+    }
+    defer rows.Close()
+
+    // Собираем все существующие familiars
+    for rows.Next() {
+        if err := rows.Scan(&familiar); err != nil {
+            return 0, s.log.Error(models.ErrGetDataInDB, err)
+        }
+        familiars = append(familiars, familiar)
+    }
+
+    // Проверяем, есть ли ошибка после итерации
+    if err := rows.Err(); err != nil {
+        return 0, s.log.Error(models.ErrGetDataInDB, err)
+    }
+
+    // 2. Проверяем, существует ли уже такое имя
+    nameExists := false
+    for _, f := range familiars {
+        if f == name {
+            nameExists = true
+            break
+        }
+    }
+
+    // 3. Если имя не найдено, добавляем новую запись
+    if !nameExists {
+        insertQuery := "INSERT INTO familiars (docTable, docID, docFamiliar, createdAt) VALUES (?, ?, ?, ?)"
+        result, err := s.db.Exec(insertQuery, table, id, name, time.Now()) 
+        if err != nil {
+            return 0, s.log.Error(models.ErrAddDataInDB, err)
+        }
+
+        // Возвращаем ID новой записи
+        return result.RowsAffected()
+    }
+
+    // Если имя уже существует, возвращаем 0 и nil ошибку
+    return 0, nil
 }
 
 func (s *SQLStorage) UpdateDocumentWithResolutions(doc models.Document) error {

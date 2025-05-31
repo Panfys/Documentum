@@ -2,20 +2,21 @@ package document
 
 import (
 	"documentum/pkg/models"
+	"encoding/json"
 	"path/filepath"
 )
 
-func (d *docService) AddDocument(reqDoc models.Document) (models.Document, error) {
+func (d *docService) AddDocument(reqDoc models.Document) error {
 
 	doc, err := d.validSrv.ValidDocument(reqDoc)
 	if err != nil {
-		return models.Document{}, err
+		return err
 	}
 
 	for i := range doc.Resolutions {
 		res, err := d.validSrv.ValidResolution(&doc.Resolutions[i])
 		if err != nil {
-			return models.Document{}, err
+			return err
 		}
 
 		res.Creator += doc.Creator
@@ -27,24 +28,46 @@ func (d *docService) AddDocument(reqDoc models.Document) (models.Document, error
 	newFileName, err := d.fileSrv.AddFile(path, doc.FileHeader.Filename, doc.File)
 
 	if err != nil {
-		return models.Document{}, err
+		return err
 	}
 
 	doc.FileURL = filepath.Join("/source/documents/", newFileName)
 
-	if err := d.stor.AddDocumentWithResolutions(doc); err != nil {
+	docID, err := d.stor.AddDocumentWithResolutions(doc)
+	if err != nil {
 		d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName))
-		return models.Document{}, err
+		return err
+	}
+	doc.ID = int(docID)
+
+	var responseDoc *models.Document
+
+	responseDoc, err = d.prepareDocument(&doc)
+
+	if err != nil {
+		return err
 	}
 
-	return doc, nil
+	message := models.Message{
+		Action: "addDoc",
+	}
+
+	jsonContent, err := json.Marshal(responseDoc)
+	if err != nil {
+		return err
+	}
+
+	message.Content = jsonContent
+	d.wsSrv.Broadcast(message)
+
+	return nil
 }
 
-func (d *docService) AddDirective(reqDir models.Directive) (models.Directive, error) {
+func (d *docService) AddDirective(reqDir models.Directive) error {
 
 	dir, err := d.validSrv.ValidDirective(reqDir)
 	if err != nil {
-		return models.Directive{}, err
+		return err
 	}
 
 	path := "/app/web/source/documents/"
@@ -52,40 +75,40 @@ func (d *docService) AddDirective(reqDir models.Directive) (models.Directive, er
 	newFileName, err := d.fileSrv.AddFile(path, dir.FileHeader.Filename, dir.File)
 
 	if err != nil {
-		return models.Directive{}, err
+		return err
 	}
 
 	dir.FileURL = filepath.Join("/source/documents/", newFileName)
 
 	if err := d.stor.AddDirective(dir); err != nil {
 		d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName))
-		return models.Directive{}, err
+		return err
 	}
 
-	return dir, nil
+	return nil
 }
 
-func (d *docService) AddInventory(reqInv models.Inventory) (models.Inventory, error) {
+func (d *docService) AddInventory(reqInv models.Inventory) error {
 
 	inv, err := d.validSrv.ValidInventory(reqInv)
 	if err != nil {
-		return models.Inventory{}, err
+		return err
 	}
-	
+
 	path := "/app/web/source/documents/"
 
 	newFileName, err := d.fileSrv.AddFile(path, inv.FileHeader.Filename, inv.File)
 
 	if err != nil {
-		return models.Inventory{}, err
+		return err
 	}
 
 	inv.FileURL = filepath.Join("/source/documents/", newFileName)
 
 	if err := d.stor.AddInventory(inv); err != nil {
 		d.fileSrv.DeleteFileIfExists(filepath.Join(path, newFileName))
-		return models.Inventory{}, err
+		return err
 	}
 
-	return inv, nil
+	return nil
 }

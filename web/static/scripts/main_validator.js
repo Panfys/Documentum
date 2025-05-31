@@ -77,7 +77,6 @@ function validDocFileType(fileType) {
 
 // Проверка порядкового номера
 function validDocFNum(fnum, type) {
-  console.log (type)
   if (fnum === '' || fnum === type || fnum === '№') {
     AlertValidDocError("fnum")
     serverMessage("show", 'порядковый номер документа не указан');

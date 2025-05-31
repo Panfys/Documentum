@@ -12,11 +12,11 @@ type DocService interface {
 	GetDocuments(settings models.DocSettings) ([]models.Document, error)
 	GetDirectives(settings models.DocSettings) ([]models.Directive, error)
 	GetInventory(settings models.DocSettings) ([]models.Inventory, error)
-	AddDocument(doc models.Document) (models.Document, error)
-	AddDirective(dir models.Directive) (models.Directive, error)
-	AddInventory(reqInv models.Inventory) (models.Inventory, error)
+	AddDocument(doc models.Document) (error)
+	AddDirective(dir models.Directive) (error)
+	AddInventory(reqInv models.Inventory) (error)
 	UpdateDocFamiliar(types, id, login string) error
-	UpdateDocument(reqDoc models.Document) (models.Document, error)
+	UpdateDocument(reqDoc models.Document) (error)
 }
 
 type docService struct {

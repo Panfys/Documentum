@@ -2,82 +2,29 @@ package document
 
 import (
 	"documentum/pkg/models"
-	"fmt"
-	"time"
 )
 
 func (s *docService) GetDocuments(settings models.DocSettings) ([]models.Document, error) {
-	var documents []models.Document
-
 	set, err := s.settingCorrecter(settings)
 	if err != nil {
-		return []models.Document{}, err
+		return nil, err
 	}
 
-	documents, err = s.stor.GetDocuments(set)
-
+	documents, err := s.stor.GetDocuments(set)
 	if err != nil {
-		return []models.Document{}, err
+		return nil, err
 	}
 
 	for i := range documents {
-
-		documents[i].FDate, err = s.parseDate(documents[i].FDate)
-
+		documents[i].Resolutions, err = s.stor.GetResolutoins(int64(documents[i].ID))
 		if err != nil {
-			return []models.Document{}, err
+			return nil, err
 		}
-
-		if documents[i].LDate.Valid {
-			documents[i].LDateStr, err = s.parseDate(documents[i].LDate.String)
-			if err != nil {
-				return []models.Document{}, err
-			}
-		}
-
-		// Обработка резолюции
-
-		documents[i].Resolutions, err = s.stor.GetResolutoins(documents[i].ID)
-
+		doc, err := s.prepareDocument(&documents[i])
 		if err != nil {
-			return []models.Document{}, err
+			return nil, err
 		}
-
-		if len(documents[i].Resolutions) > 0 {
-			resolution := documents[i].Resolutions[len(documents[i].Resolutions)-1]
-
-			// Сборка исполнителя
-			documents[i].Ispolnitel = fmt.Sprintf("<div class='table__ispolnitel--ispolnitel'>%s</div>"+
-				"<div class='table__ispolnitel--text'>&#171%s&#187</div>"+
-				"<div class='table__ispolnitel--user'>%s</div>",
-				resolution.Ispolnitel, resolution.Text, resolution.User)
-
-			// Сборка резолюций
-			for j := range documents[i].Resolutions {
-
-				if documents[i].Resolutions[j].Deadline.Valid {
-					documents[i].Resolutions[j].DeadlineStr, err = s.parseTime(documents[i].Resolutions[j].Deadline.String)
-					if err != nil {
-						return []models.Document{}, err
-					}
-				}
-
-				documents[i].Resolutions[j].Date, err = s.parseResolutionDate(documents[i].Resolutions[j].Date)
-				if err != nil {
-					return []models.Document{}, err
-				}
-
-				// сбока исполненных документов
-
-				if documents[i].Resolutions[j].Result != "" {
-					if documents[i].Result == "" {
-						documents[i].Result += documents[i].Resolutions[j].Result
-					} else {
-						documents[i].Result += "<br>" + documents[i].Resolutions[j].Result 
-					}
-				}
-			}
-		}
+		documents[i] = *doc
 	}
 
 	return documents, nil
@@ -100,21 +47,21 @@ func (s *docService) GetDirectives(settings models.DocSettings) ([]models.Direct
 
 	for i := range directives {
 
-		directives[i].Date, err = s.parseDate(directives[i].Date)
+		directives[i].Date, err = s.prepareDate(directives[i].Date)
 
 		if err != nil {
 			return []models.Directive{}, err
 		}
 
 		if directives[i].DateCoverLetter.Valid {
-			directives[i].DateCoverLetterStr, err = s.parseDate(directives[i].DateCoverLetter.String)
+			directives[i].DateCoverLetterStr, err = s.prepareDate(directives[i].DateCoverLetter.String)
 			if err != nil {
 				return []models.Directive{}, err
 			}
 		}
 
 		if directives[i].DateSendLetter.Valid {
-			directives[i].DateSendLetterStr, err = s.parseDate(directives[i].DateSendLetter.String)
+			directives[i].DateSendLetterStr, err = s.prepareDate(directives[i].DateSendLetter.String)
 			if err != nil {
 				return []models.Directive{}, err
 			}
@@ -141,14 +88,14 @@ func (s *docService) GetInventory(settings models.DocSettings) ([]models.Invento
 	for i := range inventory {
 
 		if inventory[i].DateCoverLetter.Valid {
-			inventory[i].DateCoverLetterStr, err = s.parseDate(inventory[i].DateCoverLetter.String)
+			inventory[i].DateCoverLetterStr, err = s.prepareDate(inventory[i].DateCoverLetter.String)
 			if err != nil {
 				return []models.Inventory{}, err
 			}
 		}
 
 		if inventory[i].DateSendLetter.Valid {
-			inventory[i].DateSendLetterStr, err = s.parseDate(inventory[i].DateSendLetter.String)
+			inventory[i].DateSendLetterStr, err = s.prepareDate(inventory[i].DateSendLetter.String)
 			if err != nil {
 				return []models.Inventory{}, err
 			}
@@ -156,48 +103,6 @@ func (s *docService) GetInventory(settings models.DocSettings) ([]models.Invento
 	}
 
 	return inventory, nil
-}
-
-func (s *docService) parseDate(date string) (string, error) {
-	newdate, err := time.Parse(time.RFC3339, date)
-	if err != nil {
-		newdate, err = time.Parse("2006-01-02", date)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	formattedDate := "от " + newdate.Format("02.01.2006") + " г."
-	return formattedDate, nil
-}
-
-func (s *docService) parseResolutionDate(date string) (string, error) {
-
-	newdate, err := time.Parse(time.RFC3339, date)
-	if err != nil {
-		newdate, err = time.Parse("2006-01-02", date)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	formateDate := newdate.Format("02.01.2006") + " г."
-	return formateDate, nil
-}
-
-func (s *docService) parseTime(restime string) (string, error) {
-
-	newtime, err := time.Parse(time.RFC3339, restime)
-	if err != nil {
-		newtime, err = time.Parse("2006-01-02", restime)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	// Форматируем дату в нужный формат
-	formateTime := "Исполнить до " + newtime.Format("02.01.2006") + " г."
-	return formateTime, nil
 }
 
 func (s *docService) settingCorrecter(settings models.DocSettings) (models.DocSettings, error) {

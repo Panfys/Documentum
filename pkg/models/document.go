@@ -27,6 +27,7 @@ type Document struct {
 	Ispolnitel  string `json:"ispolnitel"`
 	Result      string `json:"result"`
 	Familiar    string `json:"familiar"`
+	Familiars []string `json:"familiars"`
 	Count       string `json:"count"`
 	Copy        string `json:"copy"`
 	Copy1       string `json:"copy1"`
@@ -59,6 +60,7 @@ type Directive struct {
 	DateSendLetter     sql.NullString
 	CountSendCopy      string `json:"countSendCopy"`
 	Familiar           string `json:"familiar"`
+	Familiars []string `json:"familiars"`
 	Location           string `json:"location"`
 	FileURL            string `json:"fileURL"`
 	File               multipart.File
@@ -83,6 +85,7 @@ type Inventory struct {
 	DateSendLetter     sql.NullString
 	SendCopy           string `json:"sendCopy"`
 	Familiar           string `json:"familiar"`
+	Familiars []string `json:"familiars"`
 	Location           string `json:"location"`
 	FileURL            string `json:"fileURL"`
 	File               multipart.File
@@ -93,7 +96,7 @@ type Inventory struct {
 
 type Resolution struct {
 	ID          string `json:"id"`
-	DocID       int    `json:"doc_id"`
+	DocID       int64    `json:"doc_id"`
 	Type        string `json:"type"`
 	Ispolnitel  string `json:"ispolnitel"`
 	Text        string `json:"text"`
