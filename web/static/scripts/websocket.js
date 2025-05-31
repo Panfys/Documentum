@@ -187,9 +187,14 @@ const client = new WSClient()
       tabId => tabId.type === content.type
     );
     if (docTabIdData.tabId === activeTabId) {
-      const container = activeTab.querySelector(`#${content.type}-documents-container`);
+      const docTableIdData = Object.values(DOCUMENT_TYPES).find(
+        documentTableId => documentTableId.type === content.type
+      );
+      const container = activeTab.querySelector(`#${docTableIdData.documentTableId}`);
+      content.familiars = [content.familiar];
       console.log([content]);
-      container.innerHTML += WriteDocumentsInTable([content], content.type);
+      console.log(docTableIdData);
+      container.innerHTML += WriteDocumentsInTable([content],content.type);
       setupDocumentTables()
     }
   });

@@ -46,8 +46,8 @@ type DocStorage interface {
 	GetInventory(settings models.DocSettings) ([]models.Inventory, error)
 	GetResolutoins(id int64) ([]models.Resolution, error)
 	AddDocumentWithResolutions(doc models.Document) (int64, error)
-	AddDirective(doc models.Directive) error
-	AddInventory(doc models.Inventory) error
+	AddDirective(doc models.Directive) (int64, error)
+	AddInventory(doc models.Inventory) (int64, error)
 	UpdateDocFamiliar(types, id, name string) (int64, error)
 	UpdateDocumentWithResolutions(doc models.Document) error 
 }
