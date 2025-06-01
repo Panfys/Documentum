@@ -56,6 +56,7 @@ async function openDocument(action, docId) {
 
     // Запись просмотра документа
     const accountName = document.querySelector(SELECTORS.ACCOUNT_NAME)?.textContent.trim();
+      
     const familiarText = familiarCell?.textContent || '';
 
     if (accountName && !familiarText.includes(accountName)) {
