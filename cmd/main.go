@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	logf, err := logger.NewFileLogger("documentum.log")
+	logf, err := logger.NewFileLogger("logs/documentum.log")
 	if err != nil {
 		log.Fatalf("Ошибка создания логгера: %v", err)
 	}

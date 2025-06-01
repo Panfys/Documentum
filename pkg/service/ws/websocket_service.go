@@ -4,7 +4,6 @@ import (
 	"documentum/pkg/logger"
 	"documentum/pkg/models"
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
@@ -58,14 +57,14 @@ func (s *WebSocketService) RegisterClient(client *models.Client) {
 		if c.Login == client.Login {
 			if c.Agent != client.Agent || c.IP != client.IP {
 				s.disconnectClient(c)
-				s.log.Info("дисконнект " + client.Login)
+				//s.log.Info("дисконнект " + client.Login)
 			}
 			c.Mutex.Lock()
 			c.Conn.Close()
 			c.Conn = client.Conn
 			c.LastActive = time.Now()
 			c.Mutex.Unlock()
-			s.log.Info("обновление статуса клиента " + client.Login)
+			//s.log.Info("обновление статуса клиента " + client.Login)
 			return
 		}
 	}
@@ -107,22 +106,9 @@ func (s *WebSocketService) HandleMessage(client *models.Client, message models.M
 		pongMessage := models.Message{
 			Action: "PONG",
 		}
-		s.log.Info(fmt.Sprintf(
-		"Получено сообщение от пользователя %s, Action: %v, Content: %v",
-		client.Login,
-		message.Action,
-		message.Content,
-	))
+	
 		return s.SendToClient(client, pongMessage)
 	}
-
-	// Логируем входящее сообщение (если это не PING)
-	s.log.Info(fmt.Sprintf(
-		"Получено сообщение от пользователя %s, Action: %v, Content: %v",
-		client.Login,
-		message.Action,
-		message.Content,
-	))
 
 	return nil
 }
@@ -135,12 +121,7 @@ func (s *WebSocketService) SendToClient(client *models.Client, message models.Me
 	if err != nil {
 		return s.log.Error("Ошибка обработки в JSON при отправке PONG", err)
 	}
-	s.log.Info(fmt.Sprintf(
-		"Отправлено сообщение пользователю %s, Message: %v, Content: %v",
-		client.Login,
-		message.Action,
-		message.Content,
-	))
+	
 	return client.Conn.WriteMessage(websocket.TextMessage, messageBytes)
 }
 
