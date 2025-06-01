@@ -97,7 +97,7 @@ func (s *SQLStorage) AddDirective(doc models.Directive) (int64, error) {
             VALUES (?, ?, ?, ?)`
 
 		if _, err := tx.Exec(insertFamQuery,
-			"inouts", docID, doc.Familiar, time.Now(),
+			"directives", docID, doc.Familiar, time.Now(),
 		); err != nil {
 			return 0, s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertFamQuery)
 		}
@@ -139,7 +139,7 @@ func (s *SQLStorage) AddInventory(doc models.Inventory) (int64, error) {
             VALUES (?, ?, ?, ?)`
 
 		if _, err := tx.Exec(insertFamQuery,
-			"inouts", docID, doc.Familiar, time.Now(),
+			"inventory", docID, doc.Familiar, time.Now(),
 		); err != nil {
 			return 0, s.log.Error(models.ErrAddDataInDB, err, " Запрос: ", insertFamQuery)
 		}

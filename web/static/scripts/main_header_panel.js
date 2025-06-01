@@ -95,10 +95,11 @@ async function updateDocumentsForTab(tabId) {
 
   // Получаем документы
   const documents = await FetchGetDocuments(docTableConfig.table, { type: docTypeConfig.type });
-
-  // Обновляем соответствующий контейнер
-  const container = document.getElementById(docTypeConfig.documentTableId);
-  container.innerHTML = WriteDocumentsInTable(documents, docTypeConfig.type)
-  setupDocumentTables()
+  if (documents != null) {
+    // Обновляем соответствующий контейнер
+    const container = document.getElementById(docTypeConfig.documentTableId);
+    container.innerHTML = WriteDocumentsInTable(documents, docTypeConfig.type)
+    setupDocumentTables()
+  }
 }
 

@@ -6,7 +6,7 @@ function WriteDocumentsInTable(documents, type) {
         if (documents) {
 
             documents.forEach(document => {
-                if (!document) return;
+                if (!document) return "";
 
                 documentsString += `
                 <table class="tubs__table tubs__table--document" id="document-table-${document.id}" document-id='${document.id}'>
@@ -36,7 +36,7 @@ function WriteDocumentsInTable(documents, type) {
         if (documents) {
 
             documents.forEach(document => {
-                if (!document) return;
+                if (!document) return "";
 
                 documentsString += `
                 <table class="tubs__table tubs__table--document" id="document-table-${document.id}" document-id='${document.id}'>
@@ -66,7 +66,7 @@ function WriteDocumentsInTable(documents, type) {
         if (documents) {
 
             documents.forEach(document => {
-                if (!document) return;
+                if (!document) return "";
 
                 documentsString += `
         <table class='tubs__table tubs__table--document' id='document-table-${document.id}' document-id='${document.id}'>
@@ -109,11 +109,11 @@ function WriteDocumentsInTable(documents, type) {
 
             return documentsString;
         }
-    } else {
+    } else if (type == "outgoing"){
         if (documents) {
 
             documents.forEach(document => {
-                if (!document) return;
+                if (!document) return "";
 
                 documentsString += `
         <table class='tubs__table tubs__table--document' id='document-table-${document.id}' document-id='${document.id}'>
@@ -138,7 +138,7 @@ function WriteDocumentsInTable(documents, type) {
 
             return documentsString;
         }
-    }
+    } else return ""
 }
 
 function prepareFamiliars(id, familiars) {
