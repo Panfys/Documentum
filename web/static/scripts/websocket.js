@@ -140,8 +140,6 @@ const client = new WSClient()
         li.textContent = content.familiar;
         list.appendChild(li);
       }
-    } else {
-      console.log(`Ознакомление ${content.familiar} с документов ${content.docID} в таблице ${content.type}`);
     }
   })
   .on('updDocRes', (content) => {
@@ -192,8 +190,6 @@ const client = new WSClient()
       );
       const container = activeTab.querySelector(`#${docTableIdData.documentTableId}`);
       content.familiars = [content.familiar];
-      console.log([content]);
-      console.log(docTableIdData);
       container.innerHTML += WriteDocumentsInTable([content],content.type);
       setupDocumentTables()
     }

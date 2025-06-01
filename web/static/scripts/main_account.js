@@ -69,7 +69,6 @@ changePassBtn.addEventListener("click", async function () {
   if (ValidUpdateUserPass(updatePass)) return
 
   const error = await FetchUpdateUserPass(updatePass)
-  console.log(error)
   if (typeof error === 'string') {
     if (error.includes("текущий пароль")) {
       AlertAuthMessages("account-pass", "Текущий пароль неверный!");

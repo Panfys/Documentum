@@ -1,0 +1,23 @@
+FROM golang:1.24.3-alpine AS builder
+
+RUN mkdir /app
+WORKDIR /app
+COPY ../ /app
+
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o documentum ./cmd
+
+# Финальный образ (используем минимальный образ с фиксированной версией)
+FROM alpine:3.21.3
+
+WORKDIR /app
+COPY --from=builder /app/documentum .
+COPY --from=builder /app/web ./web
+COPY --from=builder /app/.env ./.env
+
+RUN apk --no-cache add ca-certificates && \
+    adduser -D -g '' appuser && \
+    chown -R appuser: /app
+
+USER appuser
+EXPOSE 80
+CMD ["./documentum"]

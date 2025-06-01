@@ -1,10 +1,8 @@
-version: '3.7'
 services:
     # MySQL Database Service
   db:
     image: mysql:5.7.43
-    env_file: 
-      - .env
+    env_file: .env
     volumes:
       - mysql_data:/var/lib/mysql
       - ./migrations:/docker-entrypoint-initdb.d
@@ -30,21 +28,22 @@ services:
   
   #GO server
   app:
-    build: .
-    env_file: 
-      - .env
+    build: 
+      context: .
+      dockerfile: dockerfile.prod
+    env_file: .env 
+    volumes:
+      - ./web/source:/app/web/source
+      - ./logs/:/app/logs
     ports:
       - 80:80
     depends_on:
       db:
         condition: service_healthy  
     restart: unless-stopped
-    command: air -c .air.toml 
-    volumes:
-      - .:/app
-      - /go/pkg/mod 
-  
-   #Adminer
+    command: ./documentum
+
+  #Adminer
   adminer:
     image: adminer
     restart: unless-stopped
@@ -53,5 +52,4 @@ services:
 
 volumes:
   mysql_data:
- 
   
