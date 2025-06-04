@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"documentum/pkg/logger"
 	"documentum/pkg/models"
+	"time"
+	"log"
 )
 
 type SQLStorage struct {
@@ -16,6 +18,35 @@ func NewSQLStorage(db *sql.DB, log logger.Logger) *SQLStorage {
 		db:  db,
 		log: log,
 	}
+}
+
+func ConnectToDB(connectionString string) (*sql.DB, error) {
+	maxRetries := 5
+	retryDelay := 10 * time.Second
+	var db *sql.DB
+	var err error
+
+	for i := 0; i < maxRetries; i++ {
+		db, err = sql.Open("mysql", connectionString)
+		if err != nil {
+			log.Printf("Попытка %d: Ошибка подключения к БД: %v", i+1, err)
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		// Проверяем, что подключение действительно работает
+		err = db.Ping()
+		if err != nil {
+			log.Printf("Попытка %d: Ошибка ping БД: %v", i+1, err)
+			db.Close()
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		return db, nil
+	}
+
+	return nil, err
 }
 
 type AuthStorage interface {

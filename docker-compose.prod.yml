@@ -2,20 +2,9 @@ services:
     # MySQL Database Service
   db:
     image: mysql:5.7.43
-    env_file: .env
     volumes:
       - mysql_data:/var/lib/mysql
       - ./migrations:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: [
-        "CMD",
-        "mysqladmin", "ping",
-        "-h", "localhost",
-        "-uroot", "-p${MYSQL_ROOT_PASSWORD}"
-      ]
-      interval: 5s
-      timeout: 10s
-      retries: 5
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -28,27 +17,24 @@ services:
   
   #GO server
   app:
-    build: 
-      context: .
-      dockerfile: dockerfile.prod
-    env_file: .env 
+    image: alpine:3.21.3
     volumes:
-      - ./web/source:/app/web/source
-      - ./logs/:/app/logs
+      - ./.env:/app/.env
+      - ./documentum:/app/documentum  
+      - ./web:/app/web/
+      - ./logs/documentum.log:/app/logs/documentum.log
+    command: "/app/documentum"
     ports:
-      - 80:80
+      - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy  
-    restart: unless-stopped
-    command: ./documentum
+      - db
 
   #Adminer
   adminer:
     image: adminer
     restart: unless-stopped
     ports:
-      - 8080:8080
+      - "8080:8080"
 
 volumes:
   mysql_data:

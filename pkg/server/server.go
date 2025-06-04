@@ -31,7 +31,7 @@ func NewServer(db *sql.DB, secretKey string, log logger.Logger) *Server {
 
 	return &Server{
 		httpServer: &http.Server{ 
-			Addr:    ":80", // Можно заменить на переменную окружения или конфигурацию
+			Addr:    ":8000",
 			Handler: handler,
 		},
 		log: log,
@@ -40,7 +40,7 @@ func NewServer(db *sql.DB, secretKey string, log logger.Logger) *Server {
 
 // Run запускает HTTP сервер и логирует ошибки.
 func (s *Server) Run() error {
-	s.log.Info("Запуск сервера на http://localhost:80")
+	s.log.Info("Запуск сервера на http://localhost:8000")
 	if err := s.httpServer.ListenAndServe(); err != nil {
 		s.log.Error("Ошибка при запуске сервера: %v", err)
 		return err

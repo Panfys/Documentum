@@ -17,7 +17,7 @@ class WSClient {
       this.socket.close();
     }
 
-    this.socket = new WebSocket(`ws://localhost/ws`);
+    this.socket = new WebSocket(`ws://localhost:8000/ws`);
 
     this.socket.onopen = () => {
       console.log('WebSocket connected');
