@@ -15,9 +15,12 @@ type Config struct {
 
 func LoadConfig() *Config {
 
-	err := godotenv.Load()
+	err := godotenv.Load("app/.env") // Явный путь к файлу
 	if err != nil {
-		log.Fatal("Ошибка загрузки файла конфигураций")
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Printf("Не удалось загрузить .env файл:", err)
+		}
 	}
 
 	return &Config{

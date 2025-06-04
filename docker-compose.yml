@@ -3,8 +3,7 @@ services:
     # MySQL Database Service
   db:
     image: mysql:5.7.43
-    env_file: 
-      - .env
+    env_file: .env
     volumes:
       - mysql_data:/var/lib/mysql
       - ./migrations:/docker-entrypoint-initdb.d
@@ -31,10 +30,9 @@ services:
   #GO server
   app:
     build: .
-    env_file: 
-      - .env
+    env_file: .env
     ports:
-      - 80:80
+      - 8000:8000
     depends_on:
       db:
         condition: service_healthy  

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"path/filepath"
 )
 
 type Logger interface {
@@ -18,15 +19,20 @@ type FileLogger struct {
 }
 
 func NewFileLogger(logFilePath string) (*FileLogger, error) {
-	file, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, err
-	}
+    // Создаем все родительские директории
+    if err := os.MkdirAll(filepath.Dir(logFilePath), 0755); err != nil {
+        return nil, fmt.Errorf("ошибка создания лог дирректории: %v", err)
+    }
+    
+    file, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+    if err != nil {
+        return nil, fmt.Errorf("ошибка открытия лог файла: %v", err)
+    }
 
-	return &FileLogger{
-		logger: log.New(file, "", 0),
-		file:   file,
-	}, nil
+    return &FileLogger{
+        logger: log.New(file, "", log.LstdFlags),
+        file:   file,
+    }, nil
 }
 
 func (l *FileLogger) Info(msg string) {

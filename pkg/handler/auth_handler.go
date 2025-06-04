@@ -17,15 +17,15 @@ import (
 )
 
 var pages = []string{
-	"web/static/pages/global.html",
-	"web/static/pages/entrance.html",
-	"web/static/pages/main.html",
-	"web/static/pages/main_account.html",
-	"web/static/pages/main_settings.html",
-	"web/static/pages/main_ingoing_doc.html",
-	"web/static/pages/main_outgoing_doc.html",
-	"web/static/pages/main_inventory_doc.html",
-	"web/static/pages/main_directive_doc.html",
+	"app/web/static/pages/global.html",
+	"app/web/static/pages/entrance.html",
+	"app/web/static/pages/main.html",
+	"app/web/static/pages/main_account.html",
+	"app/web/static/pages/main_settings.html",
+	"app/web/static/pages/main_ingoing_doc.html",
+	"app/web/static/pages/main_outgoing_doc.html",
+	"app/web/static/pages/main_inventory_doc.html",
+	"app/web/static/pages/main_directive_doc.html",
 }
 
 type AuthHandler struct {

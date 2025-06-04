@@ -1,9 +1,10 @@
 package main
 
 import (
-	"database/sql"
+	
 	"log"
 	"documentum/pkg/logger"
+	"documentum/pkg/storage"
 	"documentum/pkg/config"
 	"documentum/pkg/server"
 	_ "github.com/go-sql-driver/mysql" 
@@ -11,7 +12,7 @@ import (
 )
 
 func main() {
-	logf, err := logger.NewFileLogger("logs/documentum.log")
+	logf, err := logger.NewFileLogger("app/logs/documentum.log")
 	if err != nil {
 		log.Fatalf("Ошибка создания логгера: %v", err)
 	}
@@ -21,13 +22,12 @@ func main() {
 	cfg := config.LoadConfig() 
 
 	// Подключение к MySQL
-	db, err := sql.Open("mysql", cfg.DBConnectionString)
+	db, err := storage.ConnectToDB(cfg.DBConnectionString)
 	if err != nil {
-		logf.Error("Ошибка подключения к БД: %v", err)
-		db = nil
-	} else {
-		defer db.Close()  
+		logf.Error("Не удалось подключиться к БД после нескольких попыток: %v", err)
+		return
 	}
+	defer db.Close()
 
 	// Проверка соединения
 	if db != nil {
@@ -35,7 +35,7 @@ func main() {
 			logf.Error("Ошибка проверки соединения с БД: %v", err)
 			db = nil 
 		} else {
-			//logf.Info("Успешно подключено к БД")
+			logf.Info("Успешно подключено к БД")
 		}
 	}
 
