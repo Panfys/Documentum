@@ -1,0 +1,122 @@
+/* ------------------Общие стили --------------------*/
+:root {
+  --blue-rgb: 45, 104, 248;
+  --orange-rgb: 255, 104, 0;
+  --purple-rgb: 116, 66, 200;
+  --green-rgb: 3, 108, 86;
+
+  --light-rgb: 242, 242, 242;
+  --dark-rgb: 17, 17, 17;
+  --mid-rgb: 55, 55, 55;
+
+  --multiplier: 1;
+  /* Базовая величина */
+  --lowMultiplier: 1;
+  /* Базовая величина */
+  --bigMultiplier: 1;
+  /* Базовая величина */
+}
+
+body {
+  --scrollbar-color: rgba(var(--main-rgb), 0.4);
+  --main-color: rgb(var(--main-rgb));
+  --bgr-image: url(../public/bacground.jpg);
+  --low-color: rgb(143, 143, 143);
+  /* Средний */
+  --mid-color: rgb(242, 242, 242);
+  /* Контрастный от фона*/
+  --bgr-color: rgb(24, 24, 24);
+  /* Близкий к фону */
+  --panel-color: rgba(29, 29, 29, 0.98);
+  /* Сильно темнее фона*/
+  --base-color: rgba(32, 32, 32, 0.98);
+  /* Темнее фона*/
+  --error-color: rgb(255, 64, 64);
+  /* Текст ошибки */
+  --borg-btn-color: rgba(55, 55, 55, 0.4);
+  /* Обводка кнопок без фона */
+  --btn-bgr-color: rgb(189, 189, 189);
+  /* Фон кнопки */
+  --blur-bgr-color: rgba(173, 173, 173, 0.1);
+  /* полупрозрачный фон для блюра*/
+}
+
+body.light-theme {
+  --scrollbar-color: rgba(var(--main-rgb), 0.4);
+  --main-color: rgb(var(--main-rgb));
+  --bgr-image: url(../images/bacground-light.png);
+  --low-color: rgb(94, 94, 94);
+  --mid-color: rgb(17, 17, 17);
+  --bgr-color: rgb(240, 240, 240);
+  --panel-color: rgba(247, 247, 247, 0.98);
+  --base-color: rgba(240, 240, 240, 0.95);
+  --error-color: rgb(209, 0, 0);
+  --borg-btn-color: rgba(205, 205, 205, 0.4);
+  --btn-bgr-color: rgb(54, 54, 54, 0.9);
+  --blur-bgr-color: rgba(255, 255, 255, 0.993);
+}
+
+@media (min-width: 900px) and (max-width: 1300px) {
+  :root {
+    --multiplier: 0.9;
+    --bigMultiplier: 0.8;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  :root {
+    --multiplier: 0.8;
+    --lowMultiplier: 0.9;
+    --bigMultiplier: 0.7;
+  }
+}
+
+@media (min-width: 500px) and (max-width: 599px) {
+  :root {
+    --multiplier: 0.7;
+    --bigMultiplier: 0.5;
+  }
+}
+
+@media (min-width: 1px) and (max-width: 499px) {
+  :root {
+    --multiplier: 0.6;
+    --lowMultiplier: 0.8;
+    --bigMultiplier: 0.6;
+  }
+}
+
+* {
+  color: var(--low-color);
+  font-weight: 300;
+  text-decoration: none;
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  font-size: calc(12px * var(--multiplier));
+  outline: none;
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  /* ширина всей полосы прокрутки */
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--bgr-color);
+  /* цвет зоны отслеживания */
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color);
+  /* цвет бегунка */
+  border-radius: 20px;
+  /* округлось бегунка */
+  border: 3px solid var(--bgr-color);
+  /* отступ вокруг бегунка */
+}
+
+body {
+  background: var(--bgr-image) repeat-y;
+  background-size: cover;
+  height: 100vh;
+}

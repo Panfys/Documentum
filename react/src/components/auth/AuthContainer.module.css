@@ -1,0 +1,11 @@
+.authContainer {
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    width: 100%;
+    margin: 5px 0;
+    border-radius: 20px;
+    background: var(--blur-bgr-color);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}

@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
   
   #GO server
-  app:
+  server:
     image: alpine:3.21.3
     volumes:
       - ./.env:/app/.env

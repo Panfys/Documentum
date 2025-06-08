@@ -1,0 +1,70 @@
+services:
+  # MySQL Database Service
+  db:
+    image: mysql:5.7.43
+    env_file: .env
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [
+        "CMD",
+        "mysqladmin", "ping",
+        "-h", "localhost",
+        "-uroot", "-p${MYSQL_ROOT_PASSWORD}"
+      ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+  
+  #GO server
+  server:
+    build: .
+    env_file: .env
+    ports:
+      - 8000:8000
+    depends_on:
+      db:
+        condition: service_healthy  
+    restart: unless-stopped
+    command: air -c .air.toml 
+    volumes:
+      - .:/app
+      - /go/pkg/mod 
+        
+  # React сервис
+  react-app:
+    build: ./react
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./react:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    stdin_open: true
+    tty: true
+  
+  #Adminer
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+
+volumes:
+  mysql_data:
+
+networks:
+  backend:
+    driver: bridge
+  
