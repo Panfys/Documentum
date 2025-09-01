@@ -10,3 +10,4 @@ docker-compose.override.yml
 config.json
 web/source/
 tmp/
+react/node_modules
