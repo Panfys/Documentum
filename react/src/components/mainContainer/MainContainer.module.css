@@ -1,0 +1,7 @@
+.mainPanel {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: calc(5px* var(--multiplier)) 0;
+}

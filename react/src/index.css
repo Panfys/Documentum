@@ -4,6 +4,7 @@
   --orange-rgb: 255, 104, 0;
   --purple-rgb: 116, 66, 200;
   --green-rgb: 3, 108, 86;
+  --main-rgb: 3, 108, 86;
 
   --light-rgb: 242, 242, 242;
   --dark-rgb: 17, 17, 17;
@@ -23,9 +24,9 @@ body {
   --bgr-image: url(../public/bacground.jpg);
   --low-color: rgb(143, 143, 143);
   /* Средний */
-  --mid-color: rgb(242, 242, 242);
+  --mid-color: rgb(238, 238, 238);
   /* Контрастный от фона*/
-  --bgr-color: rgb(24, 24, 24);
+  --bgr-color: rgb(44, 44, 44);
   /* Близкий к фону */
   --panel-color: rgba(29, 29, 29, 0.98);
   /* Сильно темнее фона*/
@@ -56,33 +57,27 @@ body.light-theme {
   --blur-bgr-color: rgba(255, 255, 255, 0.993);
 }
 
-@media (min-width: 900px) and (max-width: 1300px) {
-  :root {
-    --multiplier: 0.9;
-    --bigMultiplier: 0.8;
-  }
-}
-
-@media (min-width: 600px) and (max-width: 899px) {
+@media (min-width: 1000px) and (max-width: 1300px) {
   :root {
     --multiplier: 0.8;
     --lowMultiplier: 0.9;
-    --bigMultiplier: 0.7;
+    --bigMultiplier: 0.6;
   }
 }
 
-@media (min-width: 500px) and (max-width: 599px) {
+@media (min-width: 600px) and (max-width: 999px) {
   :root {
     --multiplier: 0.7;
+    --lowMultiplier: 0.8;
     --bigMultiplier: 0.5;
   }
 }
 
-@media (min-width: 1px) and (max-width: 499px) {
+@media (min-width: 1px) and (max-width: 599px) {
   :root {
-    --multiplier: 0.6;
-    --lowMultiplier: 0.8;
-    --bigMultiplier: 0.6;
+    --multiplier: 0.5;
+    --lowMultiplier: 0.6;
+    --bigMultiplier: 0.3;
   }
 }
 
@@ -92,8 +87,12 @@ body.light-theme {
   text-decoration: none;
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
-  font-size: calc(12px * var(--multiplier));
+  font-size: calc(14px * var(--multiplier));
   outline: none;
+}
+
+h1 {
+  font-size: calc(14px * var(--multiplier));
 }
 
 *::-webkit-scrollbar {
@@ -119,4 +118,23 @@ body {
   background: var(--bgr-image) repeat-y;
   background-size: cover;
   height: 100vh;
+  margin: 0;
+  /* занимает всю высоту экрана */
+  display: flex;
+  justify-content: center;
+  /* центрирование по горизонтали */
+  align-items: center;
+}
+
+.container {
+  display: flex;
+  align-content: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 5px;
+  height: 100%;
+  width: 100%;
+  max-width: 2000px;
+  box-sizing: border-box;
+  overflow: hidden; 
 }

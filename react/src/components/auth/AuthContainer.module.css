@@ -1,11 +1,280 @@
 .authContainer {
-    display: flex;
-    align-content: center;
-    justify-content: center;
-    width: 100%;
-    margin: 5px 0;
-    border-radius: 20px;
-    background: var(--blur-bgr-color);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  overflow: auto;
+  margin-bottom: calc(10px* var(--multiplier));
+  /* Добавляем прокрутку при необходимости */
+}
+
+.hidden {
+  position: absolute;
+  display: none !important;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: calc(15px* var(--multiplier));
+}
+
+.logo span {
+  font-size: 2rem;
+  border-left: 1px solid var(--low-color);
+  padding: 0.5rem;
+  margin-left: calc(15px* var(--multiplier));
+  padding-left: calc(15px* var(--multiplier));
+  color: var(--mid-color);
+}
+
+.icon {
+  margin-top: 0.1rem;
+  height: 3rem;
+  fill: var(--main-color) !important;
+  stroke-width: 600;
+}
+
+.loginPanel {
+  display: flex;
+  padding: calc(50px* var(--multiplier));
+  padding-bottom: calc(30px* var(--multiplier));
+  flex-direction: column;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  border-radius: 30px;
+  background: var(--bgr-color);
+  opacity: 0.8;
+}
+
+.authPanel {
+  margin: auto 0;
+  border-radius: 30px;
+  background: var(--blur-bgr-color);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.loginPanel h1 {
+  font-size: 1.5rem;
+  color: var(--mid-color);
+  margin-bottom: calc(45px* var(--multiplier));
+  cursor: default;
+}
+
+.loginCheckButtonBox {
+  display: flex;
+  align-items: center;
+  width: calc(300px* var(--multiplier));
+  box-sizing: border-box;
+  justify-content: space-between;
+  height: min-content;
+}
+
+.authInputBox {
+  position: relative;
+  display: flex;
+}
+
+.authInputBox input,
+.customSelect {
+  box-sizing: border-box;
+  padding: 2px calc(20px* var(--multiplier));
+  background: none;
+  border-radius: 20px;
+  width: calc(300px* var(--multiplier));
+  height: calc(30px* var(--multiplier));
+  border: solid calc(2px* var(--multiplier)) var(--low-color);
+  color: var(--mid-color);
+  outline: none;
+  transition: border 0.2s;
+}
+
+.authInputBox input:focus,
+.authInputBox label:focus,
+.customSelect:focus {
+  border: solid calc(2px* var(--multiplier)) var(--mid-color);
+}
+
+.authInputBox label {
+  background-color: var(--bgr-color);
+  color: var(--low-color);
+  font-size: calc(12px* var(--multiplier));
+  position: absolute;
+  top: calc(-8px* var(--multiplier));
+  left: calc(30px* var(--multiplier));
+  padding: 0 calc(5px* var(--multiplier));
+  z-index: 2;
+}
+
+.selectWrapper {
+  position: relative;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--label-color, #555);
+}
+
+.selectWrapper::after {
+  content: "⌄";
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-color, #666);
+  font-size: 1.2rem;
+}
+
+.customSelect {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.authErrorBox {
+  display: flex;
+  margin: 3px 0 8px 0;
+  height: 1.2rem;
+  align-items: center;
+}
+
+.authErrorBox p {
+  font-size: calc(12px* var(--multiplier));
+  color: var(--error-color);
+}
+
+.authErrorIcon {
+  stroke: var(--error-color);
+  height: 1.2rem;
+  margin-right: calc(3px* var(--multiplier));
+  width: 1.2rem;
+}
+
+.regLink {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: calc(30px* var(--multiplier));
+  align-items: center;
+}
+
+.regLink span {
+  font-size: 0.9rem;
+}
+
+.regLink button {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.regLink button:hover,
+.regLink button:focus {
+  color: var(--mid-color);
+}
+
+.arrow {
+  transition: transform 0.2s ease;
+  color: var(--low-color);
+}
+
+.arrowOpen {
+  transform: rotate(180deg);
+}
+
+.optionsContainer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bgr-color);
+  border: solid calc(2px * var(--multiplier)) var(--mid-color);
+  border-top: none;
+  border-radius: 0 0 15px 15px;
+  z-index: 1000;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, border-color 0.2s ease;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.optionsOpen {
+  max-height: 200px;
+  opacity: 1;
+  visibility: visible;
+  overflow-y: auto;
+}
+
+.option {
+  padding: calc(8px * var(--multiplier)) calc(20px * var(--multiplier));
+  color: var(--low-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: calc(14px * var(--multiplier));
+  border-bottom: 1px solid var(--low-color);
+}
+
+.option:last-child {
+  border-bottom: none;
+}
+
+.hiddenSelect {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+}
+
+.selectOpen {
+  border-color: var(--mid-color) !important;
+  border-radius: 15px 15px 0 0 !important;
+  border-bottom: solid calc(1px * var(--multiplier)) var(--low-color) !important;
+}
+
+.selectValue {
+  color: var(--mid-color);
+}
+
+/* Анимация появления опций */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.optionsOpen {
+  animation: slideDown 0.2s ease-out;
+}
+
+.option.focused {
+  color: var(--mid-color);
+}
+
+/* Убедимся, что опции доступны для скринридеров */
+.option {
+  /* существующие стили */
+  position: relative;
 }

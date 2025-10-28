@@ -1,10 +1,14 @@
 import styles from './MessageContainer.module.css'
 import IconButton from '../buttons/IconButton';
+import { History, MessageCircleWarning, X } from 'lucide-react';
 
 const MessageContainer = ({}) => {
     return (
         <div className={styles.messageContainer}>
-        <IconButton icon={AlertCircle}></IconButton><div>Сообщения об ошибках</div><button>История</button><button>Закрыть</button>
+        <MessageCircleWarning className={styles.messageIcon}/>
+       <p>Сообщения об ошибках!!!!</p>
+       <IconButton icon={History}/>
+       <IconButton icon={X}/>
         </div>
     )
 }

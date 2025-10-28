@@ -1,0 +1,13 @@
+.docContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    background: var(--blur-bgr-color);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}

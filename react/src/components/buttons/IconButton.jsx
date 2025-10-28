@@ -6,8 +6,6 @@ const IconButton = ({
   onClick, 
   className = '',
   iconClassName = '',
-  color = "currentColor", // Дефолтный цвет
-  hoverColor = "red", // Цвет при наведении
   ...props 
 }) => {
   return (
@@ -19,8 +17,6 @@ const IconButton = ({
     >
       <Icon 
         className={`${styles['icon-button__icon']} ${iconClassName}`}
-        stroke={color} // Передаём цвет в иконку
-        data-hover-color={hoverColor} // Для CSS
       />
     </button>
   );

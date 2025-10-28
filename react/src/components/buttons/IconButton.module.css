@@ -1,23 +1,92 @@
 .icon-button {
-  width: 3rem;
-  height: 3rem;
+  /* Делаем кнопку квадратной */
+  width: 1.6rem;
+  /* Фиксированная ширина */
+  height: 1.6rem;
+  /* Фиксированная высота */
+  margin: calc(4px* var(--multiplier));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem;
+  border: none;
+  padding: 0;
   border-radius: 50%;
+  /* Круг */
   background-color: transparent;
-  transition: all 0.2s;
-}
-
-.icon-button:hover {
-  background-color: rgb(229, 231, 235);
+  outline: none;
+  cursor: pointer;
 }
 
 .icon-button__icon {
-  width: 2rem;
-  height: 2rem;
-  stroke: currentColor; /* Берёт цвет от родителя или пропса */
+  stroke: currentColor;
   transition: stroke 0.2s;
 }
 
-/* Динамический цвет при наведении через data-атрибут */
-.icon-button:hover .icon-button__icon {
-  stroke: var(--hover-color);
+.icon-button__icon:hover {
+  stroke: var(--mid-color);
+}
+
+.errorIcon {
+  stroke: var(--error-color);
+}
+
+.hiddenCheckbox {
+  display: none;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.iconContainer:hover .circleIcon, 
+.iconContainer:hover .checkIcon,
+.checkboxLabel input:focus .circleIcon, 
+.checkboxLabel input:focus .checkIcon
+ {
+  stroke: var(--mid-color);
+}
+
+.checkIcon,
+.circleIcon 
+{
+  height: 1.6rem;
+  width: 1.6rem;
+  transition: stroke 0.2s;
+}
+
+.checkIcon {
+  stroke: var(--main-color);
+}
+
+.checkIcon.hidden,
+.circleIcon.hidden {
+  display: none;
+}
+
+.textButton {
+  display: flex;
+  align-items: center;
+  gap: calc(4x* var(--multiplier));
+  background: var(--mid-color);
+  border-radius: 20px;
+  border: none;
+  color: var(--bgr-color);
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  padding: 6px 16px;
+  transition: background-color 0.2s;
+}
+
+.textButton:active {
+  background-color: var(--mid-color);
+}
+
+.textButton:hover,
+.textButton:focus-visible {
+  background: var(--main-color);
 }

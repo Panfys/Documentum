@@ -1,12 +1,22 @@
 .messageContainer {
-    height: 50px;
-    margin: 5px;
-    margin-top: 0;
+    height: calc(50px* var(--multiplier));
+    margin-top: calc(5px* var(--multiplier));
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 20px;
     background: var(--blur-bgr-color);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+.messageContainer p {
+    font-size: calc(14px* var(--multiplier));
+    color: var(--error-color);
+}
+
+.messageIcon {
+    stroke: var(--error-color);
+    height: 1.6rem;
+    margin-right: calc(3px* var(--multiplier));
 }
